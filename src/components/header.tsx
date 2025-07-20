@@ -6,12 +6,14 @@ import {
   Building2,
   FileBarChart,
   LayoutDashboard,
+  Upload,
 } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +22,20 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { UserNav } from "@/components/user-nav";
+import { usePathname } from 'next/navigation';
 
 export function Header() {
+  const pathname = usePathname();
+  const pathSegments = pathname.split('/').filter(Boolean);
+  
+  const breadcrumbTranslations: { [key: string]: string } = {
+    dashboard: "Tableau de bord",
+    equipment: "Équipement",
+    buildings: "Bâtiments",
+    billing: "Facturation",
+    "upload-bill": "Télécharger Facture",
+  };
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Sheet>
@@ -65,16 +79,51 @@ export function Header() {
               <FileBarChart className="h-5 w-5" />
               Facturation
             </Link>
+             <Link
+              href="/dashboard/upload-bill"
+              className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <Upload className="h-5 w-5" />
+              Télécharger Facture
+            </Link>
           </nav>
         </SheetContent>
       </Sheet>
       <Breadcrumb className="hidden md:flex">
         <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="#">Tableau de bord</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
+          {pathSegments.length > 0 ? (
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/dashboard">Tableau de bord</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+            </>
+          ) : (
+             <BreadcrumbItem>
+              <span className="text-foreground">Tableau de bord</span>
+            </BreadcrumbItem>
+          )}
+
+          {pathSegments.slice(1).map((segment, index) => {
+             const href = `/dashboard/${pathSegments.slice(1, index + 2).join('/')}`;
+             const isLast = index === pathSegments.length - 2;
+            return (
+              <React.Fragment key={href}>
+                <BreadcrumbItem>
+                  {isLast ? (
+                     <span className="text-foreground">{breadcrumbTranslations[segment] || segment}</span>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                        <Link href={href}>{breadcrumbTranslations[segment] || segment}</Link>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+                {!isLast && <BreadcrumbSeparator />}
+              </React.Fragment>
+            )
+          })}
         </BreadcrumbList>
       </Breadcrumb>
       <div className="relative ml-auto flex-1 md:grow-0">
