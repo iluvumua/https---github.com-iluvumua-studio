@@ -1,26 +1,26 @@
 import type { Equipment, Building, Bill, Anomaly } from './types';
 
 export const equipmentData: Equipment[] = [
-  { id: 'EQP-001', name: 'Router-A1', type: 'Network Router', location: 'Building 1 - Floor 2', status: 'Active', lastUpdate: '2023-10-25' },
-  { id: 'EQP-002', name: 'Switch-B1', type: 'Network Switch', location: 'Building 1 - Floor 1', status: 'Active', lastUpdate: '2023-10-24' },
-  { id: 'EQP-003', name: 'Server-C1', type: 'Data Server', location: 'Building 2 - Data Center', status: 'Inactive', lastUpdate: '2023-09-15' },
-  { id: 'EQP-004', name: 'Firewall-D1', type: 'Security Appliance', location: 'Building 1 - Main Office', status: 'Maintenance', lastUpdate: '2023-10-26' },
-  { id: 'EQP-005', name: 'AccessPoint-E1', type: 'Wireless AP', location: 'Building 2 - Floor 3', status: 'Active', lastUpdate: '2023-10-22' },
+  { id: 'EQP-001', name: 'Routeur-A1', type: 'Routeur Réseau', location: 'Bâtiment 1 - Étage 2', status: 'Active', lastUpdate: '2023-10-25' },
+  { id: 'EQP-002', name: 'Switch-B1', type: 'Commutateur Réseau', location: 'Bâtiment 1 - Étage 1', status: 'Active', lastUpdate: '2023-10-24' },
+  { id: 'EQP-003', name: 'Serveur-C1', type: 'Serveur de Données', location: 'Bâtiment 2 - Centre de Données', status: 'Inactive', lastUpdate: '2023-09-15' },
+  { id: 'EQP-004', name: 'Pare-feu-D1', type: 'Appareil de Sécurité', location: 'Bâtiment 1 - Bureau Principal', status: 'Maintenance', lastUpdate: '2023-10-26' },
+  { id: 'EQP-005', name: 'PointAccès-E1', type: 'PA Sans Fil', location: 'Bâtiment 2 - Étage 3', status: 'Active', lastUpdate: '2023-10-22' },
 ];
 
 export const buildingData: Building[] = [
-  { id: 'BLD-01', name: 'Main Office', address: '123 Tech Avenue, Sousse', type: 'Owned', energyManager: 'Ali Ben Salah' },
-  { id: 'BLD-02', name: 'Data Center', address: '456 Innovation Drive, Sousse', type: 'Rented', energyManager: 'Fatma Cherif' },
-  { id: 'BLD-03', name: 'Warehouse', address: '789 Industrial Park, Sousse', type: 'Owned', energyManager: 'Mohamed Ali' },
+  { id: 'BLD-01', name: 'Bureau Principal', address: '123 Avenue de la Technologie, Sousse', type: 'Owned', energyManager: 'Ali Ben Salah' },
+  { id: 'BLD-02', name: 'Centre de Données', address: '456 Allée de l\'Innovation, Sousse', type: 'Rented', energyManager: 'Fatma Cherif' },
+  { id: 'BLD-03', name: 'Entrepôt', address: '789 Parc Industriel, Sousse', type: 'Owned', energyManager: 'Mohamed Ali' },
 ];
 
 export const billingData: Bill[] = [
-    { id: 'BILL-0823-01', buildingId: 'BLD-01', buildingName: 'Main Office', month: 'August 2023', amount: 1250.75, consumptionKWh: 5200, status: 'Paid' },
-    { id: 'BILL-0823-02', buildingId: 'BLD-02', buildingName: 'Data Center', month: 'August 2023', amount: 4800.50, consumptionKWh: 21000, status: 'Paid' },
-    { id: 'BILL-0923-01', buildingId: 'BLD-01', buildingName: 'Main Office', month: 'September 2023', amount: 1320.00, consumptionKWh: 5500, status: 'Paid' },
-    { id: 'BILL-0923-02', buildingId: 'BLD-02', buildingName: 'Data Center', month: 'September 2023', amount: 4750.25, consumptionKWh: 20500, status: 'Paid' },
-    { id: 'BILL-1023-01', buildingId: 'BLD-01', buildingName: 'Main Office', month: 'October 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Unpaid' },
-    { id: 'BILL-1023-02', buildingId: 'BLD-02', buildingName: 'Data Center', month: 'October 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Unpaid' },
+    { id: 'BILL-0823-01', buildingId: 'BLD-01', buildingName: 'Bureau Principal', month: 'Août 2023', amount: 1250.75, consumptionKWh: 5200, status: 'Payée' },
+    { id: 'BILL-0823-02', buildingId: 'BLD-02', buildingName: 'Centre de Données', month: 'Août 2023', amount: 4800.50, consumptionKWh: 21000, status: 'Payée' },
+    { id: 'BILL-0923-01', buildingId: 'BLD-01', buildingName: 'Bureau Principal', month: 'Septembre 2023', amount: 1320.00, consumptionKWh: 5500, status: 'Payée' },
+    { id: 'BILL-0923-02', buildingId: 'BLD-02', buildingName: 'Centre de Données', month: 'Septembre 2023', amount: 4750.25, consumptionKWh: 20500, status: 'Payée' },
+    { id: 'BILL-1023-01', buildingId: 'BLD-01', buildingName: 'Bureau Principal', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée' },
+    { id: 'BILL-1023-02', buildingId: 'BLD-02', buildingName: 'Centre de Données', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée' },
 ];
 
 export const energyConsumptionData = [
@@ -33,7 +33,7 @@ export const energyConsumptionData = [
 ];
 
 export const recentAnomaliesData: Anomaly[] = [
-    { id: 'ANM-001', timestamp: '2023-10-26 03:15', building: 'Data Center', description: 'Unusual 20% spike in consumption overnight.', severity: 'High' },
-    { id: 'ANM-002', timestamp: '2023-10-24 14:00', building: 'Main Office', description: 'Consumption dropped 30% during peak hours.', severity: 'Medium' },
-    { id: 'ANM-003', timestamp: '2023-10-22 09:30', building: 'Warehouse', description: 'Minor fluctuation detected, above 15% threshold.', severity: 'Low' },
+    { id: 'ANM-001', timestamp: '2023-10-26 03:15', building: 'Centre de Données', description: 'Pic inhabituel de 20% de la consommation pendant la nuit.', severity: 'High' },
+    { id: 'ANM-002', timestamp: '2023-10-24 14:00', building: 'Bureau Principal', description: 'La consommation a chuté de 30% pendant les heures de pointe.', severity: 'Medium' },
+    { id: 'ANM-003', timestamp: '2023-10-22 09:30', building: 'Entrepôt', description: 'Fluctuation mineure détectée, au-dessus du seuil de 15%.', severity: 'Low' },
 ];

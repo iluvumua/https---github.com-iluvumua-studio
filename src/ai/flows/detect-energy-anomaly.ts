@@ -33,19 +33,19 @@ const prompt = ai.definePrompt({
   name: 'detectEnergyAnomalyPrompt',
   input: {schema: DetectEnergyAnomalyInputSchema},
   output: {schema: DetectEnergyAnomalyOutputSchema},
-  prompt: `You are an expert energy consumption analyst.
+  prompt: `Vous êtes un expert analyste de la consommation d'énergie. Votre réponse doit être en français.
 
-You are provided with the current energy consumption and the average energy consumption over the last three months.
+On vous fournit la consommation d'énergie actuelle et la consommation d'énergie moyenne des trois derniers mois.
 
-Based on this data, determine if there is an anomaly in the current energy consumption.
-An anomaly is defined as a significant deviation (e.g., more than 15%) from the average consumption.
+Sur la base de ces données, déterminez s'il y a une anomalie dans la consommation d'énergie actuelle.
+Une anomalie est définie comme un écart significatif (par exemple, plus de 15%) par rapport à la consommation moyenne.
 
-Current Consumption: {{{currentConsumption}}}
-Average Consumption (Last 3 Months): {{{averageLastThreeMonths}}}
+Consommation Actuelle: {{{currentConsumption}}}
+Consommation Moyenne (3 derniers mois): {{{averageLastThreeMonths}}}
 
-Consider factors like seasonal variations, but focus on identifying unusual spikes or drops in consumption.
-Set the isAnomaly output field to true if an anomaly is detected; otherwise, set it to false.
-Provide a brief diagnosis explaining the anomaly or indicating normal consumption patterns.
+Prenez en compte des facteurs comme les variations saisonnières, mais concentrez-vous sur l'identification de pics ou de baisses de consommation inhabituels.
+Réglez le champ de sortie isAnomaly sur true si une anomalie est détectée ; sinon, réglez-le sur false.
+Fournissez un bref diagnostic expliquant l'anomalie ou indiquant des schémas de consommation normaux.
 `,
 });
 

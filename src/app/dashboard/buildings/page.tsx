@@ -19,27 +19,32 @@ import { Badge } from "@/components/ui/badge";
 import { buildingData } from "@/lib/data";
 
 export default function BuildingsPage() {
+    const typeTranslations: { [key: string]: string } = {
+        "Owned": "Propriété",
+        "Rented": "Loué",
+    };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
             <div>
-                <CardTitle>Building Management</CardTitle>
+                <CardTitle>Gestion des Bâtiments</CardTitle>
                 <CardDescription>
-                Manage building information for owned and rented properties.
+                Gérer les informations sur les bâtiments possédés et loués.
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Export
+                    Exporter
                     </span>
                 </Button>
                 <Button size="sm" className="h-8 gap-1">
                     <PlusCircle className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Building
+                    Ajouter Bâtiment
                     </span>
                 </Button>
             </div>
@@ -49,10 +54,10 @@ export default function BuildingsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
+              <TableHead>Nom</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead className="text-right">Manager</TableHead>
+              <TableHead>Adresse</TableHead>
+              <TableHead className="text-right">Responsable</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -61,7 +66,7 @@ export default function BuildingsPage() {
                 <TableCell className="font-medium">{building.name}</TableCell>
                 <TableCell>
                   <Badge variant={building.type === 'Owned' ? 'default' : 'secondary'}>
-                    {building.type}
+                    {typeTranslations[building.type] || building.type}
                   </Badge>
                 </TableCell>
                 <TableCell>{building.address}</TableCell>

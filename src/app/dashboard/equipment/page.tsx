@@ -22,26 +22,32 @@ import { equipmentData } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export default function EquipmentPage() {
+    const statusTranslations: { [key: string]: string } = {
+    "Active": "Actif",
+    "Inactive": "Inactif",
+    "Maintenance": "Maintenance",
+    };
+
   return (
     <Tabs defaultValue="all">
       <div className="flex items-center">
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="inactive">Inactive</TabsTrigger>
+          <TabsTrigger value="all">Tous</TabsTrigger>
+          <TabsTrigger value="active">Actif</TabsTrigger>
+          <TabsTrigger value="inactive">Inactif</TabsTrigger>
            <TabsTrigger value="maintenance" className="hidden sm:flex">Maintenance</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Export
+              Exporter
             </span>
           </Button>
           <Button size="sm" className="h-8 gap-1">
             <PlusCircle className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Add Equipment
+              Ajouter Équipement
             </span>
           </Button>
         </div>
@@ -49,20 +55,20 @@ export default function EquipmentPage() {
       <TabsContent value="all">
         <Card>
           <CardHeader>
-            <CardTitle>Network Equipment</CardTitle>
+            <CardTitle>Équipement Réseau</CardTitle>
             <CardDescription>
-              Manage and track all active network equipment.
+              Gérer et suivre tous les équipements réseau actifs.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Statut</TableHead>
                   <TableHead className="hidden md:table-cell">Type</TableHead>
-                  <TableHead className="hidden md:table-cell">Location</TableHead>
-                  <TableHead className="text-right">Last Update</TableHead>
+                  <TableHead className="hidden md:table-cell">Emplacement</TableHead>
+                  <TableHead className="text-right">Dernière Mise à Jour</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -74,7 +80,7 @@ export default function EquipmentPage() {
                         item.status === 'Active' && 'text-green-500 border-green-500/50 bg-green-500/10',
                         item.status === 'Inactive' && 'text-gray-500 border-gray-500/50 bg-gray-500/10',
                         item.status === 'Maintenance' && 'text-amber-500 border-amber-500/50 bg-amber-500/10',
-                      )}>{item.status}</Badge>
+                      )}>{statusTranslations[item.status] || item.status}</Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{item.type}</TableCell>
                     <TableCell className="hidden md:table-cell">{item.location}</TableCell>

@@ -31,11 +31,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const formSchema = z.object({
   currentConsumption: z.coerce
-    .number({ invalid_type_error: "Must be a number" })
-    .positive({ message: "Must be a positive number" }),
+    .number({ invalid_type_error: "Doit être un nombre" })
+    .positive({ message: "Doit être un nombre positif" }),
   averageLastThreeMonths: z.coerce
-    .number({ invalid_type_error: "Must be a number" })
-    .positive({ message: "Must be a positive number" }),
+    .number({ invalid_type_error: "Doit être un nombre" })
+    .positive({ message: "Doit être un nombre positif" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -62,8 +62,8 @@ export function AnomalyDetectorCard() {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to run anomaly detection. Please try again.",
+        title: "Erreur",
+        description: "Échec de la détection d'anomalie. Veuillez réessayer.",
       });
     } finally {
       setIsLoading(false);
@@ -76,10 +76,10 @@ export function AnomalyDetectorCard() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bot /> AI Anomaly Detection
+              <Bot /> Détection d'Anomalie par IA
             </CardTitle>
             <CardDescription>
-              Enter consumption data to detect anomalies using AI.
+              Entrez les données de consommation pour détecter les anomalies à l'aide de l'IA.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-grow space-y-4">
@@ -89,9 +89,9 @@ export function AnomalyDetectorCard() {
                 name="currentConsumption"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Consumption (kWh)</FormLabel>
+                    <FormLabel>Consommation Actuelle (kWh)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 6500" {...field} />
+                      <Input type="number" placeholder="ex: 6500" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,9 +102,9 @@ export function AnomalyDetectorCard() {
                 name="averageLastThreeMonths"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>3-Month Avg. (kWh)</FormLabel>
+                    <FormLabel>Moy. 3 mois (kWh)</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 5400" {...field} />
+                      <Input type="number" placeholder="ex: 5400" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -118,7 +118,7 @@ export function AnomalyDetectorCard() {
                 ) : (
                    <CheckCircle2 className="h-4 w-4 text-green-500" />
                 )}
-                <AlertTitle>{result.isAnomaly ? "Anomaly Detected!" : "Normal Consumption"}</AlertTitle>
+                <AlertTitle>{result.isAnomaly ? "Anomalie Détectée!" : "Consommation Normale"}</AlertTitle>
                 <AlertDescription>{result.diagnosis}</AlertDescription>
               </Alert>
             )}
@@ -127,11 +127,11 @@ export function AnomalyDetectorCard() {
             <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? (
                 <>
-                  <Cpu className="mr-2 h-4 w-4 animate-spin" /> Analyzing...
+                  <Cpu className="mr-2 h-4 w-4 animate-spin" /> Analyse en cours...
                 </>
               ) : (
                 <>
-                  <Zap className="mr-2 h-4 w-4" /> Detect Anomaly
+                  <Zap className="mr-2 h-4 w-4" /> Détecter l'Anomalie
                 </>
               )}
             </Button>

@@ -17,23 +17,29 @@ import { Badge } from "@/components/ui/badge";
 import { recentAnomaliesData } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
+const severityTranslations: { [key: string]: string } = {
+    "High": "Élevée",
+    "Medium": "Moyenne",
+    "Low": "Faible",
+};
+
 export function RecentAnomaliesTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Anomalies</CardTitle>
+        <CardTitle>Anomalies Récentes</CardTitle>
         <CardDescription>
-          Recent AI-detected energy consumption anomalies.
+          Anomalies de consommation d'énergie récemment détectées par l'IA.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Building</TableHead>
+              <TableHead>Bâtiment</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>Severity</TableHead>
-              <TableHead className="text-right">Timestamp</TableHead>
+              <TableHead>Sévérité</TableHead>
+              <TableHead className="text-right">Horodatage</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -53,7 +59,7 @@ export function RecentAnomaliesTable() {
                         "border-blue-500/50 text-blue-500 bg-blue-500/10"
                     )}
                   >
-                    {anomaly.severity}
+                    {severityTranslations[anomaly.severity] || anomaly.severity}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right text-muted-foreground">{anomaly.timestamp}</TableCell>

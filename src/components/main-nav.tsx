@@ -22,25 +22,25 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
   const routes = [
     {
       href: "/dashboard",
-      label: "Dashboard",
+      label: "Tableau de bord",
       icon: LayoutDashboard,
       active: pathname === "/dashboard",
     },
     {
       href: "/dashboard/equipment",
-      label: "Equipment",
+      label: "Équipement",
       icon: Network,
       active: pathname === "/dashboard/equipment",
     },
     {
       href: "/dashboard/buildings",
-      label: "Buildings",
+      label: "Bâtiments",
       icon: Building2,
       active: pathname === "/dashboard/buildings",
     },
     {
       href: "/dashboard/billing",
-      label: "Billing",
+      label: "Facturation",
       icon: FileBarChart,
       active: pathname === "/dashboard/billing",
     },

@@ -22,7 +22,7 @@ export type Bill = {
   month: string;
   amount: number;
   consumptionKWh: number;
-  status: 'Paid' | 'Unpaid';
+  status: 'Payée' | 'Impayée';
 };
 
 export type Anomaly = {

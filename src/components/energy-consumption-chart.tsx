@@ -19,25 +19,39 @@ import { energyConsumptionData } from "@/lib/data";
 
 const chartConfig = {
   building1: {
-    label: "Main Office",
+    label: "Bureau Principal",
     color: "hsl(var(--chart-1))",
   },
   building2: {
-    label: "Data Center",
+    label: "Centre de Données",
     color: "hsl(var(--chart-2))",
   },
 };
 
+const monthTranslations: { [key: string]: string } = {
+  "May": "Mai",
+  "Jun": "Juin",
+  "Jul": "Juil",
+  "Aug": "Août",
+  "Sep": "Sep",
+  "Oct": "Oct",
+};
+
 export function EnergyConsumptionChart() {
+  const translatedData = energyConsumptionData.map(item => ({
+    ...item,
+    month: monthTranslations[item.month] || item.month
+  }));
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Energy Consumption Overview</CardTitle>
-        <CardDescription>May - October 2023 (in kWh)</CardDescription>
+        <CardTitle>Aperçu de la Consommation d'Énergie</CardTitle>
+        <CardDescription>Mai - Octobre 2023 (en kWh)</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-          <BarChart accessibilityLayer data={energyConsumptionData}>
+          <BarChart accessibilityLayer data={translatedData}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"

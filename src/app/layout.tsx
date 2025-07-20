@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "EnerTrack Sousse",
-  description: "Manage and track energy consumption for your facilities.",
+  description: "Gérez et suivez la consommation d'énergie de vos installations.",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="fr" className="dark">
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",

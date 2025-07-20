@@ -12,8 +12,6 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +28,7 @@ export function Header() {
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
             <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle Menu</span>
+            <span className="sr-only">Ouvrir le menu</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="sm:max-w-xs">
@@ -47,25 +45,25 @@ export function Header() {
               className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
             >
               <LayoutDashboard className="h-5 w-5" />
-              Dashboard
+              Tableau de bord
             </Link>
             <Link
               href="/dashboard/equipment"
               className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
             >
               <Network className="h-5 w-5" />
-              Equipment
+              Équipement
             </Link>
             <Link href="/dashboard/buildings" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
               <Building2 className="h-5 w-5" />
-              Buildings
+              Bâtiments
             </Link>
             <Link
               href="/dashboard/billing"
               className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
             >
               <FileBarChart className="h-5 w-5" />
-              Billing
+              Facturation
             </Link>
           </nav>
         </SheetContent>
@@ -74,7 +72,7 @@ export function Header() {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="#">Dashboard</Link>
+              <Link href="#">Tableau de bord</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>

@@ -12,40 +12,40 @@ export default function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Active Equipment
+              Équipement Actif
             </CardTitle>
             <Network className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{equipmentData.filter(e => e.status === 'Active').length}</div>
             <p className="text-xs text-muted-foreground">
-              Total network devices online
+              Total des appareils réseau en ligne
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Managed Buildings
+              Bâtiments Gérés
             </CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{buildingData.length}</div>
             <p className="text-xs text-muted-foreground">
-              Properties under energy management
+              Propriétés sous gestion énergétique
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unpaid Bills</CardTitle>
+            <CardTitle className="text-sm font-medium">Factures Impayées</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{billingData.filter(b => b.status === 'Unpaid').length}</div>
+            <div className="text-2xl font-bold">{billingData.filter(b => b.status === 'Impayée').length}</div>
             <p className="text-xs text-muted-foreground">
-              Awaiting payment this cycle
+              En attente de paiement ce cycle
             </p>
           </CardContent>
         </Card>
