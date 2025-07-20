@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import React from "react";
 import {
   Home,
   Menu,
@@ -91,7 +94,7 @@ export function Header() {
       </Sheet>
       <Breadcrumb className="hidden md:flex">
         <BreadcrumbList>
-          {pathSegments.length > 0 ? (
+          {pathSegments.length > 0 && pathSegments[0] === 'dashboard' && pathSegments.length > 1 ? (
             <>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
@@ -107,7 +110,7 @@ export function Header() {
           )}
 
           {pathSegments.slice(1).map((segment, index) => {
-             const href = `/dashboard/${pathSegments.slice(1, index + 2).join('/')}`;
+             const href = `/${pathSegments.slice(0, index + 2).join('/')}`;
              const isLast = index === pathSegments.length - 2;
             return (
               <React.Fragment key={href}>
