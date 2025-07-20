@@ -5,6 +5,7 @@ import {
   Network,
   Building2,
   FileBarChart,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   Breadcrumb,
@@ -21,7 +22,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { UserNav } from "@/components/user-nav";
-import { MainNav } from "@/components/main-nav";
 
 export function Header() {
   return (
