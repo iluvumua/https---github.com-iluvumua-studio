@@ -1,3 +1,4 @@
+
 import { File } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -61,7 +62,7 @@ export default function EquipmentPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nom</TableHead>
-                  <TableHead>Statut</TableHead>
+                  <TableHead>État</TableHead>
                   <TableHead className="hidden md:table-cell">Type</TableHead>
                   <TableHead className="hidden md:table-cell">Emplacement</TableHead>
                   <TableHead className="text-right">Dernière Mise à Jour</TableHead>
