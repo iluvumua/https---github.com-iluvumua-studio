@@ -1,4 +1,4 @@
-import { PlusCircle, File } from "lucide-react";
+import { File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { billingData } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { AddBillForm } from "@/components/add-bill-form";
 
 export default function BillingPage() {
   const formatCurrency = (amount: number) => {
@@ -48,12 +49,7 @@ export default function BillingPage() {
                     Exporter
                     </span>
                 </Button>
-                <Button size="sm" className="h-8 gap-1">
-                    <PlusCircle className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Ajouter Facture
-                    </span>
-                </Button>
+                <AddBillForm />
             </div>
         </div>
       </CardHeader>

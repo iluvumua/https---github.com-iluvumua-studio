@@ -1,4 +1,4 @@
-import { PlusCircle, File } from "lucide-react";
+import { File } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { equipmentData } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { AddEquipmentForm } from "@/components/add-equipment-form";
 
 export default function EquipmentPage() {
     const statusTranslations: { [key: string]: string } = {
@@ -44,12 +45,7 @@ export default function EquipmentPage() {
               Exporter
             </span>
           </Button>
-          <Button size="sm" className="h-8 gap-1">
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Ajouter Équipement
-            </span>
-          </Button>
+          <AddEquipmentForm />
         </div>
       </div>
       <TabsContent value="all">

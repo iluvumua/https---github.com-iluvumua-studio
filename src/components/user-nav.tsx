@@ -8,27 +8,44 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { CreditCard, LogOut, Settings, User } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase } from "lucide-react";
+import { useUser, UserRole } from "@/hooks/use-user";
+
+const roleIcons = {
+  Financier: Briefcase,
+  'Moyen Bâtiment': Building,
+  Technicien: Wrench,
+}
 
 export function UserNav() {
+  const { user, setUser, availableRoles } = useUser();
+
+  const handleRoleChange = (role: string) => {
+    setUser({ ...user, role: role as UserRole });
+  };
+
+  const CurrentRoleIcon = roleIcons[user.role];
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
             <AvatarImage src="https://placehold.co/100x100" alt="@shadcn" data-ai-hint="user avatar" />
-            <AvatarFallback>AD</AvatarFallback>
+            <AvatarFallback>{user.name.substring(0,2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Admin</p>
+            <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              admin@ener-track.com
+              {user.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -47,6 +64,19 @@ export function UserNav() {
             <span>Paramètres</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Rôle Actuel</DropdownMenuLabel>
+         <DropdownMenuRadioGroup value={user.role} onValueChange={handleRoleChange}>
+            {availableRoles.map(role => {
+              const Icon = roleIcons[role];
+              return (
+                <DropdownMenuRadioItem key={role} value={role}>
+                    <Icon className="mr-2 h-4 w-4" />
+                    {role}
+                </DropdownMenuRadioItem>
+              )
+            })}
+        </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href="/">
