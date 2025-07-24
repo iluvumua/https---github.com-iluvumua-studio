@@ -41,6 +41,8 @@ const localisations = locationsData.map(loc => ({
     abbreviation: loc.abbreviation,
 }));
 
+const districtStegOptions = [...new Set(locationsData.map(loc => loc.districtSteg))];
+
 const formSchema = z.object({
   type: z.string().min(1, "Le type est requis."),
   etat: z.string().min(1, "L'état est requis."),
@@ -82,18 +84,6 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
         coordY: equipment.coordY ?? undefined,
     },
   });
-
-  const watchAllFields = form.watch();
-
-  useEffect(() => {
-    const { localisation } = watchAllFields;
-    if (localisation) {
-        const selectedLocation = locationsData.find(loc => loc.abbreviation === localisation);
-        if (selectedLocation) {
-            form.setValue('districtSteg', selectedLocation.districtSteg, { shouldValidate: true });
-        }
-    }
-  }, [watchAllFields.localisation, form]);
 
   if (user.role !== "Technicien") {
     return null;
@@ -277,15 +267,24 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
                 name="districtSteg"
                 render={({ field }) => (
                   <FormItem className="grid grid-cols-4 items-center gap-4">
                     <FormLabel className="text-right">District STEG</FormLabel>
-                    <FormControl className="col-span-3">
-                      <Input placeholder="ex: Sousse Ville" {...field} />
-                    </FormControl>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                       <FormControl className="col-span-3">
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner le district" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                          {districtStegOptions.map(district => (
+                            <SelectItem key={district} value={district}>{district}</SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage className="col-start-2 col-span-3" />
                   </FormItem>
                 )}
