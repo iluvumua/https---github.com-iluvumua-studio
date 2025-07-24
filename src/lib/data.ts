@@ -1,11 +1,11 @@
 import type { Equipment, Building, Bill, Anomaly } from './types';
 
 export const equipmentData: Equipment[] = [
-  { id: 'EQP-001', name: 'Routeur-A1', type: 'Routeur Réseau', location: 'Bâtiment 1 - Étage 2', status: 'Active', lastUpdate: '2023-10-25' },
-  { id: 'EQP-002', name: 'Switch-B1', type: 'Commutateur Réseau', location: 'Bâtiment 1 - Étage 1', status: 'Active', lastUpdate: '2023-10-24' },
-  { id: 'EQP-003', name: 'Serveur-C1', type: 'Serveur de Données', location: 'Bâtiment 2 - Centre de Données', status: 'Inactive', lastUpdate: '2023-09-15' },
-  { id: 'EQP-004', name: 'Pare-feu-D1', type: 'Appareil de Sécurité', location: 'Bâtiment 1 - Bureau Principal', status: 'Maintenance', lastUpdate: '2023-10-26' },
-  { id: 'EQP-005', name: 'PointAccès-E1', type: 'PA Sans Fil', location: 'Bâtiment 2 - Étage 3', status: 'Active', lastUpdate: '2023-10-22' },
+  { id: 'EQP-001', name: 'Routeur-A1', type: 'Routeur Réseau', location: 'Bâtiment 1 - Étage 2', status: 'Active', lastUpdate: '2023-10-25', fournisseur: 'Alcatel Lucent' },
+  { id: 'EQP-002', name: 'Switch-B1', type: 'Commutateur Réseau', location: 'Bâtiment 1 - Étage 1', status: 'Active', lastUpdate: '2023-10-24', fournisseur: 'Huawei' },
+  { id: 'EQP-003', name: 'Serveur-C1', type: 'Serveur de Données', location: 'Bâtiment 2 - Centre de Données', status: 'Inactive', lastUpdate: '2023-09-15', fournisseur: 'Siemens' },
+  { id: 'EQP-004', name: 'Pare-feu-D1', type: 'Appareil de Sécurité', location: 'Bâtiment 1 - Bureau Principal', status: 'Maintenance', lastUpdate: '2023-10-26', fournisseur: 'Alcatel Lucent' },
+  { id: 'EQP-005', name: 'PointAccès-E1', type: 'PA Sans Fil', location: 'Bâtiment 2 - Étage 3', status: 'Active', lastUpdate: '2023-10-22', fournisseur: 'Nokia Siemens' },
 ];
 
 export const buildingData: Building[] = [
@@ -37,3 +37,5 @@ export const recentAnomaliesData: Anomaly[] = [
     { id: 'ANM-002', timestamp: '2023-10-24 14:00', building: 'Bureau Principal', description: 'La consommation a chuté de 30% pendant les heures de pointe.', severity: 'Medium' },
     { id: 'ANM-003', timestamp: '2023-10-22 09:30', building: 'Entrepôt', description: 'Fluctuation mineure détectée, au-dessus du seuil de 15%.', severity: 'Low' },
 ];
+
+    

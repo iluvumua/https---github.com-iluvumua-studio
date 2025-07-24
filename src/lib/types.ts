@@ -5,6 +5,7 @@ export type Equipment = {
   location: string;
   status: 'Active' | 'Inactive' | 'Maintenance';
   lastUpdate: string;
+  fournisseur?: string;
 };
 
 export type Building = {
@@ -32,3 +33,5 @@ export type Anomaly = {
   description: string;
   severity: 'Low' | 'Medium' | 'High';
 }
+
+    

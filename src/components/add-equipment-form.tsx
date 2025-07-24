@@ -22,6 +22,7 @@ import { useUser } from "@/hooks/use-user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Combobox } from "./ui/combobox";
+import { equipmentData } from "@/lib/data";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -52,8 +53,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-let equipmentCounter = 10;
-
 export function AddEquipmentForm() {
   const { user } = useUser();
   const [generatedName, setGeneratedName] = useState("");
@@ -82,9 +81,17 @@ export function AddEquipmentForm() {
         const locInfo = localisations.find(l => l.value === localisation);
 
         const fAbbr = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
+        
+        // Count existing equipment for the selected supplier to determine the next counter value.
+        const supplierEquipmentCount = equipmentData.filter(eq => {
+            const eqFournisseurInfo = fournisseurs.find(f => f.value === eq.fournisseur);
+            return eqFournisseurInfo?.abbreviation === fAbbr;
+        }).length;
+        
+        const counter = (supplierEquipmentCount + 1).toString().padStart(2, '0');
+
         const lAbbr = locInfo?.abbreviation || localisation.substring(0, 4).toUpperCase();
         const tAbbr = type === 'Indoor' ? 'MSI' : 'MSN';
-        const counter = (equipmentCounter + 1).toString().padStart(2, '0');
         
         setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counter}_${designation}_${typeChassis}`);
     } else {
@@ -99,7 +106,8 @@ export function AddEquipmentForm() {
   
   const onSubmit = (values: FormValues) => {
     console.log({ ...values, generatedName });
-    equipmentCounter++;
+    // This is where you would typically send data to your backend to create the new equipment.
+    // For this prototype, we'll just log it and close the dialog.
     form.reset();
     setGeneratedName("");
     setIsOpen(false);
