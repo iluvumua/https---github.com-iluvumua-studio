@@ -280,7 +280,7 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 )}
               />
                <div className="grid grid-cols-4 items-start gap-4">
-                 <Label className="text-right pt-2">Coordonnées</Label>
+                 <Label className="text-right pt-2">X / Y</Label>
                  <div className="col-span-3 grid grid-cols-2 gap-2">
                     <FormField
                     control={form.control}

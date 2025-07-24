@@ -84,8 +84,8 @@ export default function EquipmentPage() {
                         tension: row["Tension"] || row["tension"] || "N/A",
                         adresseSteg: row["Adresse STEG"] || row["adresseSteg"] || "N/A",
                         districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
-                        coordX: coordX || row["coordX"] || undefined,
-                        coordY: coordY || row["coordY"] || undefined,
+                        coordX: coordX || row["coordX"] || row["X"] || undefined,
+                        coordY: coordY || row["coordY"] || row["Y"] || undefined,
                     }
                 });
 
@@ -159,7 +159,8 @@ export default function EquipmentPage() {
                   <TableHead>Tension</TableHead>
                   <TableHead>Adresse STEG</TableHead>
                   <TableHead>District STEG</TableHead>
-                  <TableHead>Y/X</TableHead>
+                  <TableHead>X</TableHead>
+                  <TableHead>Y</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -180,7 +181,8 @@ export default function EquipmentPage() {
                     <TableCell>{item.tension}</TableCell>
                     <TableCell>{item.adresseSteg}</TableCell>
                     <TableCell>{item.districtSteg}</TableCell>
-                    <TableCell>{item.coordY && item.coordX ? `${item.coordY}, ${item.coordX}`: 'N/A'}</TableCell>
+                    <TableCell>{item.coordX ?? 'N/A'}</TableCell>
+                    <TableCell>{item.coordY ?? 'N/A'}</TableCell>
                     <TableCell>
                         <EditEquipmentForm equipment={item} />
                     </TableCell>
