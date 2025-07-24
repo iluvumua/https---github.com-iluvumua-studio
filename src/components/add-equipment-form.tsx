@@ -25,16 +25,18 @@ import { Combobox } from "./ui/combobox";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
-  { value: "Siemens", label: "Siemens", abbreviation: "SIE" },
-  { value: "Adtran", label: "Adtran", abbreviation: "ADT" },
-  { value: "Huawei", label: "Huawei", abbreviation: "HUA" },
-  { value: "Nokia Siemens", label: "Nokia Siemens", abbreviation: "NOK" },
+  { value: "Siemens", label: "Siemens", abbreviation: "NSN" },
+  { value: "Adtran", label: "Adtran", abbreviation: "NSN" },
+  { value: "Huawei", label: "Huawei", abbreviation: "HUW" },
+  { value: "Nokia Siemens", label: "Nokia Siemens", abbreviation: "NSN" },
 ];
 
 const localisations = [
     { value: "Erriadh", label: "Erriadh", abbreviation: "ERR5" },
     { value: "Sahloul", label: "Sahloul", abbreviation: "SHL2" },
     { value: "Khezama", label: "Khezama", abbreviation: "KHZ1" },
+    { value: "Kantaoui", label: "Kantaoui", abbreviation: "KANT" },
+    { value: "Sahloul 4", label: "Sahloul 4", abbreviation: "SAHL" },
 ];
 
 const formSchema = z.object({
@@ -43,6 +45,9 @@ const formSchema = z.object({
   fournisseur: z.string().min(1, "Le fournisseur est requis."),
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
+  designation: z.string().min(1, "La désignation est requise."),
+  coordX: z.coerce.number().optional(),
+  coordY: z.coerce.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -62,14 +67,17 @@ export function AddEquipmentForm() {
       fournisseur: "",
       localisation: "",
       typeChassis: "",
+      designation: "",
+      coordX: undefined,
+      coordY: undefined,
     },
   });
 
   const watchAllFields = form.watch();
 
   useEffect(() => {
-    const { fournisseur, localisation, type, typeChassis } = watchAllFields;
-    if (fournisseur && localisation && type && typeChassis) {
+    const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
+    if (fournisseur && localisation && type && typeChassis && designation) {
         const fournisseurInfo = fournisseurs.find(f => f.value === fournisseur);
         const locInfo = localisations.find(l => l.value === localisation);
 
@@ -78,7 +86,7 @@ export function AddEquipmentForm() {
         const tAbbr = type === 'Indoor' ? 'MSI' : 'MSN';
         const counter = (equipmentCounter + 1).toString().padStart(2, '0');
         
-        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counter}_${typeChassis}`);
+        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counter}_${designation}_${typeChassis}`);
     } else {
         setGeneratedName("");
     }
@@ -107,7 +115,7 @@ export function AddEquipmentForm() {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-lg">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
@@ -116,7 +124,7 @@ export function AddEquipmentForm() {
                 Remplissez les détails de l'équipement. Le nom sera généré automatiquement.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
               <FormField
                 control={form.control}
                 name="fournisseur"
@@ -207,12 +215,56 @@ export function AddEquipmentForm() {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-4 items-center gap-4">
+               <FormField
+                control={form.control}
+                name="designation"
+                render={({ field }) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">Désignation</FormLabel>
+                    <FormControl className="col-span-3">
+                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} />
+                    </FormControl>
+                    <FormMessage className="col-start-2 col-span-3" />
+                  </FormItem>
+                )}
+              />
+               <div className="grid grid-cols-4 items-start gap-4">
+                 <Label className="text-right pt-2">Coordonnées</Label>
+                 <div className="col-span-3 grid grid-cols-2 gap-2">
+                    <FormField
+                    control={form.control}
+                    name="coordX"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>X</FormLabel>
+                        <FormControl>
+                        <Input type="number" placeholder="Longitude" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="coordY"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Y</FormLabel>
+                        <FormControl>
+                        <Input type="number" placeholder="Latitude" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                 </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4 mt-4">
                 <Label className="text-right">Nom Généré</Label>
                 <Input id="name" readOnly value={generatedName} className="col-span-3 font-mono bg-muted" placeholder="..."/>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="mt-4">
                <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
                <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
                 {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -225,3 +277,5 @@ export function AddEquipmentForm() {
     </Dialog>
   );
 }
+
+    
