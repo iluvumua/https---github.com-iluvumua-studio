@@ -51,6 +51,7 @@ const formSchema = z.object({
   designation: z.string().min(1, "La désignation est requise."),
   tension: z.string().min(1, "La tension est requise."),
   adresseSteg: z.string().min(1, "L'adresse STEG est requise."),
+  districtSteg: z.string().min(1, "Le district STEG est requis."),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
 });
@@ -74,6 +75,7 @@ export function AddEquipmentForm() {
       designation: "",
       tension: "",
       adresseSteg: "",
+      districtSteg: "",
       coordX: undefined,
       coordY: undefined,
     },
@@ -138,6 +140,7 @@ export function AddEquipmentForm() {
         designation: values.designation,
         tension: values.tension,
         adresseSteg: values.adresseSteg,
+        districtSteg: values.districtSteg,
         coordX: values.coordX,
         coordY: values.coordY,
     }
@@ -291,6 +294,19 @@ export function AddEquipmentForm() {
                     <FormLabel className="text-right">Adresse STEG</FormLabel>
                     <FormControl className="col-span-3">
                       <Input placeholder="ex: 123 Rue de l'Avenir" {...field} />
+                    </FormControl>
+                    <FormMessage className="col-start-2 col-span-3" />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="districtSteg"
+                render={({ field }) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">District STEG</FormLabel>
+                    <FormControl className="col-span-3">
+                      <Input placeholder="ex: Sousse Ville" {...field} />
                     </FormControl>
                     <FormMessage className="col-start-2 col-span-3" />
                   </FormItem>

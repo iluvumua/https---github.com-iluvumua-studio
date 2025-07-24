@@ -71,6 +71,7 @@ export default function EquipmentPage() {
                     typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
                     tension: row["Tension"] || row["tension"] || "N/A",
                     adresseSteg: row["Adresse de la Facture Steg"] || row["adresseSteg"] || "N/A",
+                    districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
                     coordX: row["coordX"] || undefined,
                     coordY: row["coordY"] || undefined,
                 }));
@@ -144,6 +145,7 @@ export default function EquipmentPage() {
                   <TableHead>Type de Chassie</TableHead>
                   <TableHead>Tension</TableHead>
                   <TableHead>Adresse STEG</TableHead>
+                  <TableHead>District STEG</TableHead>
                   <TableHead>Coordonnées</TableHead>
                 </TableRow>
               </TableHeader>
@@ -163,6 +165,7 @@ export default function EquipmentPage() {
                     <TableCell>{item.typeChassis}</TableCell>
                     <TableCell>{item.tension}</TableCell>
                     <TableCell>{item.adresseSteg}</TableCell>
+                    <TableCell>{item.districtSteg}</TableCell>
                     <TableCell>{item.coordX && item.coordY ? `${item.coordX}, ${item.coordY}`: 'N/A'}</TableCell>
                   </TableRow>
                 ))}

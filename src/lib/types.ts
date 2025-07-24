@@ -7,8 +7,10 @@ export type Equipment = {
   lastUpdate: string;
   fournisseur?: string;
   typeChassis?: string;
+  designation?: string;
   tension?: string;
   adresseSteg?: string;
+  districtSteg?: string;
   coordX?: number;
   coordY?: number;
 };
@@ -38,5 +40,3 @@ export type Anomaly = {
   description: string;
   severity: 'Low' | 'Medium' | 'High';
 }
-
-    
