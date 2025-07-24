@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File } from "lucide-react";
+import { File, Sheet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -67,6 +67,12 @@ export default function EquipmentPage() {
            <TabsTrigger value="maintenance" className="hidden sm:flex">Maintenance</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
+          <Button size="sm" variant="outline" className="h-8 gap-1">
+            <Sheet className="h-3.5 w-3.5" />
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              Importer
+            </span>
+          </Button>
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
