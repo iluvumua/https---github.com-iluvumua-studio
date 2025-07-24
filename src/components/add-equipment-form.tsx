@@ -24,6 +24,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Combobox } from "./ui/combobox";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Equipment } from "@/lib/types";
+import { locationsData } from "@/lib/locations";
 
 
 const fournisseurs = [
@@ -34,13 +35,11 @@ const fournisseurs = [
   { value: "Nokia Siemens", label: "Nokia Siemens", abbreviation: "NSN" },
 ];
 
-const localisations = [
-    { value: "Erriadh", label: "Erriadh", abbreviation: "ERR5" },
-    { value: "Sahloul", label: "Sahloul", abbreviation: "SHL2" },
-    { value: "Khezama", label: "Khezama", abbreviation: "KHZ1" },
-    { value: "Kantaoui", label: "Kantaoui", abbreviation: "KANT" },
-    { value: "Sahloul 4", label: "Sahloul 4", abbreviation: "SAHL" },
-];
+const localisations = locationsData.map(loc => ({
+    value: loc.abbreviation,
+    label: loc.localite,
+    abbreviation: loc.abbreviation,
+}));
 
 const formSchema = z.object({
   type: z.string().min(1, "Le type est requis."),
@@ -106,6 +105,16 @@ export function AddEquipmentForm() {
         setGeneratedName("");
     }
   }, [watchAllFields, equipment]);
+
+  useEffect(() => {
+    const { localisation } = watchAllFields;
+    if (localisation) {
+        const selectedLocation = locationsData.find(loc => loc.abbreviation === localisation);
+        if (selectedLocation) {
+            form.setValue('districtSteg', selectedLocation.districtSteg, { shouldValidate: true });
+        }
+    }
+  }, [watchAllFields.localisation, form]);
 
 
   if (user.role !== "Technicien") {
