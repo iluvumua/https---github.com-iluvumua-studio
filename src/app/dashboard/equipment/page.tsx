@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { File, Sheet } from "lucide-react";
+import * as XLSX from "xlsx";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,10 +27,12 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { cn } from "@/lib/utils";
 import { AddEquipmentForm } from "@/components/add-equipment-form";
 import type { Equipment } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 export default function EquipmentPage() {
-    const { equipment } = useEquipmentStore();
+    const { equipment, addEquipment } = useEquipmentStore();
     const [activeTab, setActiveTab] = useState("all");
+    const { toast } = useToast();
 
     const statusTranslations: { [key: string]: string } = {
     "Active": "Actif",
@@ -38,19 +41,48 @@ export default function EquipmentPage() {
     };
     
     const getStatusFromString = (status: string): "Active" | "Inactive" | "Maintenance" => {
-        switch (status.toLowerCase()) {
-            case "active":
-            case "actif":
-                return "Active";
-            case "inactive":
-            case "inactif":
-                return "Inactive";
-            case "maintenance":
-                return "Maintenance";
-            default:
-                return "Inactive";
-        }
+        if (!status) return "Inactive";
+        const lowerStatus = status.toLowerCase();
+        if (lowerStatus.includes("actif") || lowerStatus.includes("active")) return "Active";
+        if (lowerStatus.includes("inactif") || lowerStatus.includes("inactive")) return "Inactive";
+        if (lowerStatus.includes("maintenance")) return "Maintenance";
+        return "Inactive";
     }
+
+    const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet) as any[];
+
+                const newEquipments: Equipment[] = json.map((row, index) => ({
+                    id: `EQP-${Date.now()}-${index}`,
+                    name: row["Nom"] || row["name"] || "N/A",
+                    type: row["Type"] || row["type"] || "N/A",
+                    location: row["Emplacement"] || row["location"] || "N/A",
+                    status: getStatusFromString(row["État"] || row["status"]),
+                    lastUpdate: new Date().toISOString().split('T')[0],
+                    fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
+                }));
+
+                newEquipments.forEach(addEquipment);
+
+                toast({
+                    title: "Importation Réussie",
+                    description: `${newEquipments.length} équipements ont été importés avec succès.`,
+                });
+
+            };
+            reader.readAsArrayBuffer(file);
+             // Reset file input to allow re-uploading the same file
+            event.target.value = '';
+        }
+    };
 
     const filteredEquipment = equipment.filter(item => {
         if (activeTab === 'all') return true;
@@ -67,12 +99,18 @@ export default function EquipmentPage() {
            <TabsTrigger value="maintenance" className="hidden sm:flex">Maintenance</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" variant="outline" className="h-8 gap-1">
-            <Sheet className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Importer
-            </span>
-          </Button>
+           <label htmlFor="import-file">
+              <Button size="sm" variant="outline" className="h-8 gap-1" asChild>
+                <span className="cursor-pointer">
+                    <Sheet className="h-3.5 w-3.5" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Importer
+                    </span>
+                </span>
+              </Button>
+            </label>
+            <input type="file" id="import-file" className="hidden" accept=".xlsx, .xls" onChange={handleImport} />
+
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

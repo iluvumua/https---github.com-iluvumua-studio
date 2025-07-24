@@ -12,6 +12,6 @@ export const useEquipmentStore = create<EquipmentState>((set) => ({
   equipment: equipmentData,
   addEquipment: (newEquipment) =>
     set((state) => ({
-      equipment: [...state.equipment, newEquipment],
+      equipment: [newEquipment, ...state.equipment],
     })),
 }));
