@@ -49,6 +49,8 @@ const formSchema = z.object({
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
   designation: z.string().min(1, "La désignation est requise."),
+  tension: z.string().min(1, "La tension est requise."),
+  adresseSteg: z.string().min(1, "L'adresse STEG est requise."),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
 });
@@ -70,6 +72,8 @@ export function AddEquipmentForm() {
       localisation: "",
       typeChassis: "",
       designation: "",
+      tension: "",
+      adresseSteg: "",
       coordX: undefined,
       coordY: undefined,
     },
@@ -129,7 +133,13 @@ export function AddEquipmentForm() {
         location: values.localisation,
         status: getStatusFromString(values.etat),
         lastUpdate: new Date().toISOString().split('T')[0],
-        fournisseur: values.fournisseur
+        fournisseur: values.fournisseur,
+        typeChassis: values.typeChassis,
+        designation: values.designation,
+        tension: values.tension,
+        adresseSteg: values.adresseSteg,
+        coordX: values.coordX,
+        coordY: values.coordY,
     }
     addEquipment(newEquipment);
     form.reset();
@@ -255,6 +265,32 @@ export function AddEquipmentForm() {
                     <FormLabel className="text-right">Désignation</FormLabel>
                     <FormControl className="col-span-3">
                       <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} />
+                    </FormControl>
+                    <FormMessage className="col-start-2 col-span-3" />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="tension"
+                render={({ field }) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">Tension</FormLabel>
+                    <FormControl className="col-span-3">
+                      <Input placeholder="ex: 48V" {...field} />
+                    </FormControl>
+                    <FormMessage className="col-start-2 col-span-3" />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="adresseSteg"
+                render={({ field }) => (
+                  <FormItem className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel className="text-right">Adresse STEG</FormLabel>
+                    <FormControl className="col-span-3">
+                      <Input placeholder="ex: 123 Rue de l'Avenir" {...field} />
                     </FormControl>
                     <FormMessage className="col-start-2 col-span-3" />
                   </FormItem>

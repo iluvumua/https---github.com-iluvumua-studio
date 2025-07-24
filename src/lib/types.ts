@@ -6,6 +6,11 @@ export type Equipment = {
   status: 'Active' | 'Inactive' | 'Maintenance';
   lastUpdate: string;
   fournisseur?: string;
+  typeChassis?: string;
+  tension?: string;
+  adresseSteg?: string;
+  coordX?: number;
+  coordY?: number;
 };
 
 export type Building = {

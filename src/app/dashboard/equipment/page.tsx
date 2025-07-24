@@ -68,6 +68,11 @@ export default function EquipmentPage() {
                     status: getStatusFromString(row["État"] || row["status"]),
                     lastUpdate: new Date().toISOString().split('T')[0],
                     fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
+                    typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
+                    tension: row["Tension"] || row["tension"] || "N/A",
+                    adresseSteg: row["Adresse de la Facture Steg"] || row["adresseSteg"] || "N/A",
+                    coordX: row["coordX"] || undefined,
+                    coordY: row["coordY"] || undefined,
                 }));
 
                 newEquipments.forEach(addEquipment);
@@ -134,10 +139,12 @@ export default function EquipmentPage() {
                 <TableRow>
                   <TableHead>Nom</TableHead>
                   <TableHead>État</TableHead>
-                  <TableHead className="hidden md:table-cell">Type</TableHead>
-                  <TableHead className="hidden md:table-cell">Fournisseur</TableHead>
-                  <TableHead className="hidden md:table-cell">Emplacement</TableHead>
-                  <TableHead className="text-right">Dernière Mise à Jour</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Fournisseur</TableHead>
+                  <TableHead>Type de Chassie</TableHead>
+                  <TableHead>Tension</TableHead>
+                  <TableHead>Adresse STEG</TableHead>
+                  <TableHead>Coordonnées</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -151,10 +158,12 @@ export default function EquipmentPage() {
                         item.status === 'Maintenance' && 'text-amber-500 border-amber-500/50 bg-amber-500/10',
                       )}>{statusTranslations[item.status] || item.status}</Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{item.type}</TableCell>
-                    <TableCell className="hidden md:table-cell">{item.fournisseur}</TableCell>
-                    <TableCell className="hidden md:table-cell">{item.location}</TableCell>
-                    <TableCell className="text-right">{item.lastUpdate}</TableCell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell>{item.fournisseur}</TableCell>
+                    <TableCell>{item.typeChassis}</TableCell>
+                    <TableCell>{item.tension}</TableCell>
+                    <TableCell>{item.adresseSteg}</TableCell>
+                    <TableCell>{item.coordX && item.coordY ? `${item.coordX}, ${item.coordY}`: 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

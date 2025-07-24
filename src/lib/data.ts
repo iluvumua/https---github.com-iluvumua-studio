@@ -1,11 +1,11 @@
 import type { Equipment, Building, Bill, Anomaly } from './types';
 
 export const equipmentData: Equipment[] = [
-  { id: 'EQP-001', name: 'Routeur-A1', type: 'Routeur Réseau', location: 'Bâtiment 1 - Étage 2', status: 'Active', lastUpdate: '2023-10-25', fournisseur: 'Alcatel Lucent' },
-  { id: 'EQP-002', name: 'Switch-B1', type: 'Commutateur Réseau', location: 'Bâtiment 1 - Étage 1', status: 'Active', lastUpdate: '2023-10-24', fournisseur: 'Huawei' },
-  { id: 'EQP-003', name: 'Serveur-C1', type: 'Serveur de Données', location: 'Bâtiment 2 - Centre de Données', status: 'Inactive', lastUpdate: '2023-09-15', fournisseur: 'Siemens' },
-  { id: 'EQP-004', name: 'Pare-feu-D1', type: 'Appareil de Sécurité', location: 'Bâtiment 1 - Bureau Principal', status: 'Maintenance', lastUpdate: '2023-10-26', fournisseur: 'Alcatel Lucent' },
-  { id: 'EQP-005', name: 'PointAccès-E1', type: 'PA Sans Fil', location: 'Bâtiment 2 - Étage 3', status: 'Active', lastUpdate: '2023-10-22', fournisseur: 'Nokia Siemens' },
+  { id: 'EQP-001', name: 'Routeur-A1', type: 'Routeur Réseau', location: 'Bâtiment 1 - Étage 2', status: 'Active', lastUpdate: '2023-10-25', fournisseur: 'Alcatel Lucent', typeChassis: '7302', tension: '48V', adresseSteg: '123 Rue de la Tech', coordX: 10.63, coordY: 35.82 },
+  { id: 'EQP-002', name: 'Switch-B1', type: 'Commutateur Réseau', location: 'Bâtiment 1 - Étage 1', status: 'Active', lastUpdate: '2023-10-24', fournisseur: 'Huawei', typeChassis: 'S5700', tension: '48V', adresseSteg: '123 Rue de la Tech', coordX: 10.63, coordY: 35.82 },
+  { id: 'EQP-003', name: 'Serveur-C1', type: 'Serveur de Données', location: 'Bâtiment 2 - Centre de Données', status: 'Inactive', lastUpdate: '2023-09-15', fournisseur: 'Siemens', typeChassis: 'RX2530', tension: '220V', adresseSteg: '456 Allée de l\'Innovation', coordX: 10.64, coordY: 35.83 },
+  { id: 'EQP-004', name: 'Pare-feu-D1', type: 'Appareil de Sécurité', location: 'Bâtiment 1 - Bureau Principal', status: 'Maintenance', lastUpdate: '2023-10-26', fournisseur: 'Alcatel Lucent', typeChassis: 'ASA 5516', tension: '48V', adresseSteg: '123 Rue de la Tech', coordX: 10.63, coordY: 35.82 },
+  { id: 'EQP-005', name: 'PointAccès-E1', type: 'PA Sans Fil', location: 'Bâtiment 2 - Étage 3', status: 'Active', lastUpdate: '2023-10-22', fournisseur: 'Nokia Siemens', typeChassis: 'AP-305', tension: 'PoE', adresseSteg: '456 Allée de l\'Innovation', coordX: 10.64, coordY: 35.83 },
 ];
 
 export const buildingData: Building[] = [
