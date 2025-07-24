@@ -60,21 +60,33 @@ export default function EquipmentPage() {
                 const worksheet = workbook.Sheets[sheetName];
                 const json = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-                const newEquipments: Equipment[] = json.map((row, index) => ({
-                    id: `EQP-${Date.now()}-${index}`,
-                    name: row["Nom"] || row["name"] || "N/A",
-                    type: row["Type"] || row["type"] || "N/A",
-                    location: row["Emplacement"] || row["location"] || "N/A",
-                    status: getStatusFromString(row["État"] || row["status"]),
-                    lastUpdate: new Date().toISOString().split('T')[0],
-                    fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
-                    typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
-                    tension: row["Tension"] || row["tension"] || "N/A",
-                    adresseSteg: row["Adresse de la Facture Steg"] || row["adresseSteg"] || "N/A",
-                    districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
-                    coordX: row["coordX"] || undefined,
-                    coordY: row["coordY"] || undefined,
-                }));
+                const newEquipments: Equipment[] = json.map((row, index) => {
+                    let coordY: number | undefined;
+                    let coordX: number | undefined;
+
+                    const yx = row["Y/X"];
+                    if(typeof yx === 'string' && yx.includes(',')) {
+                        const parts = yx.split(',');
+                        coordY = parseFloat(parts[0].trim());
+                        coordX = parseFloat(parts[1].trim());
+                    }
+
+                    return {
+                        id: `EQP-${Date.now()}-${index}`,
+                        name: row["Nom_MSAN"] || row["Nom"] || row["name"] || "N/A",
+                        type: row["Type"] || row["type"] || "N/A",
+                        location: row["Emplacement"] || row["location"] || "N/A",
+                        status: getStatusFromString(row["État"] || row["status"]),
+                        lastUpdate: new Date().toISOString().split('T')[0],
+                        fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
+                        typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
+                        tension: row["Tension"] || row["tension"] || "N/A",
+                        adresseSteg: row["Adresse STEG"] || row["adresseSteg"] || "N/A",
+                        districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
+                        coordX: coordX || row["coordX"] || undefined,
+                        coordY: coordY || row["coordY"] || undefined,
+                    }
+                });
 
                 newEquipments.forEach(addEquipment);
 
