@@ -146,7 +146,7 @@ export default function EquipmentPage() {
                   <TableHead>Tension</TableHead>
                   <TableHead>Adresse STEG</TableHead>
                   <TableHead>District STEG</TableHead>
-                  <TableHead>Coordonnées</TableHead>
+                  <TableHead>x/y</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
