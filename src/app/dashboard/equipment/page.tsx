@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { AddEquipmentForm } from "@/components/add-equipment-form";
 import type { Equipment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { EditEquipmentForm } from "@/components/edit-equipment-form";
 
 export default function EquipmentPage() {
     const { equipment, addEquipment } = useEquipmentStore();
@@ -159,6 +160,7 @@ export default function EquipmentPage() {
                   <TableHead>Adresse STEG</TableHead>
                   <TableHead>District STEG</TableHead>
                   <TableHead>Y/X</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -179,6 +181,9 @@ export default function EquipmentPage() {
                     <TableCell>{item.adresseSteg}</TableCell>
                     <TableCell>{item.districtSteg}</TableCell>
                     <TableCell>{item.coordY && item.coordX ? `${item.coordY}, ${item.coordX}`: 'N/A'}</TableCell>
+                    <TableCell>
+                        <EditEquipmentForm equipment={item} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
