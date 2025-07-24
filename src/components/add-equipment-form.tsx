@@ -246,7 +246,7 @@ export function AddEquipmentForm() {
                     <FormItem>
                         <FormLabel>X</FormLabel>
                         <FormControl>
-                        <Input type="number" placeholder="Longitude" {...field} />
+                        <Input type="number" placeholder="Longitude" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -259,7 +259,7 @@ export function AddEquipmentForm() {
                     <FormItem>
                         <FormLabel>Y</FormLabel>
                         <FormControl>
-                        <Input type="number" placeholder="Latitude" {...field} />
+                        <Input type="number" placeholder="Latitude" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -285,5 +285,3 @@ export function AddEquipmentForm() {
     </Dialog>
   );
 }
-
-    
