@@ -138,7 +138,7 @@ export default function EquipmentPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nom</TableHead>
+                  <TableHead>Nom_MSAN</TableHead>
                   <TableHead>État</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Fournisseur</TableHead>
@@ -146,7 +146,7 @@ export default function EquipmentPage() {
                   <TableHead>Tension</TableHead>
                   <TableHead>Adresse STEG</TableHead>
                   <TableHead>District STEG</TableHead>
-                  <TableHead>x/y</TableHead>
+                  <TableHead>Y/X</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -166,7 +166,7 @@ export default function EquipmentPage() {
                     <TableCell>{item.tension}</TableCell>
                     <TableCell>{item.adresseSteg}</TableCell>
                     <TableCell>{item.districtSteg}</TableCell>
-                    <TableCell>{item.coordX && item.coordY ? `${item.coordX}, ${item.coordY}`: 'N/A'}</TableCell>
+                    <TableCell>{item.coordY && item.coordX ? `${item.coordY}, ${item.coordX}`: 'N/A'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
