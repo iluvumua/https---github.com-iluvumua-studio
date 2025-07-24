@@ -91,6 +91,7 @@ export default function EquipmentPage() {
                   <TableHead>Nom</TableHead>
                   <TableHead>État</TableHead>
                   <TableHead className="hidden md:table-cell">Type</TableHead>
+                  <TableHead className="hidden md:table-cell">Fournisseur</TableHead>
                   <TableHead className="hidden md:table-cell">Emplacement</TableHead>
                   <TableHead className="text-right">Dernière Mise à Jour</TableHead>
                 </TableRow>
@@ -107,6 +108,7 @@ export default function EquipmentPage() {
                       )}>{statusTranslations[item.status] || item.status}</Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{item.type}</TableCell>
+                    <TableCell className="hidden md:table-cell">{item.fournisseur}</TableCell>
                     <TableCell className="hidden md:table-cell">{item.location}</TableCell>
                     <TableCell className="text-right">{item.lastUpdate}</TableCell>
                   </TableRow>
