@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState } from "react";
 import { File } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -19,19 +22,43 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { equipmentData } from "@/lib/data";
+import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { cn } from "@/lib/utils";
 import { AddEquipmentForm } from "@/components/add-equipment-form";
+import type { Equipment } from "@/lib/types";
 
 export default function EquipmentPage() {
+    const { equipment } = useEquipmentStore();
+    const [activeTab, setActiveTab] = useState("all");
+
     const statusTranslations: { [key: string]: string } = {
     "Active": "Actif",
     "Inactive": "Inactif",
     "Maintenance": "Maintenance",
     };
+    
+    const getStatusFromString = (status: string): "Active" | "Inactive" | "Maintenance" => {
+        switch (status.toLowerCase()) {
+            case "active":
+            case "actif":
+                return "Active";
+            case "inactive":
+            case "inactif":
+                return "Inactive";
+            case "maintenance":
+                return "Maintenance";
+            default:
+                return "Inactive";
+        }
+    }
+
+    const filteredEquipment = equipment.filter(item => {
+        if (activeTab === 'all') return true;
+        return item.status.toLowerCase() === activeTab;
+    });
 
   return (
-    <Tabs defaultValue="all">
+    <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center">
         <TabsList>
           <TabsTrigger value="all">Tous</TabsTrigger>
@@ -49,12 +76,12 @@ export default function EquipmentPage() {
           <AddEquipmentForm />
         </div>
       </div>
-      <TabsContent value="all">
+      <TabsContent value={activeTab}>
         <Card>
           <CardHeader>
             <CardTitle>Équipement Réseau</CardTitle>
             <CardDescription>
-              Gérer et suivre tous les équipements réseau actifs.
+              Gérer et suivre tous les équipements réseau.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -69,7 +96,7 @@ export default function EquipmentPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {equipmentData.map((item) => (
+                {filteredEquipment.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>

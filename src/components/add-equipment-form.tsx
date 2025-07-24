@@ -22,7 +22,9 @@ import { useUser } from "@/hooks/use-user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Combobox } from "./ui/combobox";
-import { equipmentData } from "@/lib/data";
+import { useEquipmentStore } from "@/hooks/use-equipment-store";
+import type { Equipment } from "@/lib/types";
+
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -55,6 +57,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function AddEquipmentForm() {
   const { user } = useUser();
+  const { equipment, addEquipment } = useEquipmentStore();
   const [generatedName, setGeneratedName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -82,8 +85,7 @@ export function AddEquipmentForm() {
 
         const fAbbr = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
         
-        // Count existing equipment for the selected supplier to determine the next counter value.
-        const supplierEquipmentCount = equipmentData.filter(eq => {
+        const supplierEquipmentCount = equipment.filter(eq => {
             const eqFournisseurInfo = fournisseurs.find(f => f.value === eq.fournisseur);
             return eqFournisseurInfo?.abbreviation === fAbbr;
         }).length;
@@ -97,17 +99,39 @@ export function AddEquipmentForm() {
     } else {
         setGeneratedName("");
     }
-  }, [watchAllFields]);
+  }, [watchAllFields, equipment]);
 
 
   if (user.role !== "Technicien") {
     return null;
   }
   
+    const getStatusFromString = (status: string): "Active" | "Inactive" | "Maintenance" => {
+        switch (status.toLowerCase()) {
+            case "active":
+            case "actif":
+                return "Active";
+            case "inactive":
+            case "inactif":
+                return "Inactive";
+            case "maintenance":
+                return "Maintenance";
+            default:
+                return "Inactive";
+        }
+    }
+
   const onSubmit = (values: FormValues) => {
-    console.log({ ...values, generatedName });
-    // This is where you would typically send data to your backend to create the new equipment.
-    // For this prototype, we'll just log it and close the dialog.
+    const newEquipment: Equipment = {
+        id: `EQP-${Date.now()}`,
+        name: generatedName,
+        type: values.type,
+        location: values.localisation,
+        status: getStatusFromString(values.etat),
+        lastUpdate: new Date().toISOString().split('T')[0],
+        fournisseur: values.fournisseur
+    }
+    addEquipment(newEquipment);
     form.reset();
     setGeneratedName("");
     setIsOpen(false);
