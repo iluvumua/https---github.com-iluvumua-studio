@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlusCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Checkbox } from "./ui/checkbox";
 
 export function AddBuildingForm() {
@@ -102,16 +101,7 @@ export function AddBuildingForm() {
             <Label htmlFor="propriete" className="text-right">
               Propriété
             </Label>
-             <Select>
-                <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Sélectionner le type" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="propriete_tt">Propriété TT</SelectItem>
-                    <SelectItem value="location_ett">Location, ETT</SelectItem>
-                    <SelectItem value="propriete_non_exploite">Propriété TT non exploité</SelectItem>
-                </SelectContent>
-            </Select>
+            <Input id="propriete" placeholder="ex: Propriété TT" className="col-span-3" />
           </div>
         </div>
         <DialogFooter>

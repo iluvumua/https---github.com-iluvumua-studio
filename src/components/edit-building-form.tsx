@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pencil } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Checkbox } from "./ui/checkbox";
 import type { Building } from '@/lib/types';
 
@@ -106,16 +105,7 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
             <Label htmlFor="propriete" className="text-right">
               Propriété
             </Label>
-             <Select defaultValue={building.propriete}>
-                <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Sélectionner le type" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="Propriété TT">Propriété TT</SelectItem>
-                    <SelectItem value="Location, ETT">Location, ETT</SelectItem>
-                    <SelectItem value="Propriété TT non exploité">Propriété TT non exploité</SelectItem>
-                </SelectContent>
-            </Select>
+            <Input id="propriete" defaultValue={building.propriete} className="col-span-3" />
           </div>
         </div>
         <DialogFooter>
