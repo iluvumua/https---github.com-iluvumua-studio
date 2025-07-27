@@ -7,6 +7,7 @@ export const equipmentData: Equipment[] = [
   { id: 'EQP-003', name: 'ALU_SO_HRGL_MSI21_7330', type: 'IPMSAN Indoor', location: 'HRGL', status: 'Active', lastUpdate: '2023-09-15', fournisseur: 'Alcatel Lucent', typeChassis: '7330', tension: '48V', adresseSteg: 'Av Principale Hergla', districtSteg: 'Enfidha', coordX: 10.51041, coordY: 36.028373, designation: 'ALU-Hergla-Sh_A-7330' },
   { id: 'EQP-004', name: 'ALU_SO_KANT_MSN01_MM_Immeuble Zarrouk_7353', type: 'MSAN Outdoor', location: 'KANT', status: 'Maintenance', lastUpdate: '2023-10-26', fournisseur: 'Alcatel Lucent', typeChassis: '7353', tension: '48V', adresseSteg: 'Rte Touristique Kantaoui', districtSteg: 'SOUsse NORD', coordX: 10.589497, coordY: 35.886259, designation: 'ALU_SO_MM_Immeuble Zarrouk _FTTB' },
   { id: 'EQP-005', name: 'HUW_SO_CENN_MSN01_T300', type: 'MSAN Outdoor', location: 'CENN', status: 'Inactive', lastUpdate: '2023-10-22', fournisseur: 'Huawei', typeChassis: 'T300', tension: '48V', adresseSteg: 'Cité Ennour - M\'saken', districtSteg: 'Msaken', coordX: 10.587450, coordY: 35.735262, designation: 'HW_SO_Cite_Ennour1_T300' },
+  { id: 'EQP-006', name: 'ALU_SO_REP_MSI01_7330', type: 'IPMSAN Indoor', location: 'SO01', status: 'Active', lastUpdate: '2023-11-01', fournisseur: 'Alcatel Lucent', typeChassis: '7330', tension: '48V', adresseSteg: 'Av de la République - Sousse 4000', districtSteg: 'SOUSSE CENTRE', coordX: 10.638617, coordY: 35.829169, designation: 'ALU-Republique-Rk_01-Sh_A-7330' },
 ];
 
 export const buildingData: Building[] = [
@@ -25,12 +26,12 @@ export const buildingData: Building[] = [
 ];
 
 export const billingData: Bill[] = [
-    { id: 'BILL-0823-01', reference: '552200', meterId: '552200', month: 'Août 2023', amount: 8911.22, consumptionKWh: 25499, status: 'Payée', typeTension: 'Moyenne Tension' },
-    { id: 'BILL-0823-02', reference: '542300', meterId: '542300', month: 'Août 2023', amount: 5252.54, consumptionKWh: 14938, status: 'Payée', typeTension: 'Moyenne Tension' },
-    { id: 'BILL-0923-01', reference: '542440', meterId: '542440', month: 'Septembre 2023', amount: 2658.48, consumptionKWh: 7471, status: 'Payée', typeTension: 'Moyenne Tension' },
-    { id: 'BILL-0923-02', reference: '545040', meterId: '545040', month: 'Septembre 2023', amount: 49847.26, consumptionKWh: 148560, status: 'Payée', typeTension: 'Moyenne Tension' },
-    { id: 'BILL-1023-01', reference: '597878951', meterId: '597878951', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée', typeTension: 'Basse Tension' },
-    { id: 'BILL-1023-02', reference: '587687455', meterId: '587687455', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0823-01', reference: '552200-AUG23', meterId: '552200', month: 'Août 2023', amount: 8911.22, consumptionKWh: 25499, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0823-02', reference: '542300-AUG23', meterId: '542300', month: 'Août 2023', amount: 5252.54, consumptionKWh: 14938, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0923-01', reference: '542440-SEP23', meterId: '542440', month: 'Septembre 2023', amount: 2658.48, consumptionKWh: 7471, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0923-02', reference: '545040-SEP23', meterId: '545040', month: 'Septembre 2023', amount: 49847.26, consumptionKWh: 148560, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-1023-01', reference: '597878951-OCT23', meterId: '597878951', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée', typeTension: 'Basse Tension' },
+    { id: 'BILL-1023-02', reference: '587687455-OCT23', meterId: '587687455', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée', typeTension: 'Moyenne Tension' },
 ];
 
 export const metersData: Meter[] = [
@@ -41,6 +42,7 @@ export const metersData: Meter[] = [
     { id: '548710', buildingId: '10', typeTension: 'Moyenne Tension', status: 'Actif' },
     { id: '597878951', buildingId: '55', typeTension: 'Basse Tension', status: 'Actif' },
     { id: '587687455', equipmentId: 'EQP-005', typeTension: 'Moyenne Tension', status: 'Inactif' },
+    { id: '552201', equipmentId: 'EQP-006', typeTension: 'Moyenne Tension', status: 'Actif', coordX: 10.638617, coordY: 35.829169 },
 ];
 
 
