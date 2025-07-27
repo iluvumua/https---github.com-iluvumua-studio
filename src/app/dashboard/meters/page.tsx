@@ -74,7 +74,7 @@ export default function MetersPage() {
               const associatedEquipment = equipment.filter(e => e.location === associatedBuilding?.code);
 
               return (
-              <Collapsible asChild key={meter.id} tagName="tbody">
+              <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
                 <>
                   <CollapsibleTrigger asChild>
                     <TableRow className="cursor-pointer">
