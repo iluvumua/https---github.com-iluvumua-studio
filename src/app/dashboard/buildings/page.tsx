@@ -1,3 +1,6 @@
+
+"use client";
+
 import { File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,13 +19,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { buildingData } from "@/lib/data";
 import { AddBuildingForm } from "@/components/add-building-form";
+import { useBuildingsStore } from "@/hooks/use-buildings-store";
+import type { Building } from "@/lib/types";
 
 export default function BuildingsPage() {
-    const typeTranslations: { [key: string]: string } = {
-        "Owned": "Propriété",
-        "Rented": "Loué",
+    const { buildings } = useBuildingsStore();
+
+    const getNatureLabel = (nature: string[]) => {
+        const labels = [];
+        if (nature.includes('A')) labels.push('Adm');
+        if (nature.includes('T')) labels.push('Tech');
+        if (nature.includes('C')) labels.push('Comm');
+        if (nature.includes('D')) labels.push('Dépôt');
+        return labels.join(' + ');
+    };
+
+    const getProprieteBadgeVariant = (propriete: Building['propriete']) => {
+        if (propriete.startsWith('Propriété')) return 'default';
+        if (propriete.startsWith('Location')) return 'secondary';
+        return 'outline';
     };
 
   return (
@@ -50,23 +66,27 @@ export default function BuildingsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Adresse</TableHead>
-              <TableHead className="text-right">Responsable</TableHead>
+              <TableHead>Code Bâtiment</TableHead>
+              <TableHead>Nom du Site</TableHead>
+              <TableHead>Commune</TableHead>
+              <TableHead>Délégation</TableHead>
+              <TableHead>Nature</TableHead>
+              <TableHead>Propriété</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {buildingData.map((building) => (
+            {buildings.map((building) => (
               <TableRow key={building.id}>
-                <TableCell className="font-medium">{building.name}</TableCell>
-                <TableCell>
-                  <Badge variant={building.type === 'Owned' ? 'default' : 'secondary'}>
-                    {typeTranslations[building.type] || building.type}
+                <TableCell className="font-medium">{building.code}</TableCell>
+                <TableCell>{building.name}</TableCell>
+                <TableCell>{building.commune}</TableCell>
+                <TableCell>{building.delegation}</TableCell>
+                <TableCell>{getNatureLabel(building.nature)}</TableCell>
+                 <TableCell>
+                  <Badge variant={getProprieteBadgeVariant(building.propriete)}>
+                    {building.propriete}
                   </Badge>
                 </TableCell>
-                <TableCell>{building.address}</TableCell>
-                <TableCell className="text-right">{building.energyManager}</TableCell>
               </TableRow>
             ))}
           </TableBody>

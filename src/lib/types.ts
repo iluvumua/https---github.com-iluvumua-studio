@@ -17,10 +17,15 @@ export type Equipment = {
 
 export type Building = {
   id: string;
-  name: string;
+  code: string; // Code selon Service Bâtiment
+  name: string; // NOM DU SITE
+  commune: string;
+  delegation: string;
   address: string;
-  type: 'Owned' | 'Rented';
-  energyManager: string;
+  nature: string[]; // Nature can be multiple values (A, T, C, D)
+  propriete: 'Propriété TT' | 'Location, ETT' | 'Propriété TT non exploité' | string; // Proriété
+  coordX?: number;
+  coordY?: number;
 };
 
 export type Bill = {
