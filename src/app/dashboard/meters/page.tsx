@@ -2,6 +2,7 @@
 "use client";
 
 import { PlusCircle, File, Pencil, Trash2, Building, HardDrive } from "lucide-react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -73,7 +74,7 @@ export default function MetersPage() {
               const associatedEquipment = equipment.filter(e => e.location === associatedBuilding?.code);
 
               return (
-              <Collapsible asChild key={meter.id}>
+              <Collapsible asChild key={meter.id} tagName="tbody">
                 <>
                   <CollapsibleTrigger asChild>
                     <TableRow className="cursor-pointer">
