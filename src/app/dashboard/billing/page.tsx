@@ -1,4 +1,4 @@
-import { File } from "lucide-react";
+import { File, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { billingData } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { AddBillForm } from "@/components/add-bill-form";
+import Link from "next/link";
 
 export default function BillingPage() {
   const formatCurrency = (amount: number) => {
@@ -43,6 +44,14 @@ export default function BillingPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" className="h-8 gap-1" asChild>
+                   <Link href="/dashboard/billing/calcul">
+                    <Calculator className="h-3.5 w-3.5" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Calcul de Facture
+                    </span>
+                   </Link>
+                </Button>
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

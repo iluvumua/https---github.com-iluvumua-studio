@@ -42,7 +42,7 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
       href: "/dashboard/billing",
       label: "Facturation",
       icon: FileBarChart,
-      active: pathname === "/dashboard/billing",
+      active: pathname.startsWith("/dashboard/billing"),
     },
   ];
 

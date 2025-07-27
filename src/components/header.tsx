@@ -15,6 +15,7 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export function Header() {
     equipment: "Équipement",
     buildings: "Bâtiments",
     billing: "Facturation",
+    calcul: "Calcul",
   };
 
   return (
@@ -85,18 +87,15 @@ export function Header() {
       </Sheet>
       <Breadcrumb className="hidden md:flex">
         <BreadcrumbList>
-          {pathSegments.length > 0 && pathSegments[0] === 'dashboard' && pathSegments.length > 1 ? (
-            <>
-              <BreadcrumbItem>
+          {pathSegments.length > 0 && pathSegments[0] === 'dashboard' ? (
+             <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <Link href="/dashboard">Tableau de bord</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator />
-            </>
           ) : (
              <BreadcrumbItem>
-              <span className="text-foreground">Tableau de bord</span>
+              <BreadcrumbPage>Tableau de bord</BreadcrumbPage>
             </BreadcrumbItem>
           )}
 
@@ -105,16 +104,16 @@ export function Header() {
              const isLast = index === pathSegments.length - 2;
             return (
               <React.Fragment key={href}>
+                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {isLast ? (
-                     <span className="text-foreground">{breadcrumbTranslations[segment] || segment}</span>
+                     <BreadcrumbPage>{breadcrumbTranslations[segment] || segment}</BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink asChild>
                         <Link href={href}>{breadcrumbTranslations[segment] || segment}</Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
-                {!isLast && <BreadcrumbSeparator />}
               </React.Fragment>
             )
           })}
