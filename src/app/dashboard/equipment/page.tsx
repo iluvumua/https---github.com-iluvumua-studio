@@ -76,8 +76,8 @@ export default function EquipmentPage() {
                         id: `EQP-${Date.now()}-${index}`,
                         name: row["Nom_MSAN"] || row["Nom"] || row["name"] || "N/A",
                         type: row["Type"] || row["type"] || "N/A",
-                        location: row["Emplacement"] || row["location"] || "N/A",
-                        status: getStatusFromString(row["État"] || row["status"]),
+                        location: row["Emplacement"] || row["location"] || row["Code  Abréviation"] || "N/A",
+                        status: getStatusFromString(row["État"] || row["status"] || "Inactive"),
                         lastUpdate: new Date().toISOString().split('T')[0],
                         fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
                         typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
@@ -86,6 +86,7 @@ export default function EquipmentPage() {
                         districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
                         coordX: coordX || row["coordX"] || row["X"] || undefined,
                         coordY: coordY || row["coordY"] || row["Y"] || undefined,
+                        designation: row["Nom de l'MSAN (GéoNetwork)"] || row["Nom Workflow"],
                     }
                 });
 

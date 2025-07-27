@@ -1,13 +1,13 @@
 export type Equipment = {
   id: string;
-  name: string;
+  name: string; // Nom_MSAN
   type: string;
-  location: string;
-  status: 'Active' | 'Inactive' | 'Maintenance';
+  location: string; // Code  Abréviation
+  status: 'Active' | 'Inactive' | 'Maintenance'; // Etat
   lastUpdate: string;
   fournisseur?: string;
   typeChassis?: string;
-  designation?: string;
+  designation?: string; // Nom de l'MSAN (GéoNetwork) ou Nom Workflow
   tension?: string;
   adresseSteg?: string;
   districtSteg?: string;
