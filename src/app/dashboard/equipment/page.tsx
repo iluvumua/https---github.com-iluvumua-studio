@@ -149,26 +149,26 @@ export default function EquipmentPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
+            <Table className="table-fixed w-full">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nom_MSAN</TableHead>
-                  <TableHead>État</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Fournisseur</TableHead>
-                  <TableHead>Type de Chassie</TableHead>
-                  <TableHead>Tension</TableHead>
-                  <TableHead>Adresse STEG</TableHead>
-                  <TableHead>District STEG</TableHead>
-                  <TableHead>X</TableHead>
-                  <TableHead>Y</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead style={{width: '20%'}}>Nom_MSAN</TableHead>
+                  <TableHead style={{width: '8%'}}>État</TableHead>
+                  <TableHead style={{width: '10%'}}>Type</TableHead>
+                  <TableHead style={{width: '10%'}}>Fournisseur</TableHead>
+                  <TableHead style={{width: '10%'}}>Type de Chassie</TableHead>
+                  <TableHead style={{width: '7%'}}>Tension</TableHead>
+                  <TableHead style={{width: '15%'}}>Adresse STEG</TableHead>
+                  <TableHead style={{width: '10%'}}>District STEG</TableHead>
+                  <TableHead style={{width: '5%'}}>X</TableHead>
+                  <TableHead style={{width: '5%'}}>Y</TableHead>
+                  <TableHead style={{width: '5%'}}>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEquipment.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="font-medium truncate">{item.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn(
                         item.status === 'Active' && 'text-green-500 border-green-500/50 bg-green-500/10',
@@ -176,12 +176,12 @@ export default function EquipmentPage() {
                         item.status === 'Maintenance' && 'text-amber-500 border-amber-500/50 bg-amber-500/10',
                       )}>{statusTranslations[item.status] || item.status}</Badge>
                     </TableCell>
-                    <TableCell>{item.type}</TableCell>
-                    <TableCell>{item.fournisseur}</TableCell>
-                    <TableCell>{item.typeChassis}</TableCell>
-                    <TableCell>{item.tension}</TableCell>
-                    <TableCell>{item.adresseSteg}</TableCell>
-                    <TableCell>{item.districtSteg}</TableCell>
+                    <TableCell className="truncate">{item.type}</TableCell>
+                    <TableCell className="truncate">{item.fournisseur}</TableCell>
+                    <TableCell className="truncate">{item.typeChassis}</TableCell>
+                    <TableCell className="truncate">{item.tension}</TableCell>
+                    <TableCell className="truncate">{item.adresseSteg}</TableCell>
+                    <TableCell className="truncate">{item.districtSteg}</TableCell>
                     <TableCell>{item.coordX ?? 'N/A'}</TableCell>
                     <TableCell>{item.coordY ?? 'N/A'}</TableCell>
                     <TableCell>
