@@ -1,4 +1,4 @@
-import { File, Calculator } from "lucide-react";
+import { File, Calculator, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -74,6 +74,7 @@ export default function BillingPage() {
               <TableHead>Statut</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
               <TableHead className="text-right">Montant</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -100,6 +101,16 @@ export default function BillingPage() {
                 </TableCell>
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
                 <TableCell className="text-right font-medium">{formatCurrency(bill.amount)}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

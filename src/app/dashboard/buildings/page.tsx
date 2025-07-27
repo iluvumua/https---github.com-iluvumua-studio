@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File } from "lucide-react";
+import { File, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -72,6 +72,7 @@ export default function BuildingsPage() {
               <TableHead>Délégation</TableHead>
               <TableHead>Nature</TableHead>
               <TableHead>Propriété</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -86,6 +87,16 @@ export default function BuildingsPage() {
                   <Badge variant={getProprieteBadgeVariant(building.propriete)}>
                     {building.propriete}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
