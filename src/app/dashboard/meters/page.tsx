@@ -86,7 +86,7 @@ export default function MetersPage() {
               const associatedEquipment = meter.equipmentId ? equipment.filter(e => e.id === meter.equipmentId) : [];
               const equipmentInBuilding = associatedBuilding ? equipment.filter(e => e.location === associatedBuilding.code) : [];
               
-              const allAssociatedEquipment = [...associatedEquipment, ...equipmentInBuilding];
+              const allAssociatedEquipment = [...new Set([...associatedEquipment, ...equipmentInBuilding])];
 
               return (
               <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
@@ -123,9 +123,8 @@ export default function MetersPage() {
                     </TableRow>
                   </CollapsibleTrigger>
                   <CollapsibleContent asChild>
-                    <tr>
-                      <TableCell colSpan={5} className="p-0">
-                        <div className="p-4 bg-muted/50">
+                    <tr className="bg-muted/50 hover:bg-muted/50">
+                      <TableCell colSpan={5} className="p-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {associatedBuilding && (
                               <Card>
@@ -159,7 +158,6 @@ export default function MetersPage() {
                               </Card>
                             )}
                           </div>
-                        </div>
                       </TableCell>
                     </tr>
                   </CollapsibleContent>
