@@ -9,7 +9,6 @@ import {
   Building2,
   FileBarChart,
   LayoutDashboard,
-  Upload
 } from "lucide-react";
 import {
   Breadcrumb,
@@ -36,7 +35,6 @@ export function Header() {
     equipment: "Équipement",
     buildings: "Bâtiments",
     billing: "Facturation",
-    "upload-bill": "Télécharger Facture",
   };
 
   return (
@@ -81,13 +79,6 @@ export function Header() {
             >
               <FileBarChart className="h-5 w-5" />
               Facturation
-            </Link>
-             <Link
-              href="/dashboard/upload-bill"
-              className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-            >
-              <Upload className="h-5 w-5" />
-              Télécharger Facture
             </Link>
           </nav>
         </SheetContent>

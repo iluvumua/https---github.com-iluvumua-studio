@@ -7,7 +7,6 @@ import {
   FileBarChart,
   LayoutDashboard,
   Network,
-  Upload,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -44,12 +43,6 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
       label: "Facturation",
       icon: FileBarChart,
       active: pathname === "/dashboard/billing",
-    },
-    {
-      href: "/dashboard/upload-bill",
-      label: "Télécharger Facture",
-      icon: Upload,
-      active: pathname === "/dashboard/upload-bill",
     },
   ];
 
