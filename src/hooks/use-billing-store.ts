@@ -7,6 +7,7 @@ interface BillingState {
   bills: Bill[];
   addBill: (bill: Bill) => void;
   updateBill: (updatedBill: Bill) => void;
+  deleteBill: (billId: string) => void;
 }
 
 export const useBillingStore = create<BillingState>((set) => ({
@@ -20,5 +21,9 @@ export const useBillingStore = create<BillingState>((set) => ({
         bills: state.bills.map((item) =>
             item.id === updatedBill.id ? updatedBill : item
         ),
+    })),
+    deleteBill: (billId) =>
+    set((state) => ({
+        bills: state.bills.filter((bill) => bill.id !== billId),
     })),
 }));

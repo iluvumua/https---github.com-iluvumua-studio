@@ -24,9 +24,16 @@ import { cn } from "@/lib/utils";
 import { AddBillForm } from "@/components/add-bill-form";
 import Link from "next/link";
 import { EditBillForm } from "@/components/edit-bill-form";
+import { useMetersStore } from "@/hooks/use-meters-store";
+import { useBuildingsStore } from "@/hooks/use-buildings-store";
+import { useEquipmentStore } from "@/hooks/use-equipment-store";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
+  const { meters } = useMetersStore();
+  const { buildings } = useBuildingsStore();
+  const { equipment } = useEquipmentStore();
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
   }
@@ -37,6 +44,20 @@ export default function BillingPage() {
     "Paid": "Payée",
     "Unpaid": "Impayée",
   };
+
+  const getAssociationName = (meterId: string) => {
+    const meter = meters.find(m => m.id === meterId);
+    if (!meter) return "N/A";
+    if (meter.buildingId) {
+        const building = buildings.find(b => b.id === meter.buildingId);
+        return building?.name || "Bâtiment Inconnu";
+    }
+    if (meter.equipmentId) {
+        const eq = equipment.find(e => e.id === meter.equipmentId);
+        return eq?.name || "Équipement Inconnu";
+    }
+    return "Non Associé";
+  }
 
   return (
     <Card>
@@ -73,7 +94,7 @@ export default function BillingPage() {
             <TableRow>
               <TableHead>N° Facture STEG</TableHead>
               <TableHead>N° Compteur</TableHead>
-              <TableHead>Bâtiment</TableHead>
+              <TableHead>Associé à</TableHead>
               <TableHead>Mois</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Statut</TableHead>
@@ -86,8 +107,8 @@ export default function BillingPage() {
             {bills.map((bill) => (
               <TableRow key={bill.id}>
                 <TableCell className="font-mono">{bill.reference}</TableCell>
-                <TableCell className="font-mono">{bill.compteur}</TableCell>
-                <TableCell className="font-medium">{bill.buildingName}</TableCell>
+                <TableCell className="font-mono">{bill.meterId}</TableCell>
+                <TableCell className="font-medium">{getAssociationName(bill.meterId)}</TableCell>
                 <TableCell>{bill.month}</TableCell>
                 <TableCell>
                   <Badge variant={bill.typeTension === "Moyenne Tension" ? 'secondary' : 'outline'}>

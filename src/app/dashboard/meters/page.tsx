@@ -31,6 +31,18 @@ export default function MetersPage() {
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
 
+  const getAssociationName = (meter: (typeof meters)[0]) => {
+     if (meter.buildingId) {
+      const building = buildings.find(b => b.id === meter.buildingId);
+      return building?.name || `Bâtiment ID: ${meter.buildingId}`;
+    }
+    if (meter.equipmentId) {
+      const eq = equipment.find(e => e.id === meter.equipmentId);
+      return eq?.name || `Équipement ID: ${meter.equipmentId}`;
+    }
+    return "Non Associé";
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -62,7 +74,7 @@ export default function MetersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>N° Compteur STEG</TableHead>
-              <TableHead>Bâtiment Associé</TableHead>
+              <TableHead>Associé à</TableHead>
               <TableHead>Type de Tension</TableHead>
               <TableHead>État</TableHead>
               <TableHead>Actions</TableHead>
@@ -70,8 +82,11 @@ export default function MetersPage() {
           </TableHeader>
            <TableBody>
             {meters.map((meter) => {
-              const associatedBuilding = buildings.find(b => b.id === meter.buildingId);
-              const associatedEquipment = equipment.filter(e => e.location === associatedBuilding?.code);
+              const associatedBuilding = meter.buildingId ? buildings.find(b => b.id === meter.buildingId) : null;
+              const associatedEquipment = meter.equipmentId ? equipment.filter(e => e.id === meter.equipmentId) : [];
+              const equipmentInBuilding = associatedBuilding ? equipment.filter(e => e.location === associatedBuilding.code) : [];
+              
+              const allAssociatedEquipment = [...associatedEquipment, ...equipmentInBuilding];
 
               return (
               <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
@@ -79,7 +94,7 @@ export default function MetersPage() {
                   <CollapsibleTrigger asChild>
                     <TableRow className="cursor-pointer">
                       <TableCell className="font-mono">{meter.id}</TableCell>
-                      <TableCell className="font-medium">{meter.buildingName}</TableCell>
+                      <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
                       <TableCell>
                         <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
                           {meter.typeTension}
@@ -127,7 +142,7 @@ export default function MetersPage() {
                                 </CardContent>
                               </Card>
                             )}
-                            {associatedEquipment.length > 0 && (
+                            {allAssociatedEquipment.length > 0 && (
                                <Card>
                                 <CardHeader>
                                   <CardTitle className="flex items-center gap-2 text-base">
@@ -136,8 +151,8 @@ export default function MetersPage() {
                                 </CardHeader>
                                 <CardContent className="text-sm">
                                   <ul className="list-disc pl-5 space-y-1">
-                                    {associatedEquipment.map(eq => (
-                                        <li key={eq.id}>{eq.name}</li>
+                                    {allAssociatedEquipment.map(eq => (
+                                        <li key={eq.id}>{eq.name} ({eq.type})</li>
                                     ))}
                                   </ul>
                                 </CardContent>

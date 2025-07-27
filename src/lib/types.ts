@@ -27,14 +27,13 @@ export type Building = {
   propriete: 'Propriété TT' | 'Location, ETT' | 'Propriété TT non exploité' | string; // Proriété
   coordX?: number;
   coordY?: number;
+  meterId?: string;
 };
 
 export type Bill = {
   id: string;
   reference: string; // Référence Facture Steg
-  compteur: string; // Numéro du compteur Steg
-  buildingId: string;
-  buildingName: string;
+  meterId: string; // Numéro du compteur Steg
   month: string;
   amount: number;
   consumptionKWh: number;
@@ -44,10 +43,12 @@ export type Bill = {
 
 export type Meter = {
     id: string; // N° Compteur STEG
-    buildingId: string;
-    buildingName: string;
+    buildingId?: string;
+    equipmentId?: string;
     status: 'Actif' | 'Inactif';
     typeTension: 'Moyenne Tension' | 'Basse Tension';
+    coordX?: number;
+    coordY?: number;
 }
 
 export type Anomaly = {
