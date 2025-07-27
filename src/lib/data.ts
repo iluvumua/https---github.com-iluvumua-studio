@@ -19,12 +19,12 @@ export const buildingData: Building[] = [
 ];
 
 export const billingData: Bill[] = [
-    { id: 'BILL-0823-01', buildingId: 'BLD-01', buildingName: 'Bureau Principal', month: 'Août 2023', amount: 1250.75, consumptionKWh: 5200, status: 'Payée' },
-    { id: 'BILL-0823-02', buildingId: 'BLD-02', buildingName: 'Centre de Données', month: 'Août 2023', amount: 4800.50, consumptionKWh: 21000, status: 'Payée' },
-    { id: 'BILL-0923-01', buildingId: 'BLD-01', buildingName: 'Bureau Principal', month: 'Septembre 2023', amount: 1320.00, consumptionKWh: 5500, status: 'Payée' },
-    { id: 'BILL-0923-02', buildingId: 'BLD-02', buildingName: 'Centre de Données', month: 'Septembre 2023', amount: 4750.25, consumptionKWh: 20500, status: 'Payée' },
-    { id: 'BILL-1023-01', buildingId: 'BLD-01', buildingName: 'Bureau Principal', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée' },
-    { id: 'BILL-1023-02', buildingId: 'BLD-02', buildingName: 'Centre de Données', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée' },
+    { id: 'BILL-0823-01', reference: '552200', compteur: 't', buildingId: 'BLD-01', buildingName: 'Complexe Sousse République', month: 'Août 2023', amount: 8911.22, consumptionKWh: 25499, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0823-02', reference: '542300', compteur: 'n/a', buildingId: 'BLD-02', buildingName: 'Central Erriadh', month: 'Août 2023', amount: 5252.54, consumptionKWh: 14938, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0923-01', reference: '542440', compteur: 'n/a', buildingId: 'BLD-01', buildingName: 'Central Erriadh 5', month: 'Septembre 2023', amount: 2658.48, consumptionKWh: 7471, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0923-02', reference: '545040', compteur: '3741669', buildingId: 'BLD-02', buildingName: 'Complexe Catacombes', month: 'Septembre 2023', amount: 49847.26, consumptionKWh: 148560, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-1023-01', reference: '597878951', compteur: '751716', buildingId: 'BLD-01', buildingName: 'Espace TT sahloul', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée', typeTension: 'Basse Tension' },
+    { id: 'BILL-1023-02', reference: '587687455', compteur: '58879', buildingId: 'BLD-02', buildingName: 'Central  & Dépôt Ibn Khaldoun', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée', typeTension: 'Moyenne Tension' },
 ];
 
 export const energyConsumptionData = [

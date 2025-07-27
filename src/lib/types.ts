@@ -30,12 +30,15 @@ export type Building = {
 
 export type Bill = {
   id: string;
+  reference: string; // Référence Facture Steg
+  compteur: string; // Numéro du compteur Steg
   buildingId: string;
   buildingName: string;
   month: string;
   amount: number;
   consumptionKWh: number;
   status: 'Payée' | 'Impayée';
+  typeTension: 'Moyenne Tension' | 'Basse Tension';
 };
 
 export type Anomaly = {

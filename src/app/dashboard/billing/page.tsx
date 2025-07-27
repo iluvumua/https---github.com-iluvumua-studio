@@ -66,8 +66,11 @@ export default function BillingPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>N° Facture STEG</TableHead>
+              <TableHead>N° Compteur</TableHead>
               <TableHead>Bâtiment</TableHead>
               <TableHead>Mois</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
               <TableHead className="text-right">Montant</TableHead>
@@ -76,8 +79,15 @@ export default function BillingPage() {
           <TableBody>
             {billingData.map((bill) => (
               <TableRow key={bill.id}>
+                <TableCell className="font-mono">{bill.reference}</TableCell>
+                <TableCell className="font-mono">{bill.compteur}</TableCell>
                 <TableCell className="font-medium">{bill.buildingName}</TableCell>
                 <TableCell>{bill.month}</TableCell>
+                <TableCell>
+                  <Badge variant={bill.typeTension === "Moyenne Tension" ? 'secondary' : 'outline'}>
+                    {bill.typeTension}
+                  </Badge>
+                </TableCell>
                 <TableCell>
                   <Badge
                     variant="outline"
