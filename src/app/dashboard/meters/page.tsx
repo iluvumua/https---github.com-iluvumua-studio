@@ -1,7 +1,7 @@
 
 "use client";
 
-import { PlusCircle, File, Pencil, Trash2, Building, HardDrive } from "lucide-react";
+import { Pencil, Trash2, Building, HardDrive } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +25,11 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
+import { AddMeterForm } from "@/components/add-meter-form";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 
 export default function MetersPage() {
-  const { meters } = useMetersStore();
+  const { meters, deleteMeter } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
 
@@ -54,18 +56,7 @@ export default function MetersPage() {
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" className="h-8 gap-1">
-              <File className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Exporter
-              </span>
-            </Button>
-            <Button size="sm" className="h-8 gap-1">
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Ajouter Compteur
-                </span>
-            </Button>
+            <AddMeterForm />
           </div>
         </div>
       </CardHeader>
@@ -115,9 +106,10 @@ export default function MetersPage() {
                           <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <DeleteConfirmationDialog 
+                            onConfirm={() => deleteMeter(meter.id)}
+                            itemName={`le compteur N° ${meter.id}`}
+                          />
                         </div>
                       </TableCell>
                     </TableRow>

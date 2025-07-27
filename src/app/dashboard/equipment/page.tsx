@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 
 function EquipmentDetails({ equipment }: { equipment: Equipment }) {
     const { meters } = useMetersStore();
@@ -89,7 +90,7 @@ function EquipmentDetails({ equipment }: { equipment: Equipment }) {
 
 
 export default function EquipmentPage() {
-    const { equipment, addEquipment } = useEquipmentStore();
+    const { equipment, addEquipment, deleteEquipment } = useEquipmentStore();
     const [activeTab, setActiveTab] = useState("all");
     const { toast } = useToast();
 
@@ -246,9 +247,10 @@ export default function EquipmentPage() {
                         <div className="flex items-center gap-1">
                             <EquipmentDetails equipment={item} />
                             <EditEquipmentForm equipment={item} />
-                            <Button variant="ghost" size="icon">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <DeleteConfirmationDialog 
+                                onConfirm={() => deleteEquipment(item.id)}
+                                itemName={`l'équipement ${item.name}`}
+                            />
                         </div>
                     </TableCell>
                   </TableRow>

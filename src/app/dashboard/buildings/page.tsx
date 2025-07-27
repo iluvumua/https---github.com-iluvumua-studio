@@ -23,9 +23,10 @@ import { AddBuildingForm } from "@/components/add-building-form";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Building } from "@/lib/types";
 import { EditBuildingForm } from "@/components/edit-building-form";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 
 export default function BuildingsPage() {
-    const { buildings } = useBuildingsStore();
+    const { buildings, deleteBuilding } = useBuildingsStore();
 
     const getNatureLabel = (nature: string[]) => {
         const labels = [];
@@ -92,9 +93,10 @@ export default function BuildingsPage() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <EditBuildingForm building={building} />
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DeleteConfirmationDialog 
+                        onConfirm={() => deleteBuilding(building.id)}
+                        itemName={`le bâtiment ${building.name}`}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

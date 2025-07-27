@@ -7,6 +7,7 @@ interface MeterState {
   meters: Meter[];
   addMeter: (meter: Meter) => void;
   updateMeter: (updatedMeter: Meter) => void;
+  deleteMeter: (meterId: string) => void;
 }
 
 export const useMetersStore = create<MeterState>((set) => ({
@@ -20,5 +21,9 @@ export const useMetersStore = create<MeterState>((set) => ({
         meters: state.meters.map((item) =>
             item.id === updatedMeter.id ? updatedMeter : item
         ),
+    })),
+    deleteMeter: (meterId) =>
+    set((state) => ({
+        meters: state.meters.filter((meter) => meter.id !== meterId),
     })),
 }));

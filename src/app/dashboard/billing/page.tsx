@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Calculator, Pencil, Trash2 } from "lucide-react";
+import { File, Calculator, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,9 +27,10 @@ import { EditBillForm } from "@/components/edit-bill-form";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 
 export default function BillingPage() {
-  const { bills } = useBillingStore();
+  const { bills, deleteBill } = useBillingStore();
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
@@ -41,8 +42,8 @@ export default function BillingPage() {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' kWh';
   }
   const statusTranslations: { [key: string]: string } = {
-    "Paid": "Payée",
-    "Unpaid": "Impayée",
+    "Payée": "Payée",
+    "Impayée": "Impayée",
   };
 
   const getAssociationName = (meterId: string) => {
@@ -130,9 +131,10 @@ export default function BillingPage() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <EditBillForm bill={bill} />
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DeleteConfirmationDialog 
+                        onConfirm={() => deleteBill(bill.id)}
+                        itemName={`la facture N° ${bill.reference}`}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

@@ -22,7 +22,7 @@ export const useBillingStore = create<BillingState>((set) => ({
             item.id === updatedBill.id ? updatedBill : item
         ),
     })),
-    deleteBill: (billId) =>
+  deleteBill: (billId) =>
     set((state) => ({
         bills: state.bills.filter((bill) => bill.id !== billId),
     })),
