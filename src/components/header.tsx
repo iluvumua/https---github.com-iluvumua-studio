@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -9,6 +10,7 @@ import {
   Building2,
   FileBarChart,
   LayoutDashboard,
+  Gauge,
 } from "lucide-react";
 import {
   Breadcrumb,
@@ -35,6 +37,7 @@ export function Header() {
     dashboard: "Tableau de bord",
     equipment: "Équipement",
     buildings: "Bâtiments",
+    meters: "Compteurs",
     billing: "Facturation",
     calcul: "Calcul",
   };
@@ -74,6 +77,10 @@ export function Header() {
             <Link href="/dashboard/buildings" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
               <Building2 className="h-5 w-5" />
               Bâtiments
+            </Link>
+             <Link href="/dashboard/meters" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
+              <Gauge className="h-5 w-5" />
+              Compteurs
             </Link>
             <Link
               href="/dashboard/billing"

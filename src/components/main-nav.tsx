@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,6 +8,7 @@ import {
   FileBarChart,
   LayoutDashboard,
   Network,
+  Gauge,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -37,6 +39,12 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
       label: "Bâtiments",
       icon: Building2,
       active: pathname === "/dashboard/buildings",
+    },
+    {
+      href: "/dashboard/meters",
+      label: "Compteurs",
+      icon: Gauge,
+      active: pathname.startsWith("/dashboard/meters"),
     },
     {
       href: "/dashboard/billing",

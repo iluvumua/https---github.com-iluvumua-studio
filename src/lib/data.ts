@@ -1,4 +1,5 @@
-import type { Equipment, Building, Bill, Anomaly } from './types';
+
+import type { Equipment, Building, Bill, Anomaly, Meter } from './types';
 
 export const equipmentData: Equipment[] = [
   { id: 'EQP-001', name: 'ALU_SO_ERR5_MSI11_7302', type: 'IPMSAN Indoor', location: 'ERR5', status: 'Active', lastUpdate: '2023-10-25', fournisseur: 'Alcatel Lucent', typeChassis: '7302', tension: '48V', adresseSteg: 'Cité Erriadh 5 - Sousse', districtSteg: 'SOUSSE CENTRE', coordX: 10.5921583, coordY: 35.7995278, designation: 'ALU-Erriadh5-Rk_01-Sh_A-7302' },
@@ -19,13 +20,24 @@ export const buildingData: Building[] = [
 ];
 
 export const billingData: Bill[] = [
-    { id: 'BILL-0823-01', reference: '552200', compteur: 't', buildingId: 'BLD-01', buildingName: 'Complexe Sousse République', month: 'Août 2023', amount: 8911.22, consumptionKWh: 25499, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0823-01', reference: '552200', compteur: 't', buildingId: '1', buildingName: 'Complexe Sousse République', month: 'Août 2023', amount: 8911.22, consumptionKWh: 25499, status: 'Payée', typeTension: 'Moyenne Tension' },
     { id: 'BILL-0823-02', reference: '542300', compteur: 'n/a', buildingId: 'BLD-02', buildingName: 'Central Erriadh', month: 'Août 2023', amount: 5252.54, consumptionKWh: 14938, status: 'Payée', typeTension: 'Moyenne Tension' },
-    { id: 'BILL-0923-01', reference: '542440', compteur: 'n/a', buildingId: 'BLD-01', buildingName: 'Central Erriadh 5', month: 'Septembre 2023', amount: 2658.48, consumptionKWh: 7471, status: 'Payée', typeTension: 'Moyenne Tension' },
-    { id: 'BILL-0923-02', reference: '545040', compteur: '3741669', buildingId: 'BLD-02', buildingName: 'Complexe Catacombes', month: 'Septembre 2023', amount: 49847.26, consumptionKWh: 148560, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0923-01', reference: '542440', compteur: 'n/a', buildingId: '3', buildingName: 'Central Erriadh 5', month: 'Septembre 2023', amount: 2658.48, consumptionKWh: 7471, status: 'Payée', typeTension: 'Moyenne Tension' },
+    { id: 'BILL-0923-02', reference: '545040', compteur: '3741669', buildingId: '3', buildingName: 'Complexe Catacombes', month: 'Septembre 2023', amount: 49847.26, consumptionKWh: 148560, status: 'Payée', typeTension: 'Moyenne Tension' },
     { id: 'BILL-1023-01', reference: '597878951', compteur: '751716', buildingId: 'BLD-01', buildingName: 'Espace TT sahloul', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée', typeTension: 'Basse Tension' },
     { id: 'BILL-1023-02', reference: '587687455', compteur: '58879', buildingId: 'BLD-02', buildingName: 'Central  & Dépôt Ibn Khaldoun', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée', typeTension: 'Moyenne Tension' },
 ];
+
+export const metersData: Meter[] = [
+    { id: '537400', buildingId: '1', buildingName: 'Central Msaken', typeTension: 'Moyenne Tension', status: 'Actif' },
+    { id: '542300', buildingId: '12', buildingName: 'Central Erriadh', typeTension: 'Moyenne Tension', status: 'Actif' },
+    { id: '542440', buildingId: '13', buildingName: 'Central Erriadh 5', typeTension: 'Moyenne Tension', status: 'Actif' },
+    { id: '545040', buildingId: '3', buildingName: 'Complexe Catacombes', typeTension: 'Moyenne Tension', status: 'Actif' },
+    { id: '548710', buildingId: '10', buildingName: 'Dépôt Sidi Abdelhamid', typeTension: 'Moyenne Tension', status: 'Actif' },
+    { id: '597878951', buildingId: '55', buildingName: 'Espace TT sahloul', typeTension: 'Basse Tension', status: 'Actif' },
+    { id: '587687455', buildingId: '10', buildingName: 'Central & Dépôt Ibn Khaldoun', typeTension: 'Moyenne Tension', status: 'Inactif' },
+];
+
 
 export const energyConsumptionData = [
     { month: "May", building1: 5200, building2: 21000 },

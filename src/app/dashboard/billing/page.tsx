@@ -1,3 +1,6 @@
+
+"use client";
+
 import { File, Calculator, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +19,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { billingData } from "@/lib/data";
+import { useBillingStore } from "@/hooks/use-billing-store";
 import { cn } from "@/lib/utils";
 import { AddBillForm } from "@/components/add-bill-form";
 import Link from "next/link";
+import { EditBillForm } from "@/components/edit-bill-form";
 
 export default function BillingPage() {
+  const { bills } = useBillingStore();
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
   }
@@ -78,7 +83,7 @@ export default function BillingPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {billingData.map((bill) => (
+            {bills.map((bill) => (
               <TableRow key={bill.id}>
                 <TableCell className="font-mono">{bill.reference}</TableCell>
                 <TableCell className="font-mono">{bill.compteur}</TableCell>
@@ -103,9 +108,7 @@ export default function BillingPage() {
                 <TableCell className="text-right font-medium">{formatCurrency(bill.amount)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <EditBillForm bill={bill} />
                     <Button variant="ghost" size="icon">
                       <Trash2 className="h-4 w-4" />
                     </Button>

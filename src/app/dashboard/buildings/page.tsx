@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Pencil, Trash2 } from "lucide-react";
+import { File, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { AddBuildingForm } from "@/components/add-building-form";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Building } from "@/lib/types";
+import { EditBuildingForm } from "@/components/edit-building-form";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
@@ -90,9 +91,7 @@ export default function BuildingsPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <EditBuildingForm building={building} />
                     <Button variant="ghost" size="icon">
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -1,3 +1,4 @@
+
 export type Equipment = {
   id: string;
   name: string; // Nom_MSAN
@@ -40,6 +41,14 @@ export type Bill = {
   status: 'Payée' | 'Impayée';
   typeTension: 'Moyenne Tension' | 'Basse Tension';
 };
+
+export type Meter = {
+    id: string; // N° Compteur STEG
+    buildingId: string;
+    buildingName: string;
+    status: 'Actif' | 'Inactif';
+    typeTension: 'Moyenne Tension' | 'Basse Tension';
+}
 
 export type Anomaly = {
   id: string;
