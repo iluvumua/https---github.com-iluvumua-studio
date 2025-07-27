@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet } from "lucide-react";
+import { File, Sheet, Trash2, Info } from "lucide-react";
 import * as XLSX from "xlsx";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,64 @@ import { AddEquipmentForm } from "@/components/add-equipment-form";
 import type { Equipment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { EditEquipmentForm } from "@/components/edit-equipment-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useMetersStore } from "@/hooks/use-meters-store";
+import { useBuildingsStore } from "@/hooks/use-buildings-store";
+
+function EquipmentDetails({ equipment }: { equipment: Equipment }) {
+    const { meters } = useMetersStore();
+    const { buildings } = useBuildingsStore();
+
+    const relatedMeter = meters.find(m => m.equipmentId === equipment.id);
+    const relatedBuilding = buildings.find(b => b.code === equipment.location);
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <Info className="h-4 w-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Détails pour {equipment.name}</DialogTitle>
+                    <DialogDescription>
+                        Informations relatives à cet équipement.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                    {relatedMeter ? (
+                         <div>
+                            <h3 className="font-semibold">Compteur Associé</h3>
+                            <p>N° Compteur: <span className="font-mono">{relatedMeter.id}</span></p>
+                            <p>Type: {relatedMeter.typeTension}</p>
+                            <p>État: {relatedMeter.status}</p>
+                        </div>
+                    ) : (
+                        <p>Aucun compteur directement associé.</p>
+                    )}
+
+                    {equipment.type.toLowerCase().includes('indoor') && relatedBuilding && (
+                        <div>
+                            <h3 className="font-semibold">Bâtiment d'Appartenance</h3>
+                            <p>Nom: {relatedBuilding.name}</p>
+                            <p>Code: {relatedBuilding.code}</p>
+                             <p>Adresse: {relatedBuilding.address}</p>
+                        </div>
+                    )}
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 export default function EquipmentPage() {
     const { equipment, addEquipment } = useEquipmentStore();
@@ -149,20 +207,20 @@ export default function EquipmentPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table className="table-fixed w-full">
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead style={{width: '20%'}}>Nom_MSAN</TableHead>
-                  <TableHead style={{width: '8%'}}>État</TableHead>
-                  <TableHead style={{width: '10%'}}>Type</TableHead>
-                  <TableHead style={{width: '10%'}}>Fournisseur</TableHead>
-                  <TableHead style={{width: '10%'}}>Type de Chassie</TableHead>
-                  <TableHead style={{width: '7%'}}>Tension</TableHead>
-                  <TableHead style={{width: '15%'}}>Adresse STEG</TableHead>
-                  <TableHead style={{width: '10%'}}>District STEG</TableHead>
-                  <TableHead style={{width: '5%'}}>X</TableHead>
-                  <TableHead style={{width: '5%'}}>Y</TableHead>
-                  <TableHead style={{width: '5%'}}>Actions</TableHead>
+                  <TableHead className="w-[200px]">Nom_MSAN</TableHead>
+                  <TableHead>État</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Fournisseur</TableHead>
+                  <TableHead>Type de Chassie</TableHead>
+                  <TableHead>Tension</TableHead>
+                  <TableHead>Adresse STEG</TableHead>
+                  <TableHead>District STEG</TableHead>
+                  <TableHead>X</TableHead>
+                  <TableHead>Y</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -185,7 +243,13 @@ export default function EquipmentPage() {
                     <TableCell>{item.coordX ?? 'N/A'}</TableCell>
                     <TableCell>{item.coordY ?? 'N/A'}</TableCell>
                     <TableCell>
-                        <EditEquipmentForm equipment={item} />
+                        <div className="flex items-center gap-1">
+                            <EquipmentDetails equipment={item} />
+                            <EditEquipmentForm equipment={item} />
+                            <Button variant="ghost" size="icon">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </TableCell>
                   </TableRow>
                 ))}
