@@ -29,9 +29,9 @@ export function LoginForm() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@ener-track.com"
+              placeholder="admin@application.com"
               required
-              defaultValue="admin@ener-track.com"
+              defaultValue="admin@application.com"
             />
           </div>
           <div className="grid gap-2">

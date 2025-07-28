@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "EnerTrack Sousse",
+  title: "Application",
   description: "Gérez et suivez la consommation d'énergie de vos installations.",
 };
 

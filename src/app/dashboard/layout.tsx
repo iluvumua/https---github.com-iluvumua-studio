@@ -23,7 +23,7 @@ export default function DashboardLayout({
             className="flex h-14 items-center justify-center gap-1 rounded-lg bg-primary/10 text-lg font-semibold text-primary "
           >
             <Zap className="h-6 w-6" />
-            <span className="sr-only">EnerTrack Sousse</span>
+            <span className="sr-only">Application</span>
           </Link>
           <MainNav />
           <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
