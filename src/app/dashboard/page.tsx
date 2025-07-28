@@ -1,8 +1,6 @@
 import { Building2, Network, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnergyConsumptionChart } from "@/components/energy-consumption-chart";
-import { AnomalyDetectorCard } from "@/components/anomaly-detector-card";
-import { RecentAnomaliesTable } from "@/components/recent-anomalies-table";
 import { buildingData, equipmentData, billingData } from "@/lib/data";
 
 export default function DashboardPage() {
@@ -51,15 +49,9 @@ export default function DashboardPage() {
         </Card>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7 md:gap-8">
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-7">
             <EnergyConsumptionChart />
         </div>
-        <div className="lg:col-span-3">
-            <AnomalyDetectorCard />
-        </div>
-      </div>
-      <div>
-        <RecentAnomaliesTable />
       </div>
     </div>
   );

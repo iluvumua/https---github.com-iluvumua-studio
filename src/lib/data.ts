@@ -1,5 +1,5 @@
 
-import type { Equipment, Building, Bill, Anomaly, Meter } from './types';
+import type { Equipment, Building, Bill, Meter } from './types';
 
 export const equipmentData: Equipment[] = [
   { id: 'EQP-001', name: 'ALU_SO_ERR5_MSI11_7302', type: 'IPMSAN Indoor', location: 'ERR5', status: 'Active', lastUpdate: '2023-10-25', fournisseur: 'Alcatel Lucent', typeChassis: '7302', tension: '48V', adresseSteg: 'Cité Erriadh 5 - Sousse', districtSteg: 'SOUSSE CENTRE', coordX: 10.5921583, coordY: 35.7995278, designation: 'ALU-Erriadh5-Rk_01-Sh_A-7302' },
@@ -53,10 +53,4 @@ export const energyConsumptionData = [
     { month: "Aug", building1: 5500, building2: 21500 },
     { month: "Sep", building1: 5300, building2: 20500 },
     { month: "Oct", building1: 5400, building2: 22800 },
-];
-
-export const recentAnomaliesData: Anomaly[] = [
-    { id: 'ANM-001', timestamp: '2023-10-26 03:15', building: 'Centre de Données', description: 'Pic inhabituel de 20% de la consommation pendant la nuit.', severity: 'High' },
-    { id: 'ANM-002', timestamp: '2023-10-24 14:00', building: 'Bureau Principal', description: 'La consommation a chuté de 30% pendant les heures de pointe.', severity: 'Medium' },
-    { id: 'ANM-003', timestamp: '2023-10-22 09:30', building: 'Entrepôt', description: 'Fluctuation mineure détectée, au-dessus du seuil de 15%.', severity: 'Low' },
 ];

@@ -50,11 +50,3 @@ export type Meter = {
     coordX?: number;
     coordY?: number;
 }
-
-export type Anomaly = {
-  id: string;
-  timestamp: string;
-  building: string;
-  description: string;
-  severity: 'Low' | 'Medium' | 'High';
-}
