@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Pencil, Trash2, Building, HardDrive } from "lucide-react";
+import { Building, HardDrive, Pencil } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,8 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { AddMeterForm } from "@/components/add-meter-form";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
+import { EditMeterForm } from "@/components/edit-meter-form";
+
 
 export default function MetersPage() {
   const { meters, deleteMeter } = useMetersStore();
@@ -71,7 +73,7 @@ export default function MetersPage() {
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
-           <TableBody>
+          <TableBody>
             {meters.map((meter) => {
               const associatedBuilding = meter.buildingId ? buildings.find(b => b.id === meter.buildingId) : null;
               const associatedEquipment = meter.equipmentId ? equipment.filter(e => e.id === meter.equipmentId) : [];
@@ -80,9 +82,9 @@ export default function MetersPage() {
               const allAssociatedEquipment = [...new Set([...associatedEquipment, ...equipmentInBuilding])];
 
               return (
-                <Collapsible asChild key={meter.id} tagName="tbody">
-                  <React.Fragment>
-                    <TableRow className="border-b">
+                <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
+                    <>
+                    <TableRow>
                         <CollapsibleTrigger asChild>
                             <td colSpan={5} className="p-0">
                                 <div className="flex items-center w-full cursor-pointer">
@@ -105,9 +107,7 @@ export default function MetersPage() {
                                     </div>
                                     <div className="p-2 align-middle w-full">
                                         <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
+                                            <EditMeterForm meter={meter} />
                                             <DeleteConfirmationDialog 
                                                 onConfirm={() => deleteMeter(meter.id)}
                                                 itemName={`le compteur N° ${meter.id}`}
@@ -158,7 +158,7 @@ export default function MetersPage() {
                         </TableCell>
                         </tr>
                     </CollapsibleContent>
-                  </React.Fragment>
+                  </>
               </Collapsible>
             )})}
           </TableBody>
