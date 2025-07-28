@@ -80,80 +80,85 @@ export default function MetersPage() {
               const allAssociatedEquipment = [...new Set([...associatedEquipment, ...equipmentInBuilding])];
 
               return (
-              <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
-                <>
-                  <CollapsibleTrigger asChild>
-                    <TableRow className="cursor-pointer">
-                      <TableCell className="font-mono">{meter.id}</TableCell>
-                      <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
-                      <TableCell>
-                        <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
-                          {meter.typeTension}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            meter.status === 'Actif' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
-                          )}
-                        >
-                          {meter.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <DeleteConfirmationDialog 
-                            onConfirm={() => deleteMeter(meter.id)}
-                            itemName={`le compteur N° ${meter.id}`}
-                          />
-                        </div>
-                      </TableCell>
+                <Collapsible asChild key={meter.id} tagName="tbody">
+                  <React.Fragment>
+                    <TableRow className="border-b">
+                        <CollapsibleTrigger asChild>
+                            <td colSpan={5} className="p-0">
+                                <div className="flex items-center w-full cursor-pointer">
+                                    <div className="p-2 align-middle w-full font-mono"><div className="w-full">{meter.id}</div></div>
+                                    <div className="p-2 align-middle w-full font-medium"><div className="w-full">{getAssociationName(meter)}</div></div>
+                                    <div className="p-2 align-middle w-full">
+                                        <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
+                                            {meter.typeTension}
+                                        </Badge>
+                                    </div>
+                                    <div className="p-2 align-middle w-full">
+                                        <Badge
+                                            variant="outline"
+                                            className={cn(
+                                                meter.status === 'Actif' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
+                                            )}
+                                        >
+                                            {meter.status}
+                                        </Badge>
+                                    </div>
+                                    <div className="p-2 align-middle w-full">
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <DeleteConfirmationDialog 
+                                                onConfirm={() => deleteMeter(meter.id)}
+                                                itemName={`le compteur N° ${meter.id}`}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </CollapsibleTrigger>
                     </TableRow>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent asChild>
-                    <tr className="bg-muted/50 hover:bg-muted/50">
-                      <TableCell colSpan={5} className="p-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {associatedBuilding && (
-                              <Card>
-                                <CardHeader>
-                                  <CardTitle className="flex items-center gap-2 text-base">
-                                    <Building className="h-5 w-5" /> Bâtiment Associé
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-sm space-y-1">
-                                  <p><strong>Code:</strong> {associatedBuilding.code}</p>
-                                  <p><strong>Nom:</strong> {associatedBuilding.name}</p>
-                                  <p><strong>Adresse:</strong> {associatedBuilding.address}</p>
-                                  <p><strong>Commune:</strong> {associatedBuilding.commune}</p>
-                                </CardContent>
-                              </Card>
-                            )}
-                            {allAssociatedEquipment.length > 0 && (
-                               <Card>
-                                <CardHeader>
-                                  <CardTitle className="flex items-center gap-2 text-base">
-                                    <HardDrive className="h-5 w-5" /> Équipements Associés
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-sm">
-                                  <ul className="list-disc pl-5 space-y-1">
-                                    {allAssociatedEquipment.map(eq => (
-                                        <li key={eq.id}>{eq.name} ({eq.type})</li>
-                                    ))}
-                                  </ul>
-                                </CardContent>
-                              </Card>
-                            )}
-                          </div>
-                      </TableCell>
-                    </tr>
-                  </CollapsibleContent>
-                </>
+
+                    <CollapsibleContent asChild>
+                        <tr className="bg-muted/50 hover:bg-muted/50">
+                        <TableCell colSpan={5} className="p-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {associatedBuilding && (
+                                <Card>
+                                    <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <Building className="h-5 w-5" /> Bâtiment Associé
+                                    </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-sm space-y-1">
+                                    <p><strong>Code:</strong> {associatedBuilding.code}</p>
+                                    <p><strong>Nom:</strong> {associatedBuilding.name}</p>
+                                    <p><strong>Adresse:</strong> {associatedBuilding.address}</p>
+                                    <p><strong>Commune:</strong> {associatedBuilding.commune}</p>
+                                    </CardContent>
+                                </Card>
+                                )}
+                                {allAssociatedEquipment.length > 0 && (
+                                <Card>
+                                    <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <HardDrive className="h-5 w-5" /> Équipements Associés
+                                    </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-sm">
+                                    <ul className="list-disc pl-5 space-y-1">
+                                        {allAssociatedEquipment.map(eq => (
+                                            <li key={eq.id}>{eq.name} ({eq.type})</li>
+                                        ))}
+                                    </ul>
+                                    </CardContent>
+                                </Card>
+                                )}
+                            </div>
+                        </TableCell>
+                        </tr>
+                    </CollapsibleContent>
+                  </React.Fragment>
               </Collapsible>
             )})}
           </TableBody>
