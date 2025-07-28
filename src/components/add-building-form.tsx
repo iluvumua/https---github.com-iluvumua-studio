@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Loader2 } from "lucide-react";
+import { PlusCircle, Loader2, MapPin } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { Checkbox } from "./ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
@@ -24,6 +24,7 @@ import { useBuildingsStore } from '@/hooks/use-buildings-store';
 import { useMetersStore } from '@/hooks/use-meters-store';
 import type { Building } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 const natureOptions = [
     { id: 'A', label: 'Administratif' },
@@ -54,6 +55,7 @@ export function AddBuildingForm() {
   const { addBuilding } = useBuildingsStore();
   const { meters } = useMetersStore();
   const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,6 +75,20 @@ export function AddBuildingForm() {
 
   if (user.role !== "Moyen Bâtiment") {
     return null;
+  }
+
+  const handleGeolocate = () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            form.setValue('coordX', position.coords.longitude);
+            form.setValue('coordY', position.coords.latitude);
+            toast({ title: "Localisation Récupérée", description: "Les coordonnées ont été mises à jour." });
+        }, (error) => {
+            toast({ variant: "destructive", title: "Erreur de Géolocalisation", description: "Impossible de récupérer votre position." });
+        });
+    } else {
+        toast({ variant: "destructive", title: "Erreur", description: "La géolocalisation n'est pas supportée par votre navigateur." });
+    }
   }
   
   const onSubmit = (values: FormValues) => {
@@ -179,9 +195,15 @@ export function AddBuildingForm() {
                     )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                     <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormLabel>X (Longitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 10.638617" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                     <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 35.829169" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                         <FormLabel>Coordonnées</FormLabel>
+                         <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Actuelle</Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormLabel>X (Longitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 10.638617" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 35.829169" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    </div>
                 </div>
             </div>
             <DialogFooter className="mt-4">
