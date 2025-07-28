@@ -83,7 +83,8 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
   const onSubmit = (values: FormValues) => {
     const updatedBuilding: Building = {
         ...building,
-        ...values
+        ...values,
+        meterId: values.meterId === 'none' ? undefined : values.meterId,
     };
     updateBuilding(updatedBuilding);
     setIsOpen(false);
@@ -132,7 +133,7 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
                                         checked={field.value?.includes(item.id)}
                                         onCheckedChange={(checked) => {
                                         return checked
-                                            ? field.onChange([...field.value, item.id])
+                                            ? field.onChange([...(field.value || []), item.id])
                                             : field.onChange(
                                                 field.value?.filter(
                                                 (value) => value !== item.id
@@ -168,7 +169,7 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="">Aucun</SelectItem>
+                                <SelectItem value="none">Aucun</SelectItem>
                                 {meters.map(meter => (
                                     <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
                                 ))}
