@@ -39,8 +39,20 @@ export type Bill = {
   consumptionKWh: number;
   status: 'Payée' | 'Impayée';
   typeTension: 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire';
+  
+  // Basse tension fields
   ancienIndex?: number;
   nouveauIndex?: number;
+
+  // Moyen tension horaire fields
+  ancien_index_jour?: number;
+  nouveau_index_jour?: number;
+  ancien_index_pointe?: number;
+  nouveau_index_pointe?: number;
+  ancien_index_soir?: number;
+  nouveau_index_soir?: number;
+  ancien_index_nuit?: number;
+  nouveau_index_nuit?: number;
 };
 
 export type Meter = {
