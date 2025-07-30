@@ -1,3 +1,7 @@
+
+"use client";
+
+import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -8,10 +12,14 @@ import {
 import { MoyenTensionForm } from "@/components/moyen-tension-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasseTensionForm } from "@/components/basse-tension-form";
+import { Suspense } from 'react';
 
-export default function CalculPage() {
+function Calcul() {
+  const searchParams = useSearchParams();
+  const type = searchParams.get('type') || 'basse-tension';
+
   return (
-    <Tabs defaultValue="basse-tension">
+    <Tabs defaultValue={type}>
       <div className="flex items-center">
          <TabsList>
             <TabsTrigger value="basse-tension">Basse Tension</TabsTrigger>
@@ -51,4 +59,12 @@ export default function CalculPage() {
       </TabsContent>
     </Tabs>
   );
+}
+
+export default function CalculPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <Calcul />
+        </Suspense>
+    )
 }

@@ -62,6 +62,16 @@ export default function BillingPage() {
     return "Non Associé";
   }
 
+  const getCalculHref = (bill: Bill) => {
+    let type = 'basse-tension';
+    if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
+        type = 'moyen-tension-horaire';
+    } else if (bill.typeTension === 'Moyen Tension Forfaitaire') {
+        type = 'moyen-tension-forfait';
+    }
+    return `/dashboard/billing/calcul?type=${type}`;
+  }
+
   return (
     <TooltipProvider>
     <Card>
@@ -135,7 +145,7 @@ export default function BillingPage() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                          <Button variant="ghost" size="icon" asChild>
-                            <Link href="/dashboard/billing/calcul">
+                            <Link href={getCalculHref(bill)}>
                                 <Calculator className="h-4 w-4" />
                             </Link>
                          </Button>
