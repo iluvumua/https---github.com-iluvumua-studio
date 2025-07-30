@@ -83,42 +83,37 @@ export default function MetersPage() {
 
               return (
                 <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
-                    <>
-                    <TableRow>
-                        <CollapsibleTrigger asChild>
-                            <td colSpan={5} className="p-0">
-                                <div className="flex items-center w-full cursor-pointer">
-                                    <div className="p-2 align-middle w-full font-mono"><div className="w-full">{meter.id}</div></div>
-                                    <div className="p-2 align-middle w-full font-medium"><div className="w-full">{getAssociationName(meter)}</div></div>
-                                    <div className="p-2 align-middle w-full">
-                                        <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
-                                            {meter.typeTension}
-                                        </Badge>
-                                    </div>
-                                    <div className="p-2 align-middle w-full">
-                                        <Badge
-                                            variant="outline"
-                                            className={cn(
-                                                meter.status === 'Actif' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
-                                            )}
-                                        >
-                                            {meter.status}
-                                        </Badge>
-                                    </div>
-                                    <div className="p-2 align-middle w-full">
-                                        <div className="flex items-center gap-2">
-                                            <EditMeterForm meter={meter} />
-                                            <DeleteConfirmationDialog 
-                                                onConfirm={() => deleteMeter(meter.id)}
-                                                itemName={`le compteur N° ${meter.id}`}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </CollapsibleTrigger>
-                    </TableRow>
-
+                  <>
+                    <CollapsibleTrigger asChild>
+                      <TableRow className="cursor-pointer">
+                        <TableCell className="font-mono">{meter.id}</TableCell>
+                        <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
+                        <TableCell>
+                          <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
+                            {meter.typeTension}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              meter.status === 'Actif' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
+                            )}
+                          >
+                            {meter.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <EditMeterForm meter={meter} />
+                            <DeleteConfirmationDialog 
+                              onConfirm={() => deleteMeter(meter.id)}
+                              itemName={`le compteur N° ${meter.id}`}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    </CollapsibleTrigger>
                     <CollapsibleContent asChild>
                         <tr className="bg-muted/50 hover:bg-muted/50">
                         <TableCell colSpan={5} className="p-4">
@@ -159,7 +154,7 @@ export default function MetersPage() {
                         </tr>
                     </CollapsibleContent>
                   </>
-              </Collapsible>
+                </Collapsible>
             )})}
           </TableBody>
         </Table>
