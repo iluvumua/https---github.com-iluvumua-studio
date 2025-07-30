@@ -143,9 +143,9 @@ export default function EquipmentPage() {
                         tension: row["Tension"] || row["tension"] || "N/A",
                         adresseSteg: row["Adresse STEG"] || row["adresseSteg"] || "N/A",
                         districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
-                        coordX: coordX || row["coordX"] || row["X"] || undefined,
-                        coordY: coordY || row["coordY"] || row["Y"] || undefined,
-                        designation: row["Nom de l'MSAN (GéoNetwork)"] || row["Nom Workflow"],
+                        coordX: coordX || row["coordX"] || row["X_Localisation"] || undefined,
+                        coordY: coordY || row["coordY"] || row["Y_Localisation"] || undefined,
+                        designation: row["Nom de l'MSAN (GéoNetwork)"] || row["Nom Workflow"] || row["Nom \nEquipement / Bâtiment"],
                     }
                 });
 
