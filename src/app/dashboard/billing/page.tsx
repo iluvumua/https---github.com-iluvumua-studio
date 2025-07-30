@@ -28,6 +28,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
+import type { Bill } from "@/lib/types";
 
 export default function BillingPage() {
   const { bills, deleteBill } = useBillingStore();
@@ -45,6 +46,19 @@ export default function BillingPage() {
     "Payée": "Payée",
     "Impayée": "Impayée",
   };
+
+  const getTypeTensionVariant = (typeTension: Bill['typeTension']) => {
+    switch (typeTension) {
+        case 'Basse Tension':
+            return 'outline';
+        case 'Moyen Tension Tranche Horaire':
+            return 'secondary';
+        case 'Moyen Tension Forfaitaire':
+            return 'default';
+        default:
+            return 'outline';
+    }
+  }
 
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
@@ -112,7 +126,7 @@ export default function BillingPage() {
                 <TableCell className="font-medium">{getAssociationName(bill.meterId)}</TableCell>
                 <TableCell>{bill.month}</TableCell>
                 <TableCell>
-                  <Badge variant={bill.typeTension === "Moyenne Tension" ? 'secondary' : 'outline'}>
+                  <Badge variant={getTypeTensionVariant(bill.typeTension)}>
                     {bill.typeTension}
                   </Badge>
                 </TableCell>

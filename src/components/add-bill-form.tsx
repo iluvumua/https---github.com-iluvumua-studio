@@ -30,7 +30,7 @@ const formSchema = z.object({
   month: z.string().min(1, "Le mois est requis."),
   consumptionKWh: z.coerce.number().positive("La consommation est requise."),
   amount: z.coerce.number().positive("Le montant est requis."),
-  typeTension: z.enum(["Moyenne Tension", "Basse Tension"]),
+  typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
   status: z.enum(["Payée", "Impayée"]),
 });
 
@@ -50,7 +50,7 @@ export function AddBillForm() {
         month: "",
         consumptionKWh: 0,
         amount: 0,
-        typeTension: "Moyenne Tension",
+        typeTension: "Basse Tension",
         status: "Impayée",
     }
   });
@@ -176,8 +176,9 @@ export function AddBillForm() {
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="Moyenne Tension">Moyenne Tension</SelectItem>
                                 <SelectItem value="Basse Tension">Basse Tension</SelectItem>
+                                <SelectItem value="Moyen Tension Forfaitaire">Moyen Tension Forfaitaire</SelectItem>
+                                <SelectItem value="Moyen Tension Tranche Horaire">Moyen Tension Tranche Horaire</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormMessage className="col-start-2 col-span-3" />
