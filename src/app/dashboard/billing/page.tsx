@@ -29,6 +29,7 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import type { Bill } from "@/lib/types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function BillingPage() {
   const { bills, deleteBill } = useBillingStore();
@@ -62,6 +63,7 @@ export default function BillingPage() {
   }
 
   return (
+    <TooltipProvider>
     <Card>
       <CardHeader>
          <div className="flex items-center justify-between">
@@ -72,14 +74,6 @@ export default function BillingPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="h-8 gap-1" asChild>
-                   <Link href="/dashboard/billing/calcul">
-                    <Calculator className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Calcul de Facture
-                    </span>
-                   </Link>
-                </Button>
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -138,6 +132,18 @@ export default function BillingPage() {
                 <TableCell className="text-right font-medium">{formatCurrency(bill.amount)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                         <Button variant="ghost" size="icon" asChild>
+                            <Link href="/dashboard/billing/calcul">
+                                <Calculator className="h-4 w-4" />
+                            </Link>
+                         </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Calculer la facture</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <EditBillForm bill={bill} />
                     <DeleteConfirmationDialog 
                         onConfirm={() => deleteBill(bill.id)}
@@ -151,5 +157,6 @@ export default function BillingPage() {
         </Table>
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }
