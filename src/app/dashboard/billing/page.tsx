@@ -47,19 +47,6 @@ export default function BillingPage() {
     "Impayée": "Impayée",
   };
 
-  const getTypeTensionVariant = (typeTension: Bill['typeTension']) => {
-    switch (typeTension) {
-        case 'Basse Tension':
-            return 'outline';
-        case 'Moyen Tension Tranche Horaire':
-            return 'secondary';
-        case 'Moyen Tension Forfaitaire':
-            return 'default';
-        default:
-            return 'outline';
-    }
-  }
-
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
     if (!meter) return "N/A";
@@ -126,7 +113,14 @@ export default function BillingPage() {
                 <TableCell className="font-medium">{getAssociationName(bill.meterId)}</TableCell>
                 <TableCell>{bill.month}</TableCell>
                 <TableCell>
-                  <Badge variant={getTypeTensionVariant(bill.typeTension)}>
+                  <Badge
+                    variant="outline"
+                    className={cn({
+                      'text-blue-500 border-blue-500/50 bg-blue-500/10': bill.typeTension === 'Basse Tension',
+                      'text-purple-500 border-purple-500/50 bg-purple-500/10': bill.typeTension === 'Moyen Tension Tranche Horaire',
+                      'text-orange-500 border-orange-500/50 bg-orange-500/10': bill.typeTension === 'Moyen Tension Forfaitaire',
+                    })}
+                  >
                     {bill.typeTension}
                   </Badge>
                 </TableCell>
