@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,13 +28,35 @@ const formSchema = z.object({
   reference: z.string().min(1, "La référence est requise."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   month: z.string().min(1, "Le mois est requis."),
-  consumptionKWh: z.coerce.number().positive("La consommation est requise."),
-  amount: z.coerce.number().positive("Le montant est requis."),
+  consumptionKWh: z.coerce.number(),
+  amount: z.coerce.number(),
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
   status: z.enum(["Payée", "Impayée"]),
+  ancienIndex: z.coerce.number().optional(),
+  nouveauIndex: z.coerce.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const pu = {
+    tranche1: 0.195,
+    tranche2: 0.239,
+    tranche3: 0.330,
+    tranche4: 0.408,
+}
+const redevances_fixes = 28.000;
+const tva = 5.320;
+const contr_ertt = 0.000;
+
+const calculateMontantConsommation = (cons: number) => {
+    let montant = 0;
+    let rest = cons;
+    if (rest > 0) { const t4 = Math.max(0, rest - 200); montant += t4 * pu.tranche4; rest -= t4; }
+    if (rest > 0) { const t3 = Math.max(0, rest - 100); montant += t3 * pu.tranche3; rest -= t3; }
+    if (rest > 0) { const t2 = Math.max(0, rest - 50); montant += t2 * pu.tranche2; rest -= t2; }
+    if (rest > 0) { montant += rest * pu.tranche1; }
+    return montant;
+}
 
 export function AddBillForm() {
   const { user } = useUser();
@@ -52,8 +74,28 @@ export function AddBillForm() {
         amount: 0,
         typeTension: "Basse Tension",
         status: "Impayée",
+        ancienIndex: 0,
+        nouveauIndex: 0,
     }
   });
+
+  const watchTypeTension = form.watch("typeTension");
+  const watchAncienIndex = form.watch("ancienIndex");
+  const watchNouveauIndex = form.watch("nouveauIndex");
+
+  useEffect(() => {
+    if (watchTypeTension === "Basse Tension") {
+        const consommation = Math.max(0, (watchNouveauIndex || 0) - (watchAncienIndex || 0));
+        const montant_consommation = calculateMontantConsommation(consommation);
+        const total_consommation = montant_consommation + redevances_fixes;
+        const total_taxes = contr_ertt + tva;
+        const montant_a_payer = total_consommation + total_taxes;
+        
+        form.setValue("consumptionKWh", consommation);
+        form.setValue("amount", parseFloat(montant_a_payer.toFixed(3)));
+    }
+  }, [watchTypeTension, watchAncienIndex, watchNouveauIndex, form]);
+
 
   if (user.role !== "Financier") {
     return null;
@@ -62,7 +104,15 @@ export function AddBillForm() {
   const onSubmit = (values: FormValues) => {
     const newBill: Bill = {
         id: `BILL-${Date.now()}`,
-        ...values,
+        reference: values.reference,
+        meterId: values.meterId,
+        month: values.month,
+        status: values.status,
+        typeTension: values.typeTension,
+        consumptionKWh: values.consumptionKWh,
+        amount: values.amount,
+        ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
+        nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
     };
     addBill(newBill);
     form.reset();
@@ -89,123 +139,81 @@ export function AddBillForm() {
                 </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-                <FormField
-                    control={form.control}
-                    name="reference"
-                    render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right">N° Facture</FormLabel>
-                        <FormControl className="col-span-3">
-                        <Input placeholder="ex: 552200-AUG23" {...field} />
-                        </FormControl>
-                        <FormMessage className="col-start-2 col-span-3" />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="meterId"
-                    render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right">N° Compteur</FormLabel>
+                <FormField control={form.control} name="reference" render={({ field }) => (
+                    <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input placeholder="ex: 552200-AUG23" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                
+                <FormField control={form.control} name="meterId" render={({ field }) => (
+                    <FormItem><FormLabel>N° Compteur</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl className="col-span-3">
-                                <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un compteur" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {meters.map(meter => (
-                                    <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
-                                ))}
-                            </SelectContent>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
+                            <SelectContent>{meters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>))}</SelectContent>
                         </Select>
-                        <FormMessage className="col-start-2 col-span-3" />
+                        <FormMessage />
                     </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="month"
-                    render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right">Mois</FormLabel>
-                        <FormControl className="col-span-3">
-                        <Input placeholder="ex: Août 2023" {...field} />
-                        </FormControl>
-                        <FormMessage className="col-start-2 col-span-3" />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="consumptionKWh"
-                    render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right">Consommation (kWh)</FormLabel>
-                        <FormControl className="col-span-3">
-                        <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage className="col-start-2 col-span-3" />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right">Montant (TND)</FormLabel>
-                        <FormControl className="col-span-3">
-                        <Input type="number" step="0.01" {...field} />
-                        </FormControl>
-                        <FormMessage className="col-start-2 col-span-3" />
-                    </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="typeTension"
-                    render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right">Type Tension</FormLabel>
+                )} />
+
+                <FormField control={form.control} name="month" render={({ field }) => (
+                    <FormItem><FormLabel>Mois</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+
+                <FormField control={form.control} name="typeTension" render={({ field }) => (
+                    <FormItem><FormLabel>Type Tension</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl className="col-span-3">
-                                <SelectTrigger>
-                                <SelectValue />
-                                </SelectTrigger>
-                            </FormControl>
+                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
                                 <SelectItem value="Basse Tension">Basse Tension</SelectItem>
                                 <SelectItem value="Moyen Tension Forfaitaire">Moyen Tension Forfaitaire</SelectItem>
                                 <SelectItem value="Moyen Tension Tranche Horaire">Moyen Tension Tranche Horaire</SelectItem>
                             </SelectContent>
                         </Select>
-                        <FormMessage className="col-start-2 col-span-3" />
+                        <FormMessage />
                     </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                    <FormItem className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right">Statut</FormLabel>
+                )} />
+
+                {watchTypeTension === 'Basse Tension' && (
+                    <>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={form.control} name="ancienIndex" render={({ field }) => (
+                                <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
+                                <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
+                    </>
+                )}
+                
+                <FormField control={form.control} name="consumptionKWh" render={({ field }) => (
+                    <FormItem><FormLabel>Consommation (kWh)</FormLabel>
+                        <FormControl>
+                            <Input type="number" {...field} readOnly={watchTypeTension === 'Basse Tension'} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+
+                <FormField control={form.control} name="amount" render={({ field }) => (
+                    <FormItem><FormLabel>Montant (TND)</FormLabel>
+                        <FormControl>
+                            <Input type="number" step="0.001" {...field} readOnly={watchTypeTension === 'Basse Tension'}/>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
+
+                <FormField control={form.control} name="status" render={({ field }) => (
+                    <FormItem><FormLabel>Statut</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl className="col-span-3">
-                                <SelectTrigger>
-                                <SelectValue />
-                                </SelectTrigger>
-                            </FormControl>
+                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
                                <SelectItem value="Impayée">Impayée</SelectItem>
                                <SelectItem value="Payée">Payée</SelectItem>
                             </SelectContent>
                         </Select>
-                        <FormMessage className="col-start-2 col-span-3" />
+                        <FormMessage />
                     </FormItem>
-                    )}
-                />
+                )} />
 
                 </div>
                 <DialogFooter className="mt-4">
