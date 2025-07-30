@@ -202,7 +202,7 @@ export default function EquipmentPage() {
       <TabsContent value={activeTab}>
         <Card>
           <CardHeader>
-            <CardTitle>Équipement Réseau</CardTitle>
+            <CardTitle>Gestion des équipement </CardTitle>
             <CardDescription>
               Gérer et suivre tous les équipements réseau.
             </CardDescription>
