@@ -28,8 +28,8 @@ const formSchema = z.object({
   reference: z.string().min(1, "La référence est requise."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   month: z.string().min(1, "Le mois est requis."),
-  consumptionKWh: z.coerce.number(),
-  amount: z.coerce.number(),
+  consumptionKWh: z.coerce.number().optional(),
+  amount: z.coerce.number().optional(),
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
   status: z.enum(["Payée", "Impayée"]),
   
@@ -46,6 +46,12 @@ const formSchema = z.object({
   nouveau_index_soir: z.coerce.number().optional(),
   ancien_index_nuit: z.coerce.number().optional(),
   nouveau_index_nuit: z.coerce.number().optional(),
+}).refine(data => {
+    if (data.typeTension === "Moyen Tension Forfaitaire" && data.amount === undefined) return false;
+    return true;
+}, {
+    message: "Le montant est requis pour le type Forfaitaire.",
+    path: ["amount"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -115,8 +121,6 @@ export function AddBillForm() {
         reference: "",
         meterId: "",
         month: "",
-        consumptionKWh: 0,
-        amount: 0,
         typeTension: "Basse Tension",
         status: "Impayée",
     }
@@ -134,7 +138,21 @@ export function AddBillForm() {
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
     }
-  }, [watchedValues, form]);
+  }, [
+    watchedValues.typeTension,
+    watchedValues.ancienIndex,
+    watchedValues.nouveauIndex,
+    watchedValues.ancien_index_jour,
+    watchedValues.nouveau_index_jour,
+    watchedValues.ancien_index_pointe,
+    watchedValues.nouveau_index_pointe,
+    watchedValues.ancien_index_soir,
+    watchedValues.nouveau_index_soir,
+    watchedValues.ancien_index_nuit,
+    watchedValues.nouveau_index_nuit,
+    form.setValue,
+    form
+  ]);
 
 
   if (user.role !== "Financier") {
@@ -168,6 +186,7 @@ export function AddBillForm() {
   }
   
   const isCalculated = watchedValues.typeTension === 'Basse Tension' || watchedValues.typeTension === 'Moyen Tension Tranche Horaire';
+  const isForfait = watchedValues.typeTension === 'Moyen Tension Forfaitaire';
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -209,7 +228,25 @@ export function AddBillForm() {
 
                 <FormField control={form.control} name="typeTension" render={({ field }) => (
                     <FormItem><FormLabel>Type Tension</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={(value) => {
+                            form.setValue('typeTension', value as any);
+                            form.reset({
+                                ...form.getValues(),
+                                typeTension: value as any,
+                                consumptionKWh: 0,
+                                amount: 0,
+                                ancienIndex: undefined,
+                                nouveauIndex: undefined,
+                                ancien_index_jour: undefined,
+                                nouveau_index_jour: undefined,
+                                ancien_index_pointe: undefined,
+                                nouveau_index_pointe: undefined,
+                                ancien_index_soir: undefined,
+                                nouveau_index_soir: undefined,
+                                ancien_index_nuit: undefined,
+                                nouveau_index_nuit: undefined,
+                            });
+                        }} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
                                 <SelectItem value="Basse Tension">Basse Tension</SelectItem>
@@ -256,7 +293,7 @@ export function AddBillForm() {
                 <FormField control={form.control} name="consumptionKWh" render={({ field }) => (
                     <FormItem><FormLabel>Consommation (kWh)</FormLabel>
                         <FormControl>
-                            <Input type="number" {...field} readOnly={isCalculated} />
+                            <Input type="number" {...field} readOnly={isCalculated} disabled={isForfait} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
