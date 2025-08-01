@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Trash2 } from "lucide-react";
+import { File, Trash2, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -65,6 +65,18 @@ export default function BuildingsPage() {
         </div>
       </CardHeader>
       <CardContent>
+        {buildings.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Building2 className="h-16 w-16 text-muted-foreground" />
+                <h3 className="mt-6 text-xl font-semibold">Aucun bâtiment trouvé</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Commencez par ajouter votre premier bâtiment pour le voir ici.
+                </p>
+                <div className="mt-6">
+                    <AddBuildingForm />
+                </div>
+            </div>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -103,6 +115,7 @@ export default function BuildingsPage() {
             ))}
           </TableBody>
         </Table>
+        )}
       </CardContent>
     </Card>
   );

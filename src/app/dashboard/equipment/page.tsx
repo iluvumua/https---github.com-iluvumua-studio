@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet, Trash2, Info } from "lucide-react";
+import { File, Sheet, Trash2, Info, Network } from "lucide-react";
 import * as XLSX from "xlsx";
 
 import { Button } from "@/components/ui/button";
@@ -208,6 +208,18 @@ export default function EquipmentPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {filteredEquipment.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <Network className="h-16 w-16 text-muted-foreground" />
+                    <h3 className="mt-6 text-xl font-semibold">Aucun équipement trouvé</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                        Commencez par importer ou ajouter un nouvel équipement.
+                    </p>
+                    <div className="mt-6">
+                        <AddEquipmentForm />
+                    </div>
+                </div>
+            ) : (
             <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
@@ -257,6 +269,7 @@ export default function EquipmentPage() {
                 ))}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
       </TabsContent>

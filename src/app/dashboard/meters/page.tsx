@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +63,18 @@ export default function MetersPage() {
         </div>
       </CardHeader>
       <CardContent>
+        {meters.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Gauge className="h-16 w-16 text-muted-foreground" />
+                <h3 className="mt-6 text-xl font-semibold">Aucun compteur trouvé</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Commencez par ajouter votre premier compteur pour le voir ici.
+                </p>
+                <div className="mt-6">
+                    <AddMeterForm />
+                </div>
+            </div>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -158,6 +170,7 @@ export default function MetersPage() {
             )})}
           </TableBody>
         </Table>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Calculator, Trash2 } from "lucide-react";
+import { File, Calculator, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -95,6 +95,18 @@ export default function BillingPage() {
         </div>
       </CardHeader>
       <CardContent>
+        {bills.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <FileText className="h-16 w-16 text-muted-foreground" />
+                <h3 className="mt-6 text-xl font-semibold">Aucune facture trouvée</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Commencez par ajouter votre première facture pour la voir ici.
+                </p>
+                <div className="mt-6">
+                    <AddBillForm />
+                </div>
+            </div>
+        ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -165,6 +177,7 @@ export default function BillingPage() {
             ))}
           </TableBody>
         </Table>
+        )}
       </CardContent>
     </Card>
     </TooltipProvider>
