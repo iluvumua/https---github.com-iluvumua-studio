@@ -6,18 +6,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Pencil, MapPin } from "lucide-react";
+import { Loader2, MapPin, Save, X } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
@@ -26,7 +17,8 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Equipment } from "@/lib/types";
 import { locationsData } from "@/lib/locations";
 import { useToast } from "@/hooks/use-toast";
-
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -45,6 +37,7 @@ const localisations = locationsData.map(loc => ({
 const districtStegOptions = [...new Set(locationsData.map(loc => loc.districtSteg))];
 
 const formSchema = z.object({
+  name: z.string().optional(),
   type: z.string().min(1, "Le type est requis."),
   etat: z.string().min(1, "L'état est requis."),
   fournisseur: z.string().min(1, "Le fournisseur est requis."),
@@ -60,36 +53,62 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface EditEquipmentFormProps {
-    equipment: Equipment;
+interface EquipmentFormProps {
+    equipment?: Equipment;
 }
 
-export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
+export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProps) {
   const { user } = useUser();
-  const { updateEquipment } = useEquipmentStore();
-  const [isOpen, setIsOpen] = useState(false);
+  const { equipment: allEquipment, addEquipment, updateEquipment } = useEquipmentStore();
+  const [generatedName, setGeneratedName] = useState(initialEquipment?.name || "");
   const { toast } = useToast();
+  const router = useRouter();
+  const isEditMode = !!initialEquipment;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        type: equipment.type || "",
-        etat: equipment.status || "",
-        fournisseur: equipment.fournisseur || "",
-        localisation: equipment.location || "",
-        typeChassis: equipment.typeChassis || "",
-        designation: equipment.designation || "",
-        tension: equipment.tension || "",
-        adresseSteg: equipment.adresseSteg || "",
-        districtSteg: equipment.districtSteg || "",
-        coordX: equipment.coordX ?? undefined,
-        coordY: equipment.coordY ?? undefined,
+      type: initialEquipment?.type || "",
+      etat: initialEquipment?.status || "",
+      fournisseur: initialEquipment?.fournisseur || "",
+      localisation: initialEquipment?.location || "",
+      typeChassis: initialEquipment?.typeChassis || "",
+      designation: initialEquipment?.designation || "",
+      tension: initialEquipment?.tension || "",
+      adresseSteg: initialEquipment?.adresseSteg || "",
+      districtSteg: initialEquipment?.districtSteg || "",
+      coordX: initialEquipment?.coordX ?? undefined,
+      coordY: initialEquipment?.coordY ?? undefined,
     },
   });
 
-  if (user.role !== "Technicien") {
-    return null;
-  }
+  const watchAllFields = form.watch();
+
+  useEffect(() => {
+    if (isEditMode) return;
+
+    const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
+    if (fournisseur && localisation && type && typeChassis && designation) {
+        const fournisseurInfo = fournisseurs.find(f => f.value === fournisseur);
+        const locInfo = localisations.find(l => l.value === localisation);
+
+        const fAbbr = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
+        
+        const supplierEquipmentCount = allEquipment.filter(eq => {
+            const eqFournisseurInfo = fournisseurs.find(f => f.value === eq.fournisseur);
+            return eqFournisseurInfo?.abbreviation === fAbbr;
+        }).length;
+        
+        const counter = (supplierEquipmentCount + 1).toString().padStart(2, '0');
+
+        const lAbbr = locInfo?.abbreviation || localisation.substring(0, 4).toUpperCase();
+        const tAbbr = type === 'Indoor' ? 'MSI' : 'MSN';
+        
+        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counter}_${designation}_${typeChassis}`);
+    } else {
+        setGeneratedName("");
+    }
+  }, [watchAllFields, allEquipment, isEditMode]);
   
     const getStatusFromString = (status: string): "Active" | "Inactive" | "Maintenance" => {
         const s = status.toLowerCase();
@@ -98,7 +117,7 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
         if (s.includes("maintenance")) return "Maintenance";
         return "Inactive";
     }
-
+  
   const handleGeolocate = () => {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -114,60 +133,72 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
   }
 
   const onSubmit = (values: FormValues) => {
-    const updatedEquipment: Equipment = {
-        ...equipment,
-        type: values.type,
-        location: values.localisation,
-        status: getStatusFromString(values.etat),
-        lastUpdate: new Date().toISOString().split('T')[0],
-        fournisseur: values.fournisseur,
-        typeChassis: values.typeChassis,
-        designation: values.designation,
-        tension: values.tension,
-        adresseSteg: values.adresseSteg,
-        districtSteg: values.districtSteg,
-        coordX: values.coordX,
-        coordY: values.coordY,
+    if (isEditMode && initialEquipment) {
+        const updated: Equipment = {
+            ...initialEquipment,
+            type: values.type,
+            location: values.localisation,
+            status: getStatusFromString(values.etat),
+            lastUpdate: new Date().toISOString().split('T')[0],
+            fournisseur: values.fournisseur,
+            typeChassis: values.typeChassis,
+            designation: values.designation,
+            tension: values.tension,
+            adresseSteg: values.adresseSteg,
+            districtSteg: values.districtSteg,
+            coordX: values.coordX,
+            coordY: values.coordY,
+        }
+        updateEquipment(updated);
+        toast({ title: "Équipement Modifié", description: "Les modifications ont été enregistrées avec succès." });
+    } else {
+        const newEquipment: Equipment = {
+            id: `EQP-${Date.now()}`,
+            name: generatedName,
+            type: values.type,
+            location: values.localisation,
+            status: getStatusFromString(values.etat),
+            lastUpdate: new Date().toISOString().split('T')[0],
+            fournisseur: values.fournisseur,
+            typeChassis: values.typeChassis,
+            designation: values.designation,
+            tension: values.tension,
+            adresseSteg: values.adresseSteg,
+            districtSteg: values.districtSteg,
+            coordX: values.coordX,
+            coordY: values.coordY,
+        }
+        addEquipment(newEquipment);
+        toast({ title: "Équipement Ajouté", description: "Le nouvel équipement a été créé avec succès." });
     }
-    updateEquipment(updatedEquipment);
-    setIsOpen(false);
+    router.push('/dashboard/equipment');
+  }
+
+  if (user.role !== "Technicien") {
+    return (
+        <div className="p-4 text-center text-muted-foreground">
+            Vous n'avez pas la permission de voir ce formulaire.
+        </div>
+    );
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-            <Pencil className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogHeader>
-              <DialogTitle>Modifier l'équipement</DialogTitle>
-              <DialogDescription>
-                Mettez à jour les détails de l'équipement. Le nom n'est pas modifiable.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Nom_MSAN</Label>
-                <Input readOnly value={equipment.name} className="col-span-3 font-mono bg-muted" />
-              </div>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="fournisseur"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">Fournisseur</FormLabel>
+                  <FormItem>
+                    <FormLabel>Fournisseur</FormLabel>
                     <Combobox
-                      className="col-span-3"
                       placeholder="Sélectionner ou écrire..."
                       options={fournisseurs.map(f => ({ value: f.value, label: f.label }))}
                       value={field.value}
                       onChange={field.onChange}
                     />
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -175,16 +206,15 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 control={form.control}
                 name="localisation"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">Localisation</FormLabel>
+                  <FormItem>
+                    <FormLabel>Localisation</FormLabel>
                     <Combobox
-                      className="col-span-3"
                       placeholder="Sélectionner ou écrire..."
                       options={localisations.map(l => ({ value: l.value, label: l.label }))}
                       value={field.value}
                       onChange={field.onChange}
                     />
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -192,10 +222,10 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 control={form.control}
                 name="type"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">Type</FormLabel>
+                  <FormItem>
+                    <FormLabel>Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl className="col-span-3">
+                      <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type" />
                         </SelectTrigger>
@@ -205,7 +235,7 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                         <SelectItem value="Outdoor">Outdoor</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -213,21 +243,21 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 control={form.control}
                 name="etat"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">État</FormLabel>
+                  <FormItem>
+                    <FormLabel>État</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
-                       <FormControl className="col-span-3">
+                       <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Sélectionner l'état" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                          <SelectItem value="Active">Actif</SelectItem>
-                          <SelectItem value="Inactive">Inactif</SelectItem>
-                          <SelectItem value="Maintenance">Maintenance</SelectItem>
+                          <SelectItem value="active">Actif</SelectItem>
+                          <SelectItem value="inactive">Inactif</SelectItem>
+                          <SelectItem value="maintenance">Maintenance</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -235,12 +265,12 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 control={form.control}
                 name="typeChassis"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">Type de Châssis</FormLabel>
-                    <FormControl className="col-span-3">
+                  <FormItem>
+                    <FormLabel>Type de Châssis</FormLabel>
+                    <FormControl>
                       <Input placeholder="ex: 7302" {...field} />
                     </FormControl>
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -248,12 +278,12 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 control={form.control}
                 name="designation"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">Désignation</FormLabel>
-                    <FormControl className="col-span-3">
+                  <FormItem>
+                    <FormLabel>Désignation</FormLabel>
+                    <FormControl>
                       <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} />
                     </FormControl>
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -261,12 +291,12 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 control={form.control}
                 name="tension"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">Tension</FormLabel>
-                    <FormControl className="col-span-3">
+                  <FormItem>
+                    <FormLabel>Tension</FormLabel>
+                    <FormControl>
                       <Input placeholder="ex: 48V" {...field} />
                     </FormControl>
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -274,23 +304,23 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                 control={form.control}
                 name="adresseSteg"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">Adresse STEG</FormLabel>
-                    <FormControl className="col-span-3">
+                  <FormItem>
+                    <FormLabel>Adresse STEG</FormLabel>
+                    <FormControl>
                       <Input placeholder="ex: 123 Rue de l'Avenir" {...field} />
                     </FormControl>
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
+               <FormField
                 control={form.control}
                 name="districtSteg"
                 render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center gap-4">
-                    <FormLabel className="text-right">District STEG</FormLabel>
+                  <FormItem>
+                    <FormLabel>District STEG</FormLabel>
                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                       <FormControl className="col-span-3">
+                       <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Sélectionner le district" />
                         </SelectTrigger>
@@ -301,18 +331,17 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                           ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage className="col-start-2 col-span-3" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-               <div className="grid grid-cols-4 items-center gap-4">
-                 <div className="col-start-2 col-span-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                         <Label>Coordonnées</Label>
-                         <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Actuelle</Button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        <FormField
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <Label>Coordonnées</Label>
+                    <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <FormField
                         control={form.control}
                         name="coordX"
                         render={({ field }) => (
@@ -323,8 +352,8 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                             <FormMessage />
                         </FormItem>
                         )}
-                        />
-                        <FormField
+                    />
+                    <FormField
                         control={form.control}
                         name="coordY"
                         render={({ field }) => (
@@ -336,20 +365,23 @@ export function EditEquipmentForm({ equipment }: EditEquipmentFormProps) {
                         </FormItem>
                         )}
                     />
-                    </div>
-                 </div>
+                </div>
+                </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label>Nom Généré</Label>
+                <Input readOnly value={isEditMode ? initialEquipment.name : generatedName} className="font-mono bg-muted" placeholder="..."/>
               </div>
             </div>
-            <DialogFooter className="mt-4">
-               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
-               <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
-                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Enregistrer les modifications
-              </Button>
-            </DialogFooter>
+            <div className="flex justify-end gap-2 mt-8">
+                <Button type="button" variant="ghost" asChild>
+                    <Link href="/dashboard/equipment"><X className="mr-2" /> Annuler</Link>
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Save className="mr-2" /> Enregistrer
+                </Button>
+            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
   );
 }

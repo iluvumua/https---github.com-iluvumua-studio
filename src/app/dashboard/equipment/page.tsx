@@ -2,8 +2,9 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet, Trash2, Info, Network } from "lucide-react";
+import { File, Sheet, Trash2, Info, Network, PlusCircle, Pencil } from "lucide-react";
 import * as XLSX from "xlsx";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,10 +26,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { cn } from "@/lib/utils";
-import { AddEquipmentForm } from "@/components/add-equipment-form";
 import type { Equipment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { EditEquipmentForm } from "@/components/edit-equipment-form";
 import {
   Dialog,
   DialogContent,
@@ -196,13 +195,20 @@ export default function EquipmentPage() {
               Exporter
             </span>
           </Button>
-          <AddEquipmentForm />
+           <Button size="sm" className="h-8 gap-1" asChild>
+                <Link href="/dashboard/equipment/new">
+                    <PlusCircle className="h-3.5 w-3.5" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Ajouter Équipement
+                    </span>
+                </Link>
+            </Button>
         </div>
       </div>
       <TabsContent value={activeTab}>
         <Card>
           <CardHeader>
-            <CardTitle>Gestion des équipement </CardTitle>
+            <CardTitle>Gestion des équipement</CardTitle>
             <CardDescription>
               Gérer et suivre tous les équipements réseau.
             </CardDescription>
@@ -216,7 +222,14 @@ export default function EquipmentPage() {
                         Commencez par importer ou ajouter un nouvel équipement.
                     </p>
                     <div className="mt-6">
-                        <AddEquipmentForm />
+                        <Button size="sm" className="h-8 gap-1" asChild>
+                           <Link href="/dashboard/equipment/new">
+                                <PlusCircle className="h-3.5 w-3.5" />
+                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                    Ajouter Équipement
+                                </span>
+                           </Link>
+                        </Button>
                     </div>
                 </div>
             ) : (
@@ -258,7 +271,11 @@ export default function EquipmentPage() {
                     <TableCell>
                         <div className="flex items-center gap-1">
                             <EquipmentDetails equipment={item} />
-                            <EditEquipmentForm equipment={item} />
+                            <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                    <Pencil className="h-4 w-4" />
+                                </Link>
+                            </Button>
                             <DeleteConfirmationDialog 
                                 onConfirm={() => deleteEquipment(item.id)}
                                 itemName={`l'équipement ${item.name}`}
