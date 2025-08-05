@@ -1,3 +1,4 @@
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,13 +13,14 @@ import {
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Archive } from "lucide-react";
 import { useUser, UserRole } from "@/hooks/use-user";
 
 const roleIcons = {
   Financier: Briefcase,
   'Moyen Bâtiment': Building,
   Technicien: Wrench,
+  Magasinier: Archive,
 }
 
 export function UserNav() {
@@ -68,7 +70,7 @@ export function UserNav() {
         <DropdownMenuLabel>Rôle Actuel</DropdownMenuLabel>
          <DropdownMenuRadioGroup value={user.role} onValueChange={handleRoleChange}>
             {availableRoles.map(role => {
-              const Icon = roleIcons[role];
+              const Icon = roleIcons[role as keyof typeof roleIcons];
               return (
                 <DropdownMenuRadioItem key={role} value={role}>
                     <Icon className="mr-2 h-4 w-4" />

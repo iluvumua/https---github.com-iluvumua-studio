@@ -19,6 +19,12 @@ import { locationsData } from "@/lib/locations";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "./ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { useMetersStore } from "@/hooks/use-meters-store";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -48,16 +54,17 @@ const districtStegOptions = [...new Set(locationsData.map(loc => loc.districtSte
 const formSchema = z.object({
   name: z.string().optional(),
   type: z.string().min(1, "Le type est requis."),
-  etat: z.string().min(1, "L'état est requis."),
   fournisseur: z.string().min(1, "Le fournisseur est requis."),
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
   designation: z.string().min(1, "La désignation est requise."),
-  tension: z.string().min(1, "La tension est requise."),
+  tension: z.enum(['BT', 'MT'], { required_error: "La tension est requise."}),
   adresseSteg: z.string().min(1, "L'adresse STEG est requise."),
   districtSteg: z.string().min(1, "Le district STEG est requis."),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
+  compteurId: z.string().optional(),
+  dateMiseEnService: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -72,22 +79,24 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const [generatedName, setGeneratedName] = useState(initialEquipment?.name || "");
   const { toast } = useToast();
   const router = useRouter();
+  const { meters } = useMetersStore();
   const isEditMode = !!initialEquipment;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: initialEquipment?.type || "",
-      etat: initialEquipment?.status || "",
       fournisseur: initialEquipment?.fournisseur || "",
       localisation: initialEquipment?.location || "",
       typeChassis: initialEquipment?.typeChassis || "",
       designation: initialEquipment?.designation || "",
-      tension: initialEquipment?.tension || "",
+      tension: initialEquipment?.tension || undefined,
       adresseSteg: initialEquipment?.adresseSteg || "",
       districtSteg: initialEquipment?.districtSteg || "",
       coordX: initialEquipment?.coordX ?? undefined,
       coordY: initialEquipment?.coordY ?? undefined,
+      compteurId: initialEquipment?.compteurId || "",
+      dateMiseEnService: initialEquipment?.dateMiseEnService ? new Date(initialEquipment.dateMiseEnService) : undefined,
     },
   });
 
@@ -119,14 +128,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     }
   }, [watchAllFields, allEquipment, isEditMode]);
   
-    const getStatusFromString = (status: string): "Active" | "Inactive" | "Maintenance" => {
-        const s = status.toLowerCase();
-        if (s.includes("active") || s.includes("actif")) return "Active";
-        if (s.includes("inactive") || s.includes("inactif")) return "Inactive";
-        if (s.includes("maintenance")) return "Maintenance";
-        return "Inactive";
-    }
-  
   const handleGeolocate = () => {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
@@ -143,11 +144,13 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   const onSubmit = (values: FormValues) => {
     if (isEditMode && initialEquipment) {
+        const isActivating = initialEquipment.status === 'En Attente d\'Installation' && values.compteurId && values.dateMiseEnService;
+        
         const updated: Equipment = {
             ...initialEquipment,
             type: values.type,
             location: values.localisation,
-            status: getStatusFromString(values.etat),
+            status: isActivating ? 'Active' : initialEquipment.status,
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
@@ -157,6 +160,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             districtSteg: values.districtSteg,
             coordX: values.coordX,
             coordY: values.coordY,
+            compteurId: values.compteurId,
+            dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
         }
         updateEquipment(updated);
         toast({ title: "Équipement Modifié", description: "Les modifications ont été enregistrées avec succès." });
@@ -166,7 +171,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             name: generatedName,
             type: values.type,
             location: values.localisation,
-            status: getStatusFromString(values.etat),
+            status: 'Vérification Requise',
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
@@ -178,7 +183,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             coordY: values.coordY,
         }
         addEquipment(newEquipment);
-        toast({ title: "Équipement Ajouté", description: "Le nouvel équipement a été créé avec succès." });
+        toast({ title: "Équipement Ajouté", description: "Le nouvel équipement a été créé et est en attente de vérification." });
     }
     router.push('/dashboard/equipment');
   }
@@ -190,6 +195,9 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         </div>
     );
   }
+
+  const isInstallationStep = isEditMode && initialEquipment.status === 'En Attente d\'Installation';
+  const readOnlyBaseFields = isEditMode && initialEquipment.status !== 'Vérification Requise';
 
   return (
         <Form {...form}>
@@ -206,6 +214,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       options={fournisseurs.map(f => ({ value: f.value, label: f.label }))}
                       value={field.value}
                       onChange={field.onChange}
+                       disabled={readOnlyBaseFields}
                     />
                     <FormMessage />
                   </FormItem>
@@ -222,6 +231,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       options={localisations.map(l => ({ value: l.value, label: l.label }))}
                       value={field.value}
                       onChange={field.onChange}
+                       disabled={readOnlyBaseFields}
                     />
                     <FormMessage />
                   </FormItem>
@@ -233,7 +243,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}  disabled={readOnlyBaseFields}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type" />
@@ -249,22 +259,21 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
-                name="etat"
+                name="tension"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>État</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                       <FormControl>
+                    <FormLabel>Tension</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnlyBaseFields}>
+                      <FormControl>
                         <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner l'état" />
+                          <SelectValue placeholder="Sélectionner la tension" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                          <SelectItem value="active">Actif</SelectItem>
-                          <SelectItem value="inactive">Inactif</SelectItem>
-                          <SelectItem value="maintenance">Maintenance</SelectItem>
+                        <SelectItem value="BT">BT (Basse Tension)</SelectItem>
+                        <SelectItem value="MT">MT (Moyenne Tension)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -278,7 +287,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Type de Châssis</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: 7302" {...field} />
+                      <Input placeholder="ex: 7302" {...field}  disabled={readOnlyBaseFields} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -291,20 +300,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Désignation</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="tension"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tension</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ex: 48V" {...field} />
+                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field}  disabled={readOnlyBaseFields} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -317,7 +313,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Adresse STEG</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: 123 Rue de l'Avenir" {...field} />
+                      <Input placeholder="ex: 123 Rue de l'Avenir" {...field}  disabled={readOnlyBaseFields}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -329,7 +325,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>District STEG</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}>
+                     <Select onValueChange={field.onChange} defaultValue={field.value}  disabled={readOnlyBaseFields}>
                        <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Sélectionner le district" />
@@ -345,38 +341,85 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label>Coordonnées</Label>
-                    <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <Label>Coordonnées</Label>
+                        <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}  disabled={readOnlyBaseFields}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''}  disabled={readOnlyBaseFields}/></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''}  disabled={readOnlyBaseFields}/></FormControl><FormMessage /></FormItem> )}/>
+                    </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                        control={form.control}
-                        name="coordX"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                            <Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="coordY"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                            <Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                </div>
-                </div>
+
+                {isInstallationStep && (
+                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 rounded-md border p-4">
+                        <FormField
+                            control={form.control}
+                            name="compteurId"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>N° du Compteur Installé</FormLabel>
+                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                        <SelectValue placeholder="Sélectionner un compteur" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {meters.map(meter => (
+                                            <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="dateMiseEnService"
+                            render={({ field }) => (
+                            <FormItem className="flex flex-col pt-2">
+                                <FormLabel>Date de Mise en Service</FormLabel>
+                                <Popover>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                        "pl-3 text-left font-normal",
+                                        !field.value && "text-muted-foreground"
+                                        )}
+                                    >
+                                        {field.value ? (
+                                        format(field.value, "PPP")
+                                        ) : (
+                                        <span>Choisir une date</span>
+                                        )}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                        date > new Date() || date < new Date("1900-01-01")
+                                    }
+                                    initialFocus
+                                    />
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
+              
               <div className="md:col-span-2 space-y-2">
                 <Label>Nom Généré</Label>
                 <Input readOnly value={isEditMode ? initialEquipment.name : generatedName} className="font-mono bg-muted" placeholder="..."/>
@@ -388,7 +431,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2" /> Enregistrer
+                    <Save className="mr-2" /> {isInstallationStep ? 'Activer Équipement' : 'Enregistrer'}
                 </Button>
             </div>
           </form>

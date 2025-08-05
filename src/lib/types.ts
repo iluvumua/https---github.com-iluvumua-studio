@@ -4,16 +4,19 @@ export type Equipment = {
   name: string; // Nom_MSAN
   type: string;
   location: string; // Code  Abréviation
-  status: 'Active' | 'Inactive' | 'Maintenance'; // Etat
+  status: 'Active' | 'Inactive' | 'Maintenance' | 'Vérification Requise' | 'En Attente d\'Installation'; // Etat
   lastUpdate: string;
   fournisseur?: string;
   typeChassis?: string;
   designation?: string; // Nom de l'MSAN (GéoNetwork) ou Nom Workflow
-  tension?: string;
+  tension?: 'BT' | 'MT';
   adresseSteg?: string;
   districtSteg?: string;
   coordX?: number;
   coordY?: number;
+  compteurId?: string;
+  dateMiseEnService?: string;
+  verifiedBy?: string;
 };
 
 export type Building = {
