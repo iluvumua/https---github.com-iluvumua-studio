@@ -46,6 +46,9 @@ function EquipmentDetails({ equipment }: { equipment: Equipment }) {
 
     const relatedMeter = meters.find(m => m.equipmentId === equipment.id);
     const relatedBuilding = buildings.find(b => b.code === equipment.location);
+    
+    // Equipment types that are considered "indoor"
+    const indoorTypes = ['MSI', 'EXC', 'BAT', 'OLT', 'FDT'];
 
     return (
         <Dialog>
@@ -73,7 +76,7 @@ function EquipmentDetails({ equipment }: { equipment: Equipment }) {
                         <p>Aucun compteur directement associé.</p>
                     )}
 
-                    {equipment.type.toLowerCase().includes('indoor') && relatedBuilding && (
+                    {indoorTypes.includes(equipment.type) && relatedBuilding && (
                         <div>
                             <h3 className="font-semibold">Bâtiment d'Appartenance</h3>
                             <p>Nom: {relatedBuilding.name}</p>

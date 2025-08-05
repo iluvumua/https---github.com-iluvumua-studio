@@ -34,6 +34,16 @@ const localisations = locationsData.map(loc => ({
     abbreviation: loc.abbreviation,
 }));
 
+const equipmentTypes = [
+    { value: 'BTS', label: 'Site GSM' },
+    { value: 'MSN', label: 'MSAN Outdoor' },
+    { value: 'MSI', label: 'MSAN Indoor' },
+    { value: 'EXC', label: 'Central Téléphonique' },
+    { value: 'BAT', label: 'Bâtiment' },
+    { value: 'OLT', label: 'OLT' },
+    { value: 'FDT', label: 'SRO & FDT' },
+]
+
 const districtStegOptions = [...new Set(locationsData.map(loc => loc.districtSteg))];
 
 const formSchema = z.object({
@@ -102,7 +112,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         const counter = (supplierEquipmentCount + 1).toString().padStart(2, '0');
 
         const lAbbr = locInfo?.abbreviation || localisation.substring(0, 4).toUpperCase();
-        const tAbbr = type === 'Indoor' ? 'MSI' : 'MSN';
+        const tAbbr = type;
         
         setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counter}_${designation}_${typeChassis}`);
     } else {
@@ -231,8 +241,9 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Indoor">Indoor</SelectItem>
-                        <SelectItem value="Outdoor">Outdoor</SelectItem>
+                        {equipmentTypes.map(type => (
+                            <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
