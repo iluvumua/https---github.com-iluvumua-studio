@@ -39,7 +39,6 @@ const equipmentTypes = [
     { value: 'MSN', label: 'MSAN Outdoor' },
     { value: 'MSI', label: 'MSAN Indoor' },
     { value: 'EXC', label: 'Central Téléphonique' },
-    { value: 'BAT', label: 'Bâtiment' },
     { value: 'OLT', label: 'OLT' },
     { value: 'FDT', label: 'SRO & FDT' },
 ]

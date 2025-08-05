@@ -48,7 +48,7 @@ function EquipmentDetails({ equipment }: { equipment: Equipment }) {
     const relatedBuilding = buildings.find(b => b.code === equipment.location);
     
     // Equipment types that are considered "indoor"
-    const indoorTypes = ['MSI', 'EXC', 'BAT', 'OLT', 'FDT'];
+    const indoorTypes = ['MSI', 'EXC', 'OLT', 'FDT'];
 
     return (
         <Dialog>
