@@ -10,7 +10,6 @@ export type Equipment = {
   typeChassis?: string;
   designation?: string; // Nom de l'MSAN (GéoNetwork) ou Nom Workflow
   tension?: 'BT' | 'MT';
-  adresseSteg?: string;
   districtSteg?: string;
   coordX?: number;
   coordY?: number;

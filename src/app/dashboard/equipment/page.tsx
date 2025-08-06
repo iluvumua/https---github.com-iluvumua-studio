@@ -189,7 +189,6 @@ export default function EquipmentPage() {
                         fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
                         typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
                         tension: (row["Tension"] === 'BT' || row["Tension"] === 'MT') ? row["Tension"] : undefined,
-                        adresseSteg: row["Adresse STEG"] || row["adresseSteg"] || "N/A",
                         districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
                         coordX: coordX || row["coordX"] || row["X_Localisation"] || undefined,
                         coordY: coordY || row["coordY"] || row["Y_Localisation"] || undefined,
@@ -296,7 +295,6 @@ export default function EquipmentPage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Fournisseur</TableHead>
                   <TableHead>Tension</TableHead>
-                  <TableHead>Adresse STEG</TableHead>
                   <TableHead>District STEG</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -317,7 +315,6 @@ export default function EquipmentPage() {
                     <TableCell className="truncate">{item.type}</TableCell>
                     <TableCell className="truncate">{item.fournisseur}</TableCell>
                     <TableCell className="truncate">{item.tension}</TableCell>
-                    <TableCell className="truncate">{item.adresseSteg}</TableCell>
                     <TableCell className="truncate">{item.districtSteg}</TableCell>
                     <TableCell>
                         <div className="flex items-center gap-1">

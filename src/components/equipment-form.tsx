@@ -59,7 +59,6 @@ const formSchema = z.object({
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
   designation: z.string().min(1, "La désignation est requise."),
   tension: z.enum(['BT', 'MT'], { required_error: "La tension est requise."}),
-  adresseSteg: z.string().min(1, "L'adresse STEG est requise."),
   districtSteg: z.string().min(1, "Le district STEG est requis."),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
@@ -91,7 +90,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       typeChassis: initialEquipment?.typeChassis || "",
       designation: initialEquipment?.designation || "",
       tension: initialEquipment?.tension || undefined,
-      adresseSteg: initialEquipment?.adresseSteg || "",
       districtSteg: initialEquipment?.districtSteg || "",
       coordX: initialEquipment?.coordX ?? undefined,
       coordY: initialEquipment?.coordY ?? undefined,
@@ -101,6 +99,16 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   });
 
   const watchAllFields = form.watch();
+  const watchedLocalisation = form.watch("localisation");
+
+  useEffect(() => {
+    if (watchedLocalisation) {
+      const locationInfo = locationsData.find(loc => loc.abbreviation === watchedLocalisation);
+      if (locationInfo && locationInfo.districtSteg) {
+        form.setValue("districtSteg", locationInfo.districtSteg);
+      }
+    }
+  }, [watchedLocalisation, form]);
 
   useEffect(() => {
     if (isEditMode) return;
@@ -156,7 +164,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             typeChassis: values.typeChassis,
             designation: values.designation,
             tension: values.tension,
-            adresseSteg: values.adresseSteg,
             districtSteg: values.districtSteg,
             coordX: values.coordX,
             coordY: values.coordY,
@@ -177,7 +184,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             typeChassis: values.typeChassis,
             designation: values.designation,
             tension: values.tension,
-            adresseSteg: values.adresseSteg,
             districtSteg: values.districtSteg,
             coordX: values.coordX,
             coordY: values.coordY,
@@ -308,27 +314,14 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
               />
                <FormField
                 control={form.control}
-                name="adresseSteg"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Adresse STEG</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ex: 123 Rue de l'Avenir" {...field}  disabled={readOnlyBaseFields}/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
                 name="districtSteg"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>District STEG</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value}  disabled={readOnlyBaseFields}>
+                     <Select onValueChange={field.onChange} value={field.value} disabled>
                        <FormControl>
                         <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner le district" />
+                            <SelectValue placeholder="Automatiquement rempli" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
