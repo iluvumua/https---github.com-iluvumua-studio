@@ -216,7 +216,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Fournisseur</FormLabel>
                     <Combobox
-                      placeholder="Sélectionner ou écrire..."
+                      placeholder="Sélectionner ou créer..."
                       options={fournisseurs.map(f => ({ value: f.value, label: f.label }))}
                       value={field.value}
                       onChange={field.onChange}
@@ -233,7 +233,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Localisation</FormLabel>
                     <Combobox
-                      placeholder="Sélectionner ou écrire..."
+                      placeholder="Sélectionner ou créer..."
                       options={localisations.map(l => ({ value: l.value, label: l.label }))}
                       value={field.value}
                       onChange={field.onChange}
@@ -360,7 +360,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {meters.map(meter => (
+                                        {meters.filter(m => m.status === 'Actif').map(meter => (
                                             <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -431,3 +431,5 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         </Form>
   );
 }
+
+    

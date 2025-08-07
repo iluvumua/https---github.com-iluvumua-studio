@@ -147,15 +147,6 @@ export default function EquipmentPage() {
         "Vérification Requise": "Vérification Requise",
         "En Attente d'Installation": "Attente Installation",
     };
-    
-    const getStatusFromString = (status: string): Equipment['status'] => {
-        if (!status) return "Vérification Requise";
-        const lowerStatus = status.toLowerCase();
-        if (lowerStatus.includes("actif") || lowerStatus.includes("active")) return "Active";
-        if (lowerStatus.includes("inactif") || lowerStatus.includes("inactive")) return "Inactive";
-        if (lowerStatus.includes("maintenance")) return "Maintenance";
-        return "Vérification Requise";
-    }
 
     const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -287,24 +278,25 @@ export default function EquipmentPage() {
                     )}
                 </div>
             ) : (
-            <Table className="table-fixed">
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nom_MSAN</TableHead>
+                  <TableHead className="w-1/4">Nom_MSAN</TableHead>
                   <TableHead>État</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Fournisseur</TableHead>
                   <TableHead>Tension</TableHead>
                   <TableHead>District STEG</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEquipment.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium truncate">{item.name}</TableCell>
+                    <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn(
+                        "whitespace-nowrap",
                         item.status === 'Active' && 'text-green-500 border-green-500/50 bg-green-500/10',
                         item.status === 'Inactive' && 'text-gray-500 border-gray-500/50 bg-gray-500/10',
                         item.status === 'Maintenance' && 'text-amber-500 border-amber-500/50 bg-amber-500/10',
@@ -312,10 +304,10 @@ export default function EquipmentPage() {
                         item.status === 'En Attente d\'Installation' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
                       )}>{statusTranslations[item.status] || item.status}</Badge>
                     </TableCell>
-                    <TableCell className="truncate">{item.type}</TableCell>
-                    <TableCell className="truncate">{item.fournisseur}</TableCell>
-                    <TableCell className="truncate">{item.tension}</TableCell>
-                    <TableCell className="truncate">{item.districtSteg}</TableCell>
+                    <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
+                    <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
+                    <TableCell className="truncate whitespace-nowrap">{item.tension}</TableCell>
+                    <TableCell className="truncate whitespace-nowrap">{item.districtSteg}</TableCell>
                     <TableCell>
                         <div className="flex items-center gap-1">
                             <EquipmentDetails equipment={item} />
@@ -344,3 +336,5 @@ export default function EquipmentPage() {
     </Tabs>
   );
 }
+
+    
