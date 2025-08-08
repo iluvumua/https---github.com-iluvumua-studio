@@ -111,8 +111,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }, [watchedLocalisation, form]);
 
   useEffect(() => {
-    if (isEditMode) return;
-
     const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
     if (fournisseur && localisation && type && typeChassis && designation) {
         const fournisseurInfo = fournisseurs.find(f => f.value === fournisseur);
@@ -120,21 +118,34 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
         const fAbbr = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
         
-        const supplierEquipmentCount = allEquipment.filter(eq => {
-            const eqFournisseurInfo = fournisseurs.find(f => f.value === eq.fournisseur);
-            return eqFournisseurInfo?.abbreviation === fAbbr;
-        }).length;
-        
-        const counter = (supplierEquipmentCount + 1).toString().padStart(2, '0');
+        let counterPart = "";
+        if (isEditMode && initialEquipment) {
+            const nameParts = initialEquipment.name.split('_');
+            const potentialCounter = nameParts[3];
+            // Regex to find MSI, MSN, etc. followed by numbers
+            const match = potentialCounter.match(/([A-Z]+)(\d+)/);
+            if(match && match[2]) {
+                 counterPart = match[2];
+            } else {
+                 counterPart = "01";
+            }
+
+        } else {
+            const supplierEquipmentCount = allEquipment.filter(eq => {
+                const eqFournisseurInfo = fournisseurs.find(f => f.value === eq.fournisseur);
+                return eqFournisseurInfo?.abbreviation === fAbbr;
+            }).length;
+            counterPart = (supplierEquipmentCount + 1).toString().padStart(2, '0');
+        }
 
         const lAbbr = locInfo?.abbreviation || localisation.substring(0, 4).toUpperCase();
         const tAbbr = type;
         
-        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counter}_${designation}_${typeChassis}`);
+        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counterPart}_${designation}_${typeChassis}`);
     } else {
         setGeneratedName("");
     }
-  }, [watchAllFields, allEquipment, isEditMode]);
+  }, [watchAllFields, allEquipment, isEditMode, initialEquipment]);
   
   const handleGeolocate = () => {
     if (navigator.geolocation) {
@@ -156,6 +167,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         
         const updated: Equipment = {
             ...initialEquipment,
+            name: generatedName,
             type: values.type,
             location: values.localisation,
             status: isActivating ? 'Active' : initialEquipment.status,
@@ -306,7 +318,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Désignation</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field}  disabled={readOnlyBaseFields} />
+                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -415,7 +427,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
               
               <div className="md:col-span-2 space-y-2">
                 <Label>Nom Généré</Label>
-                <Input readOnly value={isEditMode ? initialEquipment.name : generatedName} className="font-mono bg-muted" placeholder="..."/>
+                <Input readOnly value={generatedName} className="font-mono bg-muted" placeholder="..."/>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-8">
