@@ -12,7 +12,7 @@ import { Loader2, MapPin, Save, X } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Combobox } from "./ui/combobox";
+import { Combobox } from "./combobox";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Equipment } from "@/lib/types";
 import { locationsData } from "@/lib/locations";
@@ -49,7 +49,7 @@ const equipmentTypes = [
     { value: 'FDT', label: 'SRO & FDT' },
 ]
 
-const districtStegOptions = [...new Set(locationsData.map(loc => loc.districtSteg))];
+const districtStegOptions = ["SOUSSE CENTRE", "SOUSSE NORD"];
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -318,10 +318,10 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>District STEG</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value} disabled>
+                     <Select onValueChange={field.onChange} value={field.value} >
                        <FormControl>
                         <SelectTrigger>
-                            <SelectValue placeholder="Automatiquement rempli" />
+                            <SelectValue placeholder="Choisir un district" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -337,11 +337,11 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <Label>Coordonnées</Label>
-                        <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}  disabled={readOnlyBaseFields}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
+                        <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''}  disabled={readOnlyBaseFields}/></FormControl><FormMessage /></FormItem> )}/>
-                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''}  disabled={readOnlyBaseFields}/></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
 
