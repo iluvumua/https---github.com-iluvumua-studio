@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet, Pencil, CheckSquare, HardDrive } from "lucide-react";
+import { File, Sheet, Pencil, CheckSquare, HardDrive, MapPin } from "lucide-react";
 import * as XLSX from "xlsx";
 import Link from "next/link";
 
@@ -311,6 +311,13 @@ export default function EquipmentPage() {
                     <TableCell>
                         <div className="flex items-center gap-1">
                             <EquipmentDetails equipment={item} />
+                             {item.coordX && item.coordY && (
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
+                                        <MapPin className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            )}
                             <VerifyEquipmentButton equipment={item} />
                             {(user.role === 'Technicien' && (item.status === 'En Attente d\'Installation' || item.status === 'Active')) && (
                                 <Button variant="ghost" size="icon" asChild>
@@ -336,5 +343,3 @@ export default function EquipmentPage() {
     </Tabs>
   );
 }
-
-    
