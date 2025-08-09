@@ -13,6 +13,7 @@ import { MoyenTensionForm } from "@/components/moyen-tension-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasseTensionForm } from "@/components/basse-tension-form";
 import { Suspense } from 'react';
+import { MoyenTensionForfaitForm } from '@/components/moyen-tension-forfait-form';
 
 function Calcul() {
   const searchParams = useSearchParams();
@@ -24,7 +25,7 @@ function Calcul() {
          <TabsList>
             <TabsTrigger value="basse-tension">Basse Tension</TabsTrigger>
             <TabsTrigger value="moyen-tension-horaire">Moyen Tension - Tranche Horaire</TabsTrigger>
-            <TabsTrigger value="moyen-tension-forfait" disabled>Moyen Tension - Forfait</TabsTrigger>
+            <TabsTrigger value="moyen-tension-forfait">Moyen Tension - Forfait</TabsTrigger>
         </TabsList>
       </div>
 
@@ -55,7 +56,17 @@ function Calcul() {
         </Card>
       </TabsContent>
       <TabsContent value="moyen-tension-forfait">
-        {/* Future Basse Tension form will go here */}
+         <Card>
+            <CardHeader>
+                <CardTitle>Calcul Facture Moyen Tension (Forfait)</CardTitle>
+                <CardDescription>
+                Remplissez les informations du compteur pour calculer le montant de la facture.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <MoyenTensionForfaitForm />
+            </CardContent>
+        </Card>
       </TabsContent>
     </Tabs>
   );
