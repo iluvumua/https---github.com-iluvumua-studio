@@ -57,7 +57,7 @@ const formSchema = z.object({
   fournisseur: z.string().min(1, "Le fournisseur est requis."),
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
-  designation: z.string().min(1, "La désignation est requise."),
+  designation: z.string().optional(),
   tension: z.enum(['BT', 'MT'], { required_error: "La tension est requise."}),
   districtSteg: z.string().min(1, "Le district STEG est requis."),
   coordX: z.coerce.number().optional(),
@@ -112,7 +112,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   useEffect(() => {
     const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
-    if (fournisseur && localisation && type && typeChassis && designation) {
+    if (fournisseur && localisation && type && typeChassis) {
         const fournisseurInfo = fournisseurs.find(f => f.value === fournisseur);
         const locInfo = localisations.find(l => l.value === localisation);
 
@@ -141,7 +141,9 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         const lAbbr = locInfo?.abbreviation || localisation.substring(0, 4).toUpperCase();
         const tAbbr = type;
         
-        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counterPart}_${designation}_${typeChassis}`);
+        const designationPart = designation ? `_${designation}` : "";
+
+        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counterPart}${designationPart}_${typeChassis}`);
     } else {
         setGeneratedName("");
     }
@@ -215,7 +217,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }
 
   const isInstallationStep = isEditMode && initialEquipment.status === 'En Attente d\'Installation';
-  const readOnlyBaseFields = isEditMode && initialEquipment.status !== 'Vérification Requise';
 
   return (
         <Form {...form}>
@@ -232,7 +233,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       options={fournisseurs.map(f => ({ value: f.value, label: f.label }))}
                       value={field.value}
                       onChange={field.onChange}
-                       disabled={readOnlyBaseFields}
                     />
                     <FormMessage />
                   </FormItem>
@@ -249,7 +249,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       options={localisations.map(l => ({ value: l.value, label: l.label }))}
                       value={field.value}
                       onChange={field.onChange}
-                       disabled={readOnlyBaseFields}
                     />
                     <FormMessage />
                   </FormItem>
@@ -261,7 +260,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}  disabled={readOnlyBaseFields}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type" />
@@ -283,7 +282,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tension</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={readOnlyBaseFields}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner la tension" />
@@ -305,7 +304,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Type de Châssis</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: 7302" {...field}  disabled={readOnlyBaseFields} />
+                      <Input placeholder="ex: 7302" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -316,7 +315,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 name="designation"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Désignation</FormLabel>
+                    <FormLabel>Désignation (Optionnel)</FormLabel>
                     <FormControl>
                       <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} />
                     </FormControl>
@@ -443,5 +442,3 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         </Form>
   );
 }
-
-    
