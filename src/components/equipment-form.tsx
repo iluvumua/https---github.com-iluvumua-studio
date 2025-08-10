@@ -64,6 +64,7 @@ const formSchema = z.object({
   coordY: z.coerce.number().optional(),
   compteurId: z.string().optional(),
   dateMiseEnService: z.date().optional(),
+  status: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -95,6 +96,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       coordY: initialEquipment?.coordY ?? undefined,
       compteurId: initialEquipment?.compteurId || "",
       dateMiseEnService: initialEquipment?.dateMiseEnService ? new Date(initialEquipment.dateMiseEnService) : undefined,
+      status: initialEquipment?.status,
     },
   });
 
@@ -172,7 +174,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             name: generatedName,
             type: values.type,
             location: values.localisation,
-            status: isActivating ? 'Active' : initialEquipment.status,
+            status: isActivating ? 'Active' : (values.status as Equipment['status']),
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
@@ -217,6 +219,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }
 
   const isInstallationStep = isEditMode && initialEquipment.status === 'En Attente d\'Installation';
+  const isActiveStep = isEditMode && initialEquipment.status === 'Active';
 
   return (
         <Form {...form}>
@@ -276,7 +279,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
-              <FormField
+               <FormField
                 control={form.control}
                 name="tension"
                 render={({ field }) => (
@@ -424,6 +427,33 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     </div>
                 )}
               
+                {isActiveStep && (
+                     <div className="md:col-span-2">
+                         <FormField
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Statut</FormLabel>
+                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                        <SelectValue placeholder="Changer le statut" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="Active">Actif</SelectItem>
+                                        <SelectItem value="Inactive">Inactif</SelectItem>
+                                        <SelectItem value="Maintenance">Maintenance</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                    </div>
+                )}
+
               <div className="md:col-span-2 space-y-2">
                 <Label>Nom Généré</Label>
                 <Input readOnly value={generatedName} className="font-mono bg-muted" placeholder="..."/>
