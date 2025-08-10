@@ -319,7 +319,7 @@ export default function EquipmentPage() {
                                 </Button>
                             )}
                             <VerifyEquipmentButton equipment={item} />
-                            {(user.role === 'Technicien' && (item.status === 'En Attente d\'Installation' || item.status === 'Active')) && (
+                            {user.role === 'Technicien' && (
                                 <Button variant="ghost" size="icon" asChild>
                                     <Link href={`/dashboard/equipment/${item.id}/edit`}>
                                         <Pencil className="h-4 w-4" />
