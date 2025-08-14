@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,12 +28,14 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { AddMeterForm } from "@/components/add-meter-form";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import { EditMeterForm } from "@/components/edit-meter-form";
+import { Input } from "@/components/ui/input";
 
 
 export default function MetersPage() {
   const { meters, deleteMeter } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
+  const [searchTerm, setSearchTerm] = React.useState("");
 
   const getAssociationName = (meter: (typeof meters)[0]) => {
      if (meter.buildingId) {
@@ -47,28 +49,45 @@ export default function MetersPage() {
     return "Non Associé";
   }
 
+  const filteredMeters = meters.filter(meter => {
+      const associationName = getAssociationName(meter).toLowerCase();
+      const meterId = meter.id.toLowerCase();
+      const query = searchTerm.toLowerCase();
+      return meterId.includes(query) || associationName.includes(query);
+  });
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <CardTitle>Gestion des Compteurs</CardTitle>
             <CardDescription>
-              Suivez et gérez tous les compteurs d'énergie STEG. Cliquez sur une ligne pour voir les détails.
+              Suivez et gérez tous les compteurs d'énergie STEG.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
+            <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Rechercher compteur..."
+                    className="pl-8 sm:w-[200px] lg:w-[300px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
             <AddMeterForm />
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        {meters.length === 0 ? (
+        {filteredMeters.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Gauge className="h-16 w-16 text-muted-foreground" />
                 <h3 className="mt-6 text-xl font-semibold">Aucun compteur trouvé</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    Commencez par ajouter votre premier compteur pour le voir ici.
+                    Essayez un autre terme de recherche ou ajoutez un nouveau compteur.
                 </p>
                 <div className="mt-6">
                     <AddMeterForm />
@@ -86,7 +105,7 @@ export default function MetersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {meters.map((meter) => {
+            {filteredMeters.map((meter) => {
               const associatedBuilding = meter.buildingId ? buildings.find(b => b.id === meter.buildingId) : null;
               const associatedEquipment = meter.equipmentId ? equipment.filter(e => e.id === meter.equipmentId) : [];
               const equipmentInBuilding = associatedBuilding ? equipment.filter(e => e.location === associatedBuilding.code) : [];
