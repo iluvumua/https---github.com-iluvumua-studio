@@ -51,8 +51,9 @@ export default function MetersPage() {
   const filteredMeters = meters.filter(meter => {
       const associationName = getAssociationName(meter).toLowerCase();
       const meterId = meter.id.toLowerCase();
+      const policeNumber = meter.policeNumber?.toLowerCase() || '';
       const query = searchTerm.toLowerCase();
-      return meterId.includes(query) || associationName.includes(query);
+      return meterId.includes(query) || associationName.includes(query) || policeNumber.includes(query);
   });
 
   return (
@@ -108,6 +109,7 @@ export default function MetersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>N° Compteur STEG</TableHead>
+              <TableHead>N° Police</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead>Type de Tension</TableHead>
               <TableHead>État</TableHead>
@@ -128,6 +130,7 @@ export default function MetersPage() {
                     <CollapsibleTrigger asChild>
                       <TableRow className="cursor-pointer">
                         <TableCell className="font-mono">{meter.id}</TableCell>
+                        <TableCell className="font-mono">{meter.policeNumber}</TableCell>
                         <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
                         <TableCell>
                           <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
@@ -157,7 +160,7 @@ export default function MetersPage() {
                     </CollapsibleTrigger>
                     <CollapsibleContent asChild>
                         <tr className="bg-muted/50 hover:bg-muted/50">
-                        <TableCell colSpan={5} className="p-4">
+                        <TableCell colSpan={6} className="p-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {associatedBuilding && (
                                 <Card>

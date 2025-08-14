@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, MapPin, Pencil } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useMetersStore } from "@/hooks/use-meters-store";
@@ -24,17 +24,16 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Meter } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
-import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   id: z.string().min(1, "Le N° de compteur est requis."),
+  policeNumber: z.string().optional(),
+  referenceFacteur: z.string().optional(),
   typeTension: z.enum(["Moyenne Tension", "Basse Tension"]),
   status: z.enum(['En cours', 'En service', 'Résilié', 'Substitué']),
   associationType: z.enum(["building", "equipment", "none"]).default("none"),
   buildingId: z.string().optional(),
   equipmentId: z.string().optional(),
-  coordX: z.coerce.number().optional(),
-  coordY: z.coerce.number().optional(),
 }).refine(data => {
     if (data.associationType === 'building' && !data.buildingId) return false;
     if (data.associationType === 'equipment' && !data.equipmentId) return false;
@@ -55,7 +54,6 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
   const [isOpen, setIsOpen] = useState(false);
-  const { toast } = useToast();
 
   const getAssociationType = () => {
     if (meter.buildingId) return 'building';
@@ -67,31 +65,17 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
         id: meter.id,
+        policeNumber: meter.policeNumber || "",
+        referenceFacteur: meter.referenceFacteur || "",
         typeTension: meter.typeTension,
         status: meter.status,
         associationType: getAssociationType(),
         buildingId: meter.buildingId || "",
         equipmentId: meter.equipmentId || "",
-        coordX: meter.coordX,
-        coordY: meter.coordY,
     }
   });
 
   const associationType = form.watch("associationType");
-
-  const handleGeolocate = () => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            form.setValue('coordX', position.coords.longitude);
-            form.setValue('coordY', position.coords.latitude);
-            toast({ title: "Localisation Récupérée", description: "Les coordonnées ont été mises à jour." });
-        }, (error) => {
-            toast({ variant: "destructive", title: "Erreur de Géolocalisation", description: "Impossible de récupérer votre position." });
-        });
-    } else {
-        toast({ variant: "destructive", title: "Erreur", description: "La géolocalisation n'est pas supportée par votre navigateur." });
-    }
-  }
 
   const onSubmit = (values: FormValues) => {
     const updatedMeter: Meter = {
@@ -121,9 +105,11 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                     Mettez à jour les détails du compteur. Cliquez sur Enregistrer.
                 </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+                <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
                     <FormField control={form.control} name="id" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: 552200" {...field} readOnly /></FormControl><FormMessage /></FormItem> )} />
-                    
+                     <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                     <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Référence Facteur</FormLabel><FormControl><Input placeholder="ex: R01" {...field} readOnly /></FormControl><FormMessage /></FormItem> )} />
+
                     <FormField control={form.control} name="typeTension" render={({ field }) => (
                         <FormItem><FormLabel>Type de Tension</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -152,22 +138,24 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                         </FormItem>
                     )} />
 
-                    <FormField control={form.control} name="associationType" render={({ field }) => (
-                        <FormItem className="space-y-3"><FormLabel>Associer à :</FormLabel>
-                            <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
-                                    <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="none" /></FormControl><FormLabel className="font-normal">Aucun</FormLabel></FormItem>
-                                    <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="building" /></FormControl><FormLabel className="font-normal">Bâtiment</FormLabel></FormItem>
-                                    <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="equipment" /></FormControl><FormLabel className="font-normal">Équipement</FormLabel></FormItem>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <div className="md:col-span-2">
+                        <FormField control={form.control} name="associationType" render={({ field }) => (
+                            <FormItem className="space-y-3"><FormLabel>Associer à :</FormLabel>
+                                <FormControl>
+                                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="none" /></FormControl><FormLabel className="font-normal">Aucun</FormLabel></FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="building" /></FormControl><FormLabel className="font-normal">Bâtiment</FormLabel></FormItem>
+                                        <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="equipment" /></FormControl><FormLabel className="font-normal">Équipement</FormLabel></FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
                     
                     {associationType === 'building' && (
                          <FormField control={form.control} name="buildingId" render={({ field }) => (
-                            <FormItem><FormLabel>Bâtiment</FormLabel>
+                            <FormItem className="md:col-span-2"><FormLabel>Bâtiment</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un bâtiment"/></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -181,7 +169,7 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
 
                      {associationType === 'equipment' && (
                          <FormField control={form.control} name="equipmentId" render={({ field }) => (
-                            <FormItem><FormLabel>Équipement</FormLabel>
+                            <FormItem className="md:col-span-2"><FormLabel>Équipement</FormLabel>
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un équipement"/></SelectTrigger></FormControl>
                                     <SelectContent>
@@ -192,18 +180,6 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                             </FormItem>
                         )} />
                     )}
-
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <FormLabel>Coordonnées</FormLabel>
-                            <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Actuelle</Button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormLabel>X (Longitude)</FormLabel><FormControl><Input type="number" step="any" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        </div>
-                    </div>
-
                 </div>
                 <DialogFooter className="mt-4">
                     <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
