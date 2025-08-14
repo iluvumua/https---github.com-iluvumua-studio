@@ -101,8 +101,11 @@ const calculateMoyenTensionHoraire = (values: FormValues) => {
     return { consommation: totalConsumption, montant: parseFloat(subtotal.toFixed(3)) };
 }
 
+interface BillFormProps {
+    meterId?: string;
+}
 
-export function BillForm() {
+export function BillForm({ meterId }: BillFormProps) {
   const { meters } = useMetersStore();
   const { addBill } = useBillingStore();
   const router = useRouter();
@@ -112,7 +115,7 @@ export function BillForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
         reference: "",
-        meterId: "",
+        meterId: meterId || "",
         month: "",
         typeTension: "Basse Tension",
         status: "Impayée",
@@ -171,23 +174,24 @@ export function BillForm() {
     };
     addBill(newBill);
     toast({ title: "Facture ajoutée", description: "La nouvelle facture a été enregistrée avec succès." });
-    router.push('/dashboard/billing');
+    router.push(`/dashboard/billing/${values.meterId}`);
   }
   
   const isCalculated = watchedValues.typeTension === 'Basse Tension' || watchedValues.typeTension === 'Moyen Tension Tranche Horaire';
   const isForfait = watchedValues.typeTension === 'Moyen Tension Forfaitaire';
+  const cancelHref = meterId ? `/dashboard/billing/${meterId}` : '/dashboard/billing';
 
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
             <FormField control={form.control} name="reference" render={({ field }) => (
-                <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input placeholder="ex: 552200-AUG23" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Réf. Facture</FormLabel><FormControl><Input placeholder="ex: 552200-AUG23" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             
             <FormField control={form.control} name="meterId" render={({ field }) => (
                 <FormItem><FormLabel>N° Compteur</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterId}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
                         <SelectContent>{meters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>))}</SelectContent>
                     </Select>
@@ -297,7 +301,7 @@ export function BillForm() {
             </div>
             <div className="flex justify-end gap-2 mt-8">
                 <Button type="button" variant="ghost" asChild>
-                    <Link href="/dashboard/billing"><X className="mr-2" /> Annuler</Link>
+                    <Link href={cancelHref}><X className="mr-2" /> Annuler</Link>
                 </Button>
                 <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -1,10 +1,15 @@
 
 "use client";
 
+import { useSearchParams } from 'next/navigation';
 import { BillForm } from "@/components/bill-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Suspense } from 'react';
 
-export default function NewBillPage() {
+function NewBill() {
+    const searchParams = useSearchParams();
+    const meterId = searchParams.get('meterId');
+    
     return (
         <Card>
             <CardHeader>
@@ -14,8 +19,17 @@ export default function NewBillPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <BillForm />
+                <BillForm meterId={meterId || undefined} />
             </CardContent>
         </Card>
+    )
+}
+
+
+export default function NewBillPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <NewBill />
+        </Suspense>
     );
 }

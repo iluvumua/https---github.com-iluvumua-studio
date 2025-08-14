@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Calculator, FileText, PlusCircle, Search } from "lucide-react";
+import { File, FileText, PlusCircle, Search, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,16 +19,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { useBillingStore } from "@/hooks/use-billing-store";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { EditBillForm } from "@/components/edit-bill-form";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
-import type { Bill } from "@/lib/types";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
 
@@ -43,13 +38,6 @@ export default function BillingPage() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
   }
-   const formatKWh = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR').format(amount) + ' kWh';
-  }
-  const statusTranslations: { [key: string]: string } = {
-    "Payée": "Payée",
-    "Impayée": "Impayée",
-  };
 
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
@@ -65,38 +53,49 @@ export default function BillingPage() {
     return "Non Associé";
   }
 
-  const getCalculHref = (bill: Bill) => {
-    let type = 'basse-tension';
-    if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
-        type = 'moyen-tension-horaire';
-    } else if (bill.typeTension === 'Moyen Tension Forfaitaire') {
-        type = 'moyen-tension-forfait';
+  const billsByMeter = bills.reduce((acc, bill) => {
+    if (!acc[bill.meterId]) {
+      acc[bill.meterId] = {
+        bills: [],
+        totalAmount: 0,
+        unpaidAmount: 0,
+        unpaidCount: 0,
+      };
     }
-    return `/dashboard/billing/calcul?type=${type}`;
-  }
+    acc[bill.meterId].bills.push(bill);
+    acc[bill.meterId].totalAmount += bill.amount;
+    if (bill.status === 'Impayée') {
+      acc[bill.meterId].unpaidAmount += bill.amount;
+      acc[bill.meterId].unpaidCount++;
+    }
+    return acc;
+  }, {} as Record<string, { bills: typeof bills, totalAmount: number, unpaidAmount: number, unpaidCount: number }>);
+  
+  const meterBillingData = Object.entries(billsByMeter).map(([meterId, data]) => ({
+    meterId,
+    associationName: getAssociationName(meterId),
+    billCount: data.bills.length,
+    totalAmount: data.totalAmount,
+    unpaidAmount: data.unpaidAmount,
+    unpaidCount: data.unpaidCount,
+  }));
 
-  const filteredBills = bills.filter(bill => {
+  const filteredData = meterBillingData.filter(item => {
     const query = searchTerm.toLowerCase();
-    const associationName = getAssociationName(bill.meterId).toLowerCase();
     return (
-      bill.reference.toLowerCase().includes(query) ||
-      bill.meterId.toLowerCase().includes(query) ||
-      associationName.includes(query) ||
-      bill.month.toLowerCase().includes(query) ||
-      bill.typeTension.toLowerCase().includes(query) ||
-      bill.status.toLowerCase().includes(query)
+      item.meterId.toLowerCase().includes(query) ||
+      item.associationName.toLowerCase().includes(query)
     );
   });
 
   return (
-    <TooltipProvider>
     <Card>
       <CardHeader>
          <div className="flex items-center justify-between">
             <div>
                 <CardTitle>Suivi des Factures d'Énergie</CardTitle>
                 <CardDescription>
-                Suivez les factures de consommation d'énergie STEG liées aux équipements et bâtiments.
+                Consultez les factures groupées par compteur.
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -104,7 +103,7 @@ export default function BillingPage() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
-                        placeholder="Rechercher facture..."
+                        placeholder="Rechercher compteur..."
                         className="pl-8 sm:w-[200px] lg:w-[300px]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,14 +129,14 @@ export default function BillingPage() {
         </div>
       </CardHeader>
       <CardContent>
-        {filteredBills.length === 0 ? (
+        {filteredData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <FileText className="h-16 w-16 text-muted-foreground" />
                 <h3 className="mt-6 text-xl font-semibold">Aucune facture trouvée</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                     Commencez par ajouter votre première facture pour la voir ici.
                 </p>
-                <div className="mt-6 w-full max-w-sm">
+                 <div className="mt-6 w-full max-w-sm">
                    {user.role === 'Financier' && (
                         <Button className="w-full" asChild>
                             <Link href="/dashboard/billing/new">
@@ -151,64 +150,36 @@ export default function BillingPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Facture STEG</TableHead>
               <TableHead>N° Compteur</TableHead>
               <TableHead>Associé à</TableHead>
-              <TableHead>Mois</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Consommation</TableHead>
-              <TableHead className="text-right">Montant</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-center">Nombre de Factures</TableHead>
+              <TableHead className="text-center">Factures Impayées</TableHead>
+              <TableHead className="text-right">Montant Total</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredBills.map((bill) => (
-              <TableRow key={bill.id}>
-                <TableCell className="font-mono">{bill.reference}</TableCell>
-                <TableCell className="font-mono">{bill.meterId}</TableCell>
-                <TableCell className="font-medium">{getAssociationName(bill.meterId)}</TableCell>
-                <TableCell>{bill.month}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={cn({
-                      'text-blue-500 border-blue-500/50 bg-blue-500/10': bill.typeTension === 'Basse Tension',
-                      'text-purple-500 border-purple-500/50 bg-purple-500/10': bill.typeTension === 'Moyen Tension Tranche Horaire',
-                      'text-orange-500 border-orange-500/50 bg-orange-500/10': bill.typeTension === 'Moyen Tension Forfaitaire',
-                    })}
-                  >
-                    {bill.typeTension}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      bill.status === 'Payée' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
+            {filteredData.map((item) => (
+              <TableRow key={item.meterId}>
+                <TableCell className="font-mono">{item.meterId}</TableCell>
+                <TableCell className="font-medium">{item.associationName}</TableCell>
+                <TableCell className="text-center">{item.billCount}</TableCell>
+                <TableCell className="text-center">
+                    {item.unpaidCount > 0 ? (
+                        <span className="text-red-500 font-medium">
+                            {item.unpaidCount} ({formatCurrency(item.unpaidAmount)})
+                        </span>
+                    ) : (
+                        <span>0</span>
                     )}
-                  >
-                    {statusTranslations[bill.status] || bill.status}
-                  </Badge>
                 </TableCell>
-                <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(bill.amount)}</TableCell>
+                <TableCell className="text-right font-medium">{formatCurrency(item.totalAmount)}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                         <Button variant="ghost" size="icon" asChild>
-                            <Link href={getCalculHref(bill)}>
-                                <Calculator className="h-4 w-4" />
-                            </Link>
-                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Calculer la facture</p>
-                      </TooltipContent>
-                    </Tooltip>
-                    <EditBillForm bill={bill} />
-                  </div>
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/dashboard/billing/${item.meterId}`}>
+                            <ChevronRight className="h-4 w-4" />
+                        </Link>
+                    </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -217,6 +188,5 @@ export default function BillingPage() {
         )}
       </CardContent>
     </Card>
-    </TooltipProvider>
   );
 }
