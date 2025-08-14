@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Trash2, Building2 } from "lucide-react";
+import { File, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,10 +23,9 @@ import { AddBuildingForm } from "@/components/add-building-form";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Building } from "@/lib/types";
 import { EditBuildingForm } from "@/components/edit-building-form";
-import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 
 export default function BuildingsPage() {
-    const { buildings, deleteBuilding } = useBuildingsStore();
+    const { buildings } = useBuildingsStore();
 
     const getNatureLabel = (nature: string[]) => {
         const labels = [];
@@ -105,10 +104,6 @@ export default function BuildingsPage() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <EditBuildingForm building={building} />
-                    <DeleteConfirmationDialog 
-                        onConfirm={() => deleteBuilding(building.id)}
-                        itemName={`le bâtiment ${building.name}`}
-                    />
                   </div>
                 </TableCell>
               </TableRow>

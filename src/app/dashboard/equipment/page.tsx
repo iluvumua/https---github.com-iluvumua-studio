@@ -38,73 +38,9 @@ import {
 } from "@/components/ui/dialog";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
-import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
-import { Info, Network, PlusCircle } from "lucide-react";
+import { Network, PlusCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
-
-function EquipmentDetails({ equipment }: { equipment: Equipment }) {
-    const { meters } = useMetersStore();
-    const { buildings } = useBuildingsStore();
-
-    const relatedMeter = meters.find(m => m.equipmentId === equipment.id);
-    const relatedBuilding = buildings.find(b => b.code === equipment.location);
-    
-    // Equipment types that are considered "indoor"
-    const indoorTypes = ['MSI', 'EXC', 'OLT', 'FDT'];
-
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                    <Info className="h-4 w-4" />
-                </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Détails pour {equipment.name}</DialogTitle>
-                    <DialogDescription>
-                        Informations relatives à cet équipement.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                    {relatedMeter ? (
-                         <div>
-                            <h3 className="font-semibold">Compteur Associé</h3>
-                            <p>N° Compteur: <span className="font-mono">{relatedMeter.id}</span></p>
-                            <p>Type: {relatedMeter.typeTension}</p>
-                            <p>État: {relatedMeter.status}</p>
-                        </div>
-                    ) : (
-                        <p>Aucun compteur directement associé.</p>
-                    )}
-                     {equipment.compteurId && (
-                         <div>
-                            <h3 className="font-semibold">Compteur Installé</h3>
-                            <p>N° Compteur: <span className="font-mono">{equipment.compteurId}</span></p>
-                            <p>Date de mise en service: {equipment.dateMiseEnService}</p>
-                        </div>
-                    )}
-
-                    {indoorTypes.includes(equipment.type) && relatedBuilding && (
-                        <div>
-                            <h3 className="font-semibold">Bâtiment d'Appartenance</h3>
-                            <p>Nom: {relatedBuilding.name}</p>
-                            <p>Code: {relatedBuilding.code}</p>
-                             <p>Adresse: {relatedBuilding.address}</p>
-                        </div>
-                    )}
-                    {equipment.verifiedBy && (
-                        <div>
-                            <h3 className="font-semibold">Vérification</h3>
-                            <p>Vérifié par: {equipment.verifiedBy}</p>
-                        </div>
-                    )}
-                </div>
-            </DialogContent>
-        </Dialog>
-    )
-}
 
 function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
     const { user } = useUser();
@@ -136,7 +72,7 @@ function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
 
 
 export default function EquipmentPage() {
-    const { equipment, addEquipment, deleteEquipment } = useEquipmentStore();
+    const { equipment, addEquipment } = useEquipmentStore();
     const [activeTab, setActiveTab] = useState("all");
     const { toast } = useToast();
     const { user } = useUser();
@@ -324,7 +260,6 @@ export default function EquipmentPage() {
                     <TableCell className="truncate whitespace-nowrap">{item.districtSteg}</TableCell>
                     <TableCell>
                         <div className="flex items-center gap-1">
-                            <EquipmentDetails equipment={item} />
                              {item.coordX && item.coordY && (
                                 <Button variant="ghost" size="icon" asChild>
                                     <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
@@ -338,10 +273,6 @@ export default function EquipmentPage() {
                                     <Pencil className="h-4 w-4" />
                                 </Link>
                             </Button>
-                            <DeleteConfirmationDialog 
-                                onConfirm={() => deleteEquipment(item.id)}
-                                itemName={`l'équipement ${item.name}`}
-                            />
                         </div>
                     </TableCell>
                   </TableRow>

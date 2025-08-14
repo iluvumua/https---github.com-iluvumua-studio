@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Calculator, Trash2, FileText } from "lucide-react";
+import { File, Calculator, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,12 +27,11 @@ import { EditBillForm } from "@/components/edit-bill-form";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
-import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import type { Bill } from "@/lib/types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function BillingPage() {
-  const { bills, deleteBill } = useBillingStore();
+  const { bills } = useBillingStore();
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
@@ -167,10 +166,6 @@ export default function BillingPage() {
                       </TooltipContent>
                     </Tooltip>
                     <EditBillForm bill={bill} />
-                    <DeleteConfirmationDialog 
-                        onConfirm={() => deleteBill(bill.id)}
-                        itemName={`la facture N° ${bill.reference}`}
-                    />
                   </div>
                 </TableCell>
               </TableRow>

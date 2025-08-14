@@ -7,7 +7,6 @@ interface EquipmentState {
   equipment: Equipment[];
   addEquipment: (equipment: Equipment) => void;
   updateEquipment: (updatedEquipment: Equipment) => void;
-  deleteEquipment: (equipmentId: string) => void;
 }
 
 export const useEquipmentStore = create<EquipmentState>((set) => ({
@@ -21,9 +20,5 @@ export const useEquipmentStore = create<EquipmentState>((set) => ({
         equipment: state.equipment.map((item) =>
             item.id === updatedEquipment.id ? updatedEquipment : item
         ),
-    })),
-    deleteEquipment: (equipmentId) =>
-    set((state) => ({
-        equipment: state.equipment.filter((item) => item.id !== equipmentId),
     })),
 }));

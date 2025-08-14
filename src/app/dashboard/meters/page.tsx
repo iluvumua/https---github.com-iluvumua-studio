@@ -26,13 +26,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { AddMeterForm } from "@/components/add-meter-form";
-import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import { EditMeterForm } from "@/components/edit-meter-form";
 import { Input } from "@/components/ui/input";
 
 
 export default function MetersPage() {
-  const { meters, deleteMeter } = useMetersStore();
+  const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -141,10 +140,6 @@ export default function MetersPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <EditMeterForm meter={meter} />
-                            <DeleteConfirmationDialog 
-                              onConfirm={() => deleteMeter(meter.id)}
-                              itemName={`le compteur N° ${meter.id}`}
-                            />
                           </div>
                         </TableCell>
                       </TableRow>
