@@ -374,7 +374,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {meters.filter(m => m.status === 'Actif').map(meter => (
+                                        {meters.filter(m => m.status === 'En service').map(meter => (
                                             <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
                                         ))}
                                     </SelectContent>

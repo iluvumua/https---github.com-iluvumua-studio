@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet, Pencil, CheckSquare, HardDrive, MapPin, Search } from "lucide-react";
+import { File, Sheet, Pencil, CheckSquare, MapPin, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import Link from "next/link";
 
@@ -28,16 +28,6 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { cn } from "@/lib/utils";
 import type { Equipment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useMetersStore } from "@/hooks/use-meters-store";
-import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { Network, PlusCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
@@ -218,10 +208,9 @@ export default function EquipmentPage() {
                     </p>
                      {user.role === 'Technicien' && (
                         <div className="mt-6 w-full max-w-sm">
-                            <Button size="sm" className="h-8 gap-1 w-full" asChild>
+                            <Button className="w-full" asChild>
                                <Link href="/dashboard/equipment/new">
-                                    <PlusCircle className="h-3.5 w-3.5" />
-                                    Ajouter Équipement
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Équipement
                                </Link>
                             </Button>
                         </div>
