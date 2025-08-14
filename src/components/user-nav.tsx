@@ -11,10 +11,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Archive } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Archive, Sun, Moon, Laptop } from "lucide-react";
 import { useUser, UserRole } from "@/hooks/use-user";
+import { useTheme } from "@/hooks/use-theme";
 
 const roleIcons = {
   Financier: Briefcase,
@@ -25,6 +30,7 @@ const roleIcons = {
 
 export function UserNav() {
   const { user, setUser, availableRoles } = useUser();
+  const { theme, setTheme } = useTheme();
 
   const handleRoleChange = (role: string) => {
     setUser({ ...user, role: role as UserRole });
@@ -65,6 +71,30 @@ export function UserNav() {
             <Settings className="mr-2 h-4 w-4" />
             <span>Paramètres</span>
           </DropdownMenuItem>
+           <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              {theme === 'light' && <Sun className="mr-2 h-4 w-4" />}
+              {theme === 'dark' && <Moon className="mr-2 h-4 w-4" />}
+              {theme === 'system' && <Laptop className="mr-2 h-4 w-4" />}
+              <span>Thème</span>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => setTheme('light')}>
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Clair</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('dark')}>
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Sombre</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme('system')}>
+                  <Laptop className="mr-2 h-4 w-4" />
+                  <span>Système</span>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Rôle Actuel</DropdownMenuLabel>
@@ -85,6 +115,7 @@ export function UserNav() {
             <LogOut className="mr-2 h-4 w-4" />
             Déconnexion
           </Link>
+        </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
