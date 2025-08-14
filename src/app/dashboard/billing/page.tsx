@@ -1,7 +1,8 @@
 
 "use client";
 
-import { File, Calculator, FileText, PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { File, Calculator, FileText, PlusCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +30,7 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Bill } from "@/lib/types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-user";
+import { Input } from "@/components/ui/input";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -36,6 +38,7 @@ export default function BillingPage() {
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
   const { user } = useUser();
+  const [searchTerm, setSearchTerm] = useState("");
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
@@ -72,6 +75,19 @@ export default function BillingPage() {
     return `/dashboard/billing/calcul?type=${type}`;
   }
 
+  const filteredBills = bills.filter(bill => {
+    const query = searchTerm.toLowerCase();
+    const associationName = getAssociationName(bill.meterId).toLowerCase();
+    return (
+      bill.reference.toLowerCase().includes(query) ||
+      bill.meterId.toLowerCase().includes(query) ||
+      associationName.includes(query) ||
+      bill.month.toLowerCase().includes(query) ||
+      bill.typeTension.toLowerCase().includes(query) ||
+      bill.status.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <TooltipProvider>
     <Card>
@@ -84,6 +100,16 @@ export default function BillingPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Rechercher facture..."
+                        className="pl-8 sm:w-[200px] lg:w-[300px]"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -104,7 +130,7 @@ export default function BillingPage() {
         </div>
       </CardHeader>
       <CardContent>
-        {bills.length === 0 ? (
+        {filteredBills.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <FileText className="h-16 w-16 text-muted-foreground" />
                 <h3 className="mt-6 text-xl font-semibold">Aucune facture trouvée</h3>
@@ -137,7 +163,7 @@ export default function BillingPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {bills.map((bill) => (
+            {filteredBills.map((bill) => (
               <TableRow key={bill.id}>
                 <TableCell className="font-mono">{bill.reference}</TableCell>
                 <TableCell className="font-mono">{bill.meterId}</TableCell>
