@@ -1,23 +1,13 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { PlusCircle, Loader2, MapPin } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
+import { Loader2, MapPin, Save, X } from "lucide-react";
 import { Checkbox } from "./ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
@@ -25,7 +15,8 @@ import { useMetersStore } from '@/hooks/use-meters-store';
 import type { Building } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 const natureOptions = [
     { id: 'A', label: 'Administratif' },
@@ -51,12 +42,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddBuildingForm({ fullWidth = false }: { fullWidth?: boolean }) {
-  const { user } = useUser();
+export function BuildingForm() {
   const { addBuilding } = useBuildingsStore();
   const { meters } = useMetersStore();
-  const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,10 +63,6 @@ export function AddBuildingForm({ fullWidth = false }: { fullWidth?: boolean }) 
         coordY: undefined,
     }
   });
-
-  if (user.role !== "Moyen Bâtiment") {
-    return null;
-  }
 
   const handleGeolocate = () => {
     if (navigator.geolocation) {
@@ -99,41 +85,25 @@ export function AddBuildingForm({ fullWidth = false }: { fullWidth?: boolean }) 
         meterId: values.meterId === 'none' ? undefined : values.meterId,
     };
     addBuilding(newBuilding);
-    form.reset();
-    setIsOpen(false);
+    toast({ title: "Bâtiment ajouté", description: "Le nouveau bâtiment a été enregistré avec succès." });
+    router.push('/dashboard/buildings');
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className={cn("h-8 gap-1", fullWidth && "w-full")}>
-          <PlusCircle className="h-3.5 w-3.5" />
-          <span className={cn(fullWidth ? "" : "sr-only sm:not-sr-only sm:whitespace-nowrap")}>
-            Ajouter Bâtiment
-          </span>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
        <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogHeader>
-            <DialogTitle>Ajouter un nouveau bâtiment</DialogTitle>
-            <DialogDescription>
-                Remplissez les informations du bâtiment. Cliquez sur Enregistrer.
-            </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
                 <FormField control={form.control} name="code" render={({ field }) => ( <FormItem><FormLabel>Code Bâtiment</FormLabel><FormControl><Input placeholder="ex: SO01" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Nom du Site</FormLabel><FormControl><Input placeholder="ex: Complexe Sousse République" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="commune" render={({ field }) => ( <FormItem><FormLabel>Commune</FormLabel><FormControl><Input placeholder="ex: Sousse" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="delegation" render={({ field }) => ( <FormItem><FormLabel>Délégation</FormLabel><FormControl><Input placeholder="ex: Sousse Medina" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Adresse</FormLabel><FormControl><Input placeholder="ex: Av de la République - Sousse 4000" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="address" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Adresse</FormLabel><FormControl><Input placeholder="ex: Av de la République - Sousse 4000" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 
                 <FormField
                     control={form.control}
                     name="nature"
                     render={() => (
-                        <FormItem>
+                        <FormItem className="md:col-span-2">
                         <FormLabel>Nature</FormLabel>
                         <div className="flex flex-wrap gap-4">
                         {natureOptions.map((item) => (
@@ -196,7 +166,7 @@ export function AddBuildingForm({ fullWidth = false }: { fullWidth?: boolean }) 
                     )}
                 />
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center justify-between">
                          <FormLabel>Coordonnées</FormLabel>
                          <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Actuelle</Button>
@@ -207,16 +177,16 @@ export function AddBuildingForm({ fullWidth = false }: { fullWidth?: boolean }) 
                     </div>
                 </div>
             </div>
-            <DialogFooter className="mt-4">
-                <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
+             <div className="flex justify-end gap-2 mt-8">
+                <Button type="button" variant="ghost" asChild>
+                    <Link href="/dashboard/buildings"><X className="mr-2" /> Annuler</Link>
+                </Button>
                 <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Enregistrer
+                    <Save className="mr-2" /> Enregistrer
                 </Button>
-            </DialogFooter>
+            </div>
         </form>
        </Form>
-      </DialogContent>
-    </Dialog>
   );
 }

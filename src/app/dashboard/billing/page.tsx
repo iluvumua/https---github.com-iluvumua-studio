@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Calculator, FileText } from "lucide-react";
+import { File, Calculator, FileText, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,7 +21,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { cn } from "@/lib/utils";
-import { AddBillForm } from "@/components/add-bill-form";
 import Link from "next/link";
 import { EditBillForm } from "@/components/edit-bill-form";
 import { useMetersStore } from "@/hooks/use-meters-store";
@@ -29,12 +28,14 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Bill } from "@/lib/types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUser } from "@/hooks/use-user";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
+  const { user } = useUser();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
@@ -89,7 +90,16 @@ export default function BillingPage() {
                     Exporter
                     </span>
                 </Button>
-                <AddBillForm />
+                 {user.role === 'Financier' && (
+                    <Button size="sm" className="h-8 gap-1" asChild>
+                        <Link href="/dashboard/billing/new">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Ajouter Facture
+                            </span>
+                        </Link>
+                    </Button>
+                )}
             </div>
         </div>
       </CardHeader>
@@ -102,7 +112,13 @@ export default function BillingPage() {
                     Commencez par ajouter votre première facture pour la voir ici.
                 </p>
                 <div className="mt-6 w-full max-w-sm">
-                    <AddBillForm fullWidth />
+                   {user.role === 'Financier' && (
+                        <Button className="w-full" asChild>
+                            <Link href="/dashboard/billing/new">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Facture
+                            </Link>
+                        </Button>
+                    )}
                 </div>
             </div>
         ) : (

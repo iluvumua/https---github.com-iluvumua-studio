@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +25,9 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
-import { AddMeterForm } from "@/components/add-meter-form";
 import { EditMeterForm } from "@/components/edit-meter-form";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 
 export default function MetersPage() {
@@ -76,7 +76,14 @@ export default function MetersPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <AddMeterForm />
+             <Button size="sm" className="h-8 gap-1" asChild>
+                <Link href="/dashboard/meters/new">
+                    <PlusCircle className="h-3.5 w-3.5" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Ajouter Compteur
+                    </span>
+                </Link>
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -89,7 +96,11 @@ export default function MetersPage() {
                     Essayez un autre terme de recherche ou ajoutez un nouveau compteur.
                 </p>
                 <div className="mt-6 w-full max-w-sm">
-                    <AddMeterForm fullWidth />
+                    <Button className="w-full" asChild>
+                        <Link href="/dashboard/meters/new">
+                            <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Compteur
+                        </Link>
+                    </Button>
                 </div>
             </div>
         ) : (

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Building2 } from "lucide-react";
+import { File, Building2, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,13 +19,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AddBuildingForm } from "@/components/add-building-form";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Building } from "@/lib/types";
 import { EditBuildingForm } from "@/components/edit-building-form";
+import { useUser } from "@/hooks/use-user";
+import Link from "next/link";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
+    const { user } = useUser();
 
     const getNatureLabel = (nature: string[]) => {
         const labels = [];
@@ -59,7 +61,16 @@ export default function BuildingsPage() {
                     Exporter
                     </span>
                 </Button>
-                <AddBuildingForm />
+                {user.role === 'Moyen Bâtiment' && (
+                    <Button size="sm" className="h-8 gap-1" asChild>
+                        <Link href="/dashboard/buildings/new">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Ajouter Bâtiment
+                            </span>
+                        </Link>
+                    </Button>
+                )}
             </div>
         </div>
       </CardHeader>
@@ -72,7 +83,13 @@ export default function BuildingsPage() {
                     Commencez par ajouter votre premier bâtiment pour le voir ici.
                 </p>
                 <div className="mt-6 w-full max-w-sm">
-                    <AddBuildingForm fullWidth />
+                    {user.role === 'Moyen Bâtiment' && (
+                         <Button className="w-full" asChild>
+                            <Link href="/dashboard/buildings/new">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Bâtiment
+                            </Link>
+                        </Button>
+                    )}
                 </div>
             </div>
         ) : (
