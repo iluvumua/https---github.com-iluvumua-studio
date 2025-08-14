@@ -26,12 +26,12 @@ export const buildingData: Building[] = [
 ];
 
 export const billingData: Bill[] = [
-    { id: 'BILL-0823-01', reference: '552200-AUG23', meterId: '552200', month: 'Août 2023', amount: 8911.22, consumptionKWh: 25499, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
-    { id: 'BILL-0823-02', reference: '542300-AUG23', meterId: '542300', month: 'Août 2023', amount: 5252.54, consumptionKWh: 14938, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
-    { id: 'BILL-0923-01', reference: '542440-SEP23', meterId: '542440', month: 'Septembre 2023', amount: 2658.48, consumptionKWh: 7471, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
-    { id: 'BILL-0923-02', reference: '545040-SEP23', meterId: '545040', month: 'Septembre 2023', amount: 49847.26, consumptionKWh: 148560, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
-    { id: 'BILL-1023-01', reference: '597878951-OCT23', meterId: '597878951', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée', typeTension: 'Basse Tension' },
-    { id: 'BILL-1023-02', reference: '587687455-OCT23', meterId: '587687455', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée', typeTension: 'Moyen Tension Forfaitaire' },
+    { id: 'BILL-0823-01', reference: '261737151', meterId: '552200', month: 'Août 2023', amount: 8911.22, consumptionKWh: 25499, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
+    { id: 'BILL-0823-02', reference: '261737152', meterId: '542300', month: 'Août 2023', amount: 5252.54, consumptionKWh: 14938, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
+    { id: 'BILL-0923-01', reference: '261737153', meterId: '542440', month: 'Septembre 2023', amount: 2658.48, consumptionKWh: 7471, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
+    { id: 'BILL-0923-02', reference: '261737154', meterId: '545040', month: 'Septembre 2023', amount: 49847.26, consumptionKWh: 148560, status: 'Payée', typeTension: 'Moyen Tension Tranche Horaire' },
+    { id: 'BILL-1023-01', reference: '261737155', meterId: '597878951', month: 'Octobre 2023', amount: 1280.40, consumptionKWh: 5350, status: 'Impayée', typeTension: 'Basse Tension' },
+    { id: 'BILL-1023-02', reference: '261737156', meterId: '587687455', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, status: 'Impayée', typeTension: 'Moyen Tension Forfaitaire' },
 ];
 
 export const metersData: Meter[] = [

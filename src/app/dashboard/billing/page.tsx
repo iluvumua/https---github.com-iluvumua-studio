@@ -60,6 +60,7 @@ export default function BillingPage() {
         totalAmount: 0,
         unpaidAmount: 0,
         unpaidCount: 0,
+        latestBillRef: '',
       };
     }
     acc[bill.meterId].bills.push(bill);
@@ -68,8 +69,12 @@ export default function BillingPage() {
       acc[bill.meterId].unpaidAmount += bill.amount;
       acc[bill.meterId].unpaidCount++;
     }
+    // Assuming bills are somewhat sorted by date or have a sortable ID
+    if (!acc[bill.meterId].latestBillRef || bill.id > acc[bill.meterId].bills.find(b => b.reference === acc[bill.meterId].latestBillRef)!.id) {
+        acc[bill.meterId].latestBillRef = bill.reference;
+    }
     return acc;
-  }, {} as Record<string, { bills: typeof bills, totalAmount: number, unpaidAmount: number, unpaidCount: number }>);
+  }, {} as Record<string, { bills: typeof bills, totalAmount: number, unpaidAmount: number, unpaidCount: number, latestBillRef: string }>);
   
   const meterBillingData = Object.entries(billsByMeter).map(([meterId, data]) => ({
     meterId,
@@ -78,13 +83,15 @@ export default function BillingPage() {
     totalAmount: data.totalAmount,
     unpaidAmount: data.unpaidAmount,
     unpaidCount: data.unpaidCount,
+    latestBillRef: data.latestBillRef,
   }));
 
   const filteredData = meterBillingData.filter(item => {
     const query = searchTerm.toLowerCase();
     return (
       item.meterId.toLowerCase().includes(query) ||
-      item.associationName.toLowerCase().includes(query)
+      item.associationName.toLowerCase().includes(query) ||
+      item.latestBillRef.toLowerCase().includes(query)
     );
   });
 
@@ -151,6 +158,7 @@ export default function BillingPage() {
           <TableHeader>
             <TableRow>
               <TableHead>N° Compteur</TableHead>
+              <TableHead>Dernière Réf. Facture</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead className="text-center">Nombre de Factures</TableHead>
               <TableHead className="text-center">Factures Impayées</TableHead>
@@ -162,6 +170,7 @@ export default function BillingPage() {
             {filteredData.map((item) => (
               <TableRow key={item.meterId}>
                 <TableCell className="font-mono">{item.meterId}</TableCell>
+                <TableCell className="font-mono">{item.latestBillRef}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">{item.billCount}</TableCell>
                 <TableCell className="text-center">

@@ -186,7 +186,7 @@ export function BillForm({ meterId }: BillFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
             <FormField control={form.control} name="reference" render={({ field }) => (
-                <FormItem><FormLabel>Réf. Facture</FormLabel><FormControl><Input placeholder="ex: 552200-AUG23" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Réf. Facture</FormLabel><FormControl><Input placeholder="ex: 261737151" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             
             <FormField control={form.control} name="meterId" render={({ field }) => (

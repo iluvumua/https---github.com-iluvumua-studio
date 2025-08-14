@@ -137,8 +137,7 @@ export default function MeterBillingPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Réf. Facture</TableHead>
-              <TableHead>Mois</TableHead>
+              <TableHead>Facture Number</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
@@ -150,7 +149,6 @@ export default function MeterBillingPage() {
             {filteredBills.map((bill) => (
               <TableRow key={bill.id} onClick={(e) => e.stopPropagation()}>
                 <TableCell className="font-mono">{bill.reference}</TableCell>
-                <TableCell>{bill.month}</TableCell>
                 <TableCell>
                   <Badge
                     variant="outline"
