@@ -117,6 +117,7 @@ export default function MetersPage() {
               <TableHead>N° Compteur STEG</TableHead>
               <TableHead>N° Police</TableHead>
               <TableHead>Associé à</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Type de Tension</TableHead>
               <TableHead>État</TableHead>
               <TableHead>Actions</TableHead>
@@ -133,11 +134,11 @@ export default function MetersPage() {
               return (
                 <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
                   <>
-                    <CollapsibleTrigger asChild>
-                      <TableRow className="cursor-pointer">
+                    <TableRow>
                         <TableCell className="font-mono">{meter.id}</TableCell>
                         <TableCell className="font-mono">{meter.policeNumber}</TableCell>
                         <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{meter.description}</TableCell>
                         <TableCell>
                           <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
                             {meter.typeTension}
@@ -159,14 +160,18 @@ export default function MetersPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
+                             <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <Info className="h-4 w-4" />
+                                </Button>
+                             </CollapsibleTrigger>
                             <EditMeterForm meter={meter} />
                           </div>
                         </TableCell>
                       </TableRow>
-                    </CollapsibleTrigger>
                     <CollapsibleContent asChild>
                         <tr className="bg-muted/50 hover:bg-muted/50">
-                        <TableCell colSpan={6} className="p-4">
+                        <TableCell colSpan={7} className="p-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <Card>
                                      <CardHeader>
