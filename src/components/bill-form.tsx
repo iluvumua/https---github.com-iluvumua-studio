@@ -15,7 +15,7 @@ import { useBillingStore } from "@/hooks/use-billing-store";
 import type { Bill } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useToast } from "./ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   reference: z.string().min(1, "La référence est requise."),
