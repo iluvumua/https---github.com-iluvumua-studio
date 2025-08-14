@@ -97,6 +97,7 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
         equipmentId: values.associationType === 'equipment' ? values.equipmentId : undefined,
         dateDemandeInstallation: values.dateDemandeInstallation?.toISOString().split('T')[0],
         dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
+        lastUpdate: new Date().toISOString().split('T')[0],
     };
     updateMeter(updatedMeter);
     form.reset(values); // keep form state with new values

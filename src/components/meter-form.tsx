@@ -84,6 +84,7 @@ export function MeterForm() {
         dateDemandeInstallation: values.dateDemandeInstallation?.toISOString().split('T')[0],
         dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
         description: values.description,
+        lastUpdate: new Date().toISOString().split('T')[0],
     };
     addMeter(newMeter);
     toast({ title: "Compteur ajouté", description: "Le nouveau compteur a été enregistré avec succès." });

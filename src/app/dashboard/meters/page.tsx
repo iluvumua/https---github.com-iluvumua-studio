@@ -54,6 +54,11 @@ export default function MetersPage() {
     return format(new Date(dateString), "d MMMM yyyy", { locale: fr });
   }
 
+   const formatShortDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "dd/MM/yyyy");
+  }
+
   const filteredMeters = meters.filter(meter => {
       const associationName = getAssociationName(meter).toLowerCase();
       const meterId = meter.id.toLowerCase();
@@ -120,6 +125,7 @@ export default function MetersPage() {
               <TableHead>Description</TableHead>
               <TableHead>Type de Tension</TableHead>
               <TableHead>État</TableHead>
+              <TableHead>Dernière MAJ</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -158,6 +164,7 @@ export default function MetersPage() {
                             {meter.status}
                           </Badge>
                         </TableCell>
+                         <TableCell className="text-xs text-muted-foreground">{formatShortDate(meter.lastUpdate)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                              <CollapsibleTrigger asChild>
@@ -171,7 +178,7 @@ export default function MetersPage() {
                       </TableRow>
                     <CollapsibleContent asChild>
                         <tr className="bg-muted/50 hover:bg-muted/50">
-                        <TableCell colSpan={7} className="p-4">
+                        <TableCell colSpan={8} className="p-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <Card>
                                      <CardHeader>

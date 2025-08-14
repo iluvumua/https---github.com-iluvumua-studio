@@ -68,4 +68,5 @@ export type Meter = {
     dateDemandeInstallation?: string;
     dateMiseEnService?: string;
     description?: string;
+    lastUpdate?: string;
 }
