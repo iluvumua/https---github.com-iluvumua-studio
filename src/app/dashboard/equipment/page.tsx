@@ -217,13 +217,11 @@ export default function EquipmentPage() {
                         Commencez par importer ou ajouter un nouvel équipement.
                     </p>
                      {user.role === 'Technicien' && (
-                        <div className="mt-6">
-                            <Button size="sm" className="h-8 gap-1" asChild>
+                        <div className="mt-6 w-full max-w-sm">
+                            <Button size="sm" className="h-8 gap-1 w-full" asChild>
                                <Link href="/dashboard/equipment/new">
                                     <PlusCircle className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                        Ajouter Équipement
-                                    </span>
+                                    Ajouter Équipement
                                </Link>
                             </Button>
                         </div>

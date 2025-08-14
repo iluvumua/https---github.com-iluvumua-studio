@@ -88,8 +88,8 @@ export default function MetersPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                     Essayez un autre terme de recherche ou ajoutez un nouveau compteur.
                 </p>
-                <div className="mt-6">
-                    <AddMeterForm />
+                <div className="mt-6 w-full max-w-sm">
+                    <AddMeterForm fullWidth />
                 </div>
             </div>
         ) : (

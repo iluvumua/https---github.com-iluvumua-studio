@@ -71,8 +71,8 @@ export default function BuildingsPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                     Commencez par ajouter votre premier bâtiment pour le voir ici.
                 </p>
-                <div className="mt-6">
-                    <AddBuildingForm />
+                <div className="mt-6 w-full max-w-sm">
+                    <AddBuildingForm fullWidth />
                 </div>
             </div>
         ) : (

@@ -25,6 +25,7 @@ import { useMetersStore } from '@/hooks/use-meters-store';
 import type { Building } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const natureOptions = [
     { id: 'A', label: 'Administratif' },
@@ -50,7 +51,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddBuildingForm() {
+export function AddBuildingForm({ fullWidth = false }: { fullWidth?: boolean }) {
   const { user } = useUser();
   const { addBuilding } = useBuildingsStore();
   const { meters } = useMetersStore();
@@ -105,9 +106,9 @@ export function AddBuildingForm() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-8 gap-1">
+        <Button size="sm" className={cn("h-8 gap-1", fullWidth && "w-full")}>
           <PlusCircle className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+          <span className={cn(fullWidth ? "" : "sr-only sm:not-sr-only sm:whitespace-nowrap")}>
             Ajouter Bâtiment
           </span>
         </Button>

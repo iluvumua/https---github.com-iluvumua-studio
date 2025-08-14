@@ -26,6 +26,7 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Meter } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   id: z.string().min(1, "Le N° de compteur est requis."),
@@ -47,7 +48,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddMeterForm() {
+export function AddMeterForm({ fullWidth = false }: { fullWidth?: boolean }) {
   const { user } = useUser();
   const { addMeter } = useMetersStore();
   const { buildings } = useBuildingsStore();
@@ -103,9 +104,9 @@ export function AddMeterForm() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-8 gap-1">
+        <Button size="sm" className={cn("h-8 gap-1", fullWidth && "w-full")}>
           <PlusCircle className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+          <span className={cn(fullWidth ? "" : "sr-only sm:not-sr-only sm:whitespace-nowrap")}>
             Ajouter Compteur
           </span>
         </Button>

@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import type { Bill } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   reference: z.string().min(1, "La référence est requise."),
@@ -109,7 +110,7 @@ const calculateMoyenTensionHoraire = (values: FormValues) => {
 }
 
 
-export function AddBillForm() {
+export function AddBillForm({ fullWidth = false }: { fullWidth?: boolean }) {
   const { user } = useUser();
   const { meters } = useMetersStore();
   const { addBill } = useBillingStore();
@@ -191,9 +192,9 @@ export function AddBillForm() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-8 gap-1">
+        <Button size="sm" className={cn("h-8 gap-1", fullWidth && "w-full")}>
           <PlusCircle className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+          <span className={cn(fullWidth ? "" : "sr-only sm:not-sr-only sm:whitespace-nowrap")}>
             Ajouter Facture
           </span>
         </Button>

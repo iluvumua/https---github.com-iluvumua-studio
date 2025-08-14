@@ -101,8 +101,8 @@ export default function BillingPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                     Commencez par ajouter votre première facture pour la voir ici.
                 </p>
-                <div className="mt-6">
-                    <AddBillForm />
+                <div className="mt-6 w-full max-w-sm">
+                    <AddBillForm fullWidth />
                 </div>
             </div>
         ) : (
