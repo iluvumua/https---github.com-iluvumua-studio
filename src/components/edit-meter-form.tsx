@@ -29,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   id: z.string().min(1, "Le N° de compteur est requis."),
   typeTension: z.enum(["Moyenne Tension", "Basse Tension"]),
-  status: z.enum(["Actif", "Inactif"]),
+  status: z.enum(['En cours', 'En service', 'Résilié', 'Substitué']),
   associationType: z.enum(["building", "equipment", "none"]).default("none"),
   buildingId: z.string().optional(),
   equipmentId: z.string().optional(),
@@ -142,8 +142,10 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
-                                <SelectItem value="Actif">Actif</SelectItem>
-                                <SelectItem value="Inactif">Inactif</SelectItem>
+                                <SelectItem value="En cours">En cours</SelectItem>
+                                <SelectItem value="En service">En service</SelectItem>
+                                <SelectItem value="Résilié">Résilié</SelectItem>
+                                <SelectItem value="Substitué">Substitué</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormMessage />

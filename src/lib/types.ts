@@ -61,7 +61,7 @@ export type Meter = {
     id: string; // N° Compteur STEG
     buildingId?: string;
     equipmentId?: string;
-    status: 'Actif' | 'Inactif';
+    status: 'En cours' | 'En service' | 'Résilié' | 'Substitué';
     typeTension: 'Moyenne Tension' | 'Basse Tension';
     coordX?: number;
     coordY?: number;

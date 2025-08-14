@@ -35,14 +35,14 @@ export const billingData: Bill[] = [
 ];
 
 export const metersData: Meter[] = [
-    { id: '537400', buildingId: '16', typeTension: 'Moyenne Tension', status: 'Actif' },
-    { id: '542300', buildingId: '12', typeTension: 'Moyenne Tension', status: 'Actif' },
-    { id: '542440', buildingId: '13', typeTension: 'Moyenne Tension', status: 'Actif' },
-    { id: '545040', buildingId: '3', typeTension: 'Moyenne Tension', status: 'Actif' },
-    { id: '548710', buildingId: '10', typeTension: 'Moyenne Tension', status: 'Actif' },
-    { id: '597878951', buildingId: '55', typeTension: 'Basse Tension', status: 'Actif' },
-    { id: '587687455', equipmentId: 'EQP-005', typeTension: 'Moyenne Tension', status: 'Inactif' },
-    { id: '552201', equipmentId: 'EQP-006', typeTension: 'Moyenne Tension', status: 'Actif', coordX: 10.638617, coordY: 35.829169 },
+    { id: '537400', buildingId: '16', typeTension: 'Moyenne Tension', status: 'En service' },
+    { id: '542300', buildingId: '12', typeTension: 'Moyenne Tension', status: 'En service' },
+    { id: '542440', buildingId: '13', typeTension: 'Moyenne Tension', status: 'En service' },
+    { id: '545040', buildingId: '3', typeTension: 'Moyenne Tension', status: 'En service' },
+    { id: '548710', buildingId: '10', typeTension: 'Moyenne Tension', status: 'En service' },
+    { id: '597878951', buildingId: '55', typeTension: 'Basse Tension', status: 'En service' },
+    { id: '587687455', equipmentId: 'EQP-005', typeTension: 'Moyenne Tension', status: 'Résilié' },
+    { id: '552201', equipmentId: 'EQP-006', typeTension: 'Moyenne Tension', status: 'En service', coordX: 10.638617, coordY: 35.829169 },
 ];
 
 

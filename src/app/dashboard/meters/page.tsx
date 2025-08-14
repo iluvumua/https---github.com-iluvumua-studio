@@ -128,7 +128,11 @@ export default function MetersPage() {
                           <Badge
                             variant="outline"
                             className={cn(
-                              meter.status === 'Actif' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
+                               "whitespace-nowrap",
+                                meter.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                                meter.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                                meter.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                                meter.status === 'Substitué' && 'text-yellow-500 border-yellow-500/50 bg-yellow-500/10'
                             )}
                           >
                             {meter.status}
