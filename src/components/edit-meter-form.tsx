@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Loader2, Pencil } from "lucide-react";
+import { CalendarIcon, Loader2, Pencil } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useMetersStore } from "@/hooks/use-meters-store";
@@ -24,6 +24,11 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Meter } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar } from "./ui/calendar";
+import { Textarea } from "./ui/textarea";
 
 const formSchema = z.object({
   id: z.string().min(1, "Le N° de compteur est requis."),
@@ -34,6 +39,9 @@ const formSchema = z.object({
   associationType: z.enum(["building", "equipment", "none"]).default("none"),
   buildingId: z.string().optional(),
   equipmentId: z.string().optional(),
+  dateDemandeInstallation: z.date().optional(),
+  dateMiseEnService: z.date().optional(),
+  description: z.string().optional(),
 }).refine(data => {
     if (data.associationType === 'building' && !data.buildingId) return false;
     if (data.associationType === 'equipment' && !data.equipmentId) return false;
@@ -72,10 +80,14 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
         associationType: getAssociationType(),
         buildingId: meter.buildingId || "",
         equipmentId: meter.equipmentId || "",
+        dateDemandeInstallation: meter.dateDemandeInstallation ? new Date(meter.dateDemandeInstallation) : undefined,
+        dateMiseEnService: meter.dateMiseEnService ? new Date(meter.dateMiseEnService) : undefined,
+        description: meter.description || "",
     }
   });
 
   const associationType = form.watch("associationType");
+  const status = form.watch("status");
 
   const onSubmit = (values: FormValues) => {
     const updatedMeter: Meter = {
@@ -83,6 +95,8 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
         ...values,
         buildingId: values.associationType === 'building' ? values.buildingId : undefined,
         equipmentId: values.associationType === 'equipment' ? values.equipmentId : undefined,
+        dateDemandeInstallation: values.dateDemandeInstallation?.toISOString().split('T')[0],
+        dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
     };
     updateMeter(updatedMeter);
     form.reset(values); // keep form state with new values
@@ -137,6 +151,46 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                         <FormMessage />
                         </FormItem>
                     )} />
+                    
+                    {status === 'En cours' && (
+                         <FormField control={form.control} name="dateDemandeInstallation" render={({ field }) => (
+                            <FormItem className="flex flex-col pt-2"><FormLabel>Date de Demande d'Installation</FormLabel>
+                                <Popover><PopoverTrigger asChild>
+                                    <FormControl>
+                                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                        {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    )}
+
+                    {status === 'En service' && (
+                        <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
+                            <FormItem className="flex flex-col pt-2"><FormLabel>Date de Mise en Service</FormLabel>
+                                <Popover><PopoverTrigger asChild>
+                                    <FormControl>
+                                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                        {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    )}
 
                     <div className="md:col-span-2">
                         <FormField control={form.control} name="associationType" render={({ field }) => (
@@ -180,6 +234,16 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                             </FormItem>
                         )} />
                     )}
+
+                     <FormField control={form.control} name="description" render={({ field }) => (
+                        <FormItem className="md:col-span-2">
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Ajouter une description..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                 </div>
                 <DialogFooter className="mt-4">
                     <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>

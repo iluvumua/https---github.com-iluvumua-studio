@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,8 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { EditMeterForm } from "@/components/edit-meter-form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export default function MetersPage() {
   const { meters } = useMetersStore();
@@ -46,6 +47,11 @@ export default function MetersPage() {
       return eq?.name || `Équipement ID: ${meter.equipmentId}`;
     }
     return "Non Associé";
+  }
+  
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    return format(new Date(dateString), "d MMMM yyyy", { locale: fr });
   }
 
   const filteredMeters = meters.filter(meter => {
@@ -161,7 +167,21 @@ export default function MetersPage() {
                     <CollapsibleContent asChild>
                         <tr className="bg-muted/50 hover:bg-muted/50">
                         <TableCell colSpan={6} className="p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <Card>
+                                     <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-base">
+                                            <Info className="h-5 w-5" /> Informations Générales
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="text-sm space-y-2">
+                                        {meter.dateDemandeInstallation && <p><strong>Demande le:</strong> {formatDate(meter.dateDemandeInstallation)}</p>}
+                                        {meter.dateMiseEnService && <p><strong>Mise en service le:</strong> {formatDate(meter.dateMiseEnService)}</p>}
+                                        {meter.description && <p><strong>Description:</strong><br/>{meter.description}</p>}
+                                        {!meter.dateDemandeInstallation && !meter.dateMiseEnService && !meter.description && <p className="text-muted-foreground">Aucune information supplémentaire.</p>}
+                                    </CardContent>
+                                </Card>
+
                                 {associatedBuilding && (
                                 <Card>
                                     <CardHeader>

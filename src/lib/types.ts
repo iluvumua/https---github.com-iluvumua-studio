@@ -65,4 +65,7 @@ export type Meter = {
     equipmentId?: string;
     status: 'En cours' | 'En service' | 'Résilié' | 'Substitué';
     typeTension: 'Moyenne Tension' | 'Basse Tension';
+    dateDemandeInstallation?: string;
+    dateMiseEnService?: string;
+    description?: string;
 }
