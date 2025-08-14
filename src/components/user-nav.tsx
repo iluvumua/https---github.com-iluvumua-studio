@@ -115,7 +115,6 @@ export function UserNav() {
             <LogOut className="mr-2 h-4 w-4" />
             Déconnexion
           </Link>
-        </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
