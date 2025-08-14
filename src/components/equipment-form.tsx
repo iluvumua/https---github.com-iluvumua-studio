@@ -167,14 +167,14 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   const onSubmit = (values: FormValues) => {
     if (isEditMode && initialEquipment) {
-        const isActivating = initialEquipment.status === 'En Attente d\'Installation' && values.compteurId && values.dateMiseEnService;
+        const isActivating = initialEquipment.status === 'En cours' && values.compteurId && values.dateMiseEnService;
         
         const updated: Equipment = {
             ...initialEquipment,
             name: generatedName,
             type: values.type,
             location: values.localisation,
-            status: isActivating ? 'Active' : (values.status as Equipment['status']),
+            status: isActivating ? 'En service' : (values.status as Equipment['status']),
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
@@ -194,11 +194,11 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             name: generatedName,
             type: values.type,
             location: values.localisation,
-            status: 'Vérification Requise',
+            status: 'En cours',
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
-            designation: values.designation,
+            designation: values.designation || undefined,
             tension: values.tension,
             districtSteg: values.districtSteg,
             coordX: values.coordX,
@@ -218,8 +218,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     );
   }
 
-  const isInstallationStep = isEditMode && initialEquipment.status === 'En Attente d\'Installation';
-  const isActiveStep = isEditMode && initialEquipment.status === 'Active';
+  const isInstallationStep = isEditMode && initialEquipment.status === 'En cours' && !!initialEquipment.verifiedBy;
+  const isServiceStep = isEditMode && initialEquipment.status === 'En service';
 
   return (
         <Form {...form}>
@@ -427,7 +427,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     </div>
                 )}
               
-                {isActiveStep && (
+                {isServiceStep && (
                      <div className="md:col-span-2">
                          <FormField
                             control={form.control}
@@ -442,9 +442,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value="Active">Actif</SelectItem>
-                                        <SelectItem value="Inactive">Inactif</SelectItem>
-                                        <SelectItem value="Maintenance">Maintenance</SelectItem>
+                                        <SelectItem value="En service">En service</SelectItem>
+                                        <SelectItem value="Résilié">Résilié</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -465,7 +464,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2" /> {isInstallationStep ? 'Activer Équipement' : 'Enregistrer'}
+                    <Save className="mr-2" /> {isInstallationStep ? 'Mettre en service' : 'Enregistrer'}
                 </Button>
             </div>
           </form>

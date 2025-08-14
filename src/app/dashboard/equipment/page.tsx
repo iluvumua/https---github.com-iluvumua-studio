@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet, Pencil, CheckSquare, HardDrive, MapPin } from "lucide-react";
+import { File, Sheet, Pencil, CheckSquare, HardDrive, MapPin, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import Link from "next/link";
 
@@ -41,6 +41,7 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
 import { Info, Network, PlusCircle } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
+import { Input } from "@/components/ui/input";
 
 function EquipmentDetails({ equipment }: { equipment: Equipment }) {
     const { meters } = useMetersStore();
@@ -110,24 +111,24 @@ function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
     const { updateEquipment } = useEquipmentStore();
     const { toast } = useToast();
 
-    if (user.role !== 'Magasinier' || equipment.status !== 'Vérification Requise') {
+    if (user.role !== 'Magasinier' || equipment.status !== 'En cours') {
         return null;
     }
 
     const handleVerify = () => {
         updateEquipment({ 
             ...equipment, 
-            status: 'En Attente d\'Installation',
+            status: 'En cours', // Stays 'En cours' but now verified conceptually
             verifiedBy: user.name,
             lastUpdate: new Date().toISOString().split('T')[0]
         });
         toast({
             title: "Équipement Vérifié",
-            description: `${equipment.name} est maintenant en attente d'installation.`
+            description: `${equipment.name} a été vérifié et est prêt pour l'installation.`
         })
     }
     return (
-         <Button variant="outline" size="icon" onClick={handleVerify}>
+         <Button variant="outline" size="icon" onClick={handleVerify} disabled={!!equipment.verifiedBy}>
             <CheckSquare className="h-4 w-4" />
          </Button>
     )
@@ -138,15 +139,8 @@ export default function EquipmentPage() {
     const { equipment, addEquipment, deleteEquipment } = useEquipmentStore();
     const [activeTab, setActiveTab] = useState("all");
     const { toast } = useToast();
-     const { user } = useUser();
-
-    const statusTranslations: { [key: string]: string } = {
-        "Active": "Actif",
-        "Inactive": "Inactif",
-        "Maintenance": "Maintenance",
-        "Vérification Requise": "Vérification Requise",
-        "En Attente d'Installation": "Attente Installation",
-    };
+    const { user } = useUser();
+    const [searchTerm, setSearchTerm] = useState("");
 
     const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -175,7 +169,7 @@ export default function EquipmentPage() {
                         name: row["Nom_MSAN"] || row["Nom"] || row["name"] || "N/A",
                         type: row["Type"] || row["type"] || "N/A",
                         location: row["Emplacement"] || row["location"] || row["Code  Abréviation"] || "N/A",
-                        status: 'Vérification Requise',
+                        status: 'En cours',
                         lastUpdate: new Date().toISOString().split('T')[0],
                         fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
                         typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
@@ -202,9 +196,22 @@ export default function EquipmentPage() {
     };
 
     const filteredEquipment = equipment.filter(item => {
+        const query = searchTerm.toLowerCase();
+        const matchesSearch = item.name.toLowerCase().includes(query) || item.type.toLowerCase().includes(query);
+
+        if (!matchesSearch) return false;
+
         if (activeTab === 'all') return true;
-        if (activeTab === 'verification_requise') return item.status === 'Vérification Requise';
-        return item.status.toLowerCase() === activeTab;
+        
+        // Map status to tab values
+        const statusMap: { [key: string]: Equipment['status'][] } = {
+            'en_cours': ['En cours'],
+            'en_service': ['En service'],
+            'resilie': ['Résilié']
+        };
+        const statuses = statusMap[activeTab];
+
+        return statuses ? statuses.includes(item.status) : false;
     });
 
   return (
@@ -212,12 +219,21 @@ export default function EquipmentPage() {
       <div className="flex items-center">
         <TabsList>
           <TabsTrigger value="all">Tous</TabsTrigger>
-          <TabsTrigger value="verification_requise">Vérification Requise</TabsTrigger>
-          <TabsTrigger value="active">Actif</TabsTrigger>
-          <TabsTrigger value="inactive">Inactif</TabsTrigger>
-           <TabsTrigger value="maintenance" className="hidden sm:flex">Maintenance</TabsTrigger>
+          <TabsTrigger value="en_cours">En cours</TabsTrigger>
+          <TabsTrigger value="en_service">En service</TabsTrigger>
+          <TabsTrigger value="resilie">Résilié</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
+            <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Rechercher équipement..."
+                    className="pl-8 sm:w-[200px] lg:w-[300px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
            <label htmlFor="import-file">
               <Button size="sm" variant="outline" className="h-8 gap-1" asChild>
                 <span className="cursor-pointer">
@@ -297,12 +313,10 @@ export default function EquipmentPage() {
                     <TableCell>
                       <Badge variant="outline" className={cn(
                         "whitespace-nowrap",
-                        item.status === 'Active' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                        item.status === 'Inactive' && 'text-gray-500 border-gray-500/50 bg-gray-500/10',
-                        item.status === 'Maintenance' && 'text-amber-500 border-amber-500/50 bg-amber-500/10',
-                        item.status === 'Vérification Requise' && 'text-red-500 border-red-500/50 bg-red-500/10',
-                        item.status === 'En Attente d\'Installation' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                      )}>{statusTranslations[item.status] || item.status}</Badge>
+                        item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                        item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                        item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                      )}>{item.status}</Badge>
                     </TableCell>
                     <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
                     <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
@@ -319,13 +333,11 @@ export default function EquipmentPage() {
                                 </Button>
                             )}
                             <VerifyEquipmentButton equipment={item} />
-                            {user.role === 'Technicien' && (
-                                <Button variant="ghost" size="icon" asChild>
-                                    <Link href={`/dashboard/equipment/${item.id}/edit`}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            )}
+                             <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                    <Pencil className="h-4 w-4" />
+                                </Link>
+                            </Button>
                             <DeleteConfirmationDialog 
                                 onConfirm={() => deleteEquipment(item.id)}
                                 itemName={`l'équipement ${item.name}`}

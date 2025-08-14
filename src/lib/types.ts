@@ -4,7 +4,7 @@ export type Equipment = {
   name: string; // Nom_MSAN
   type: string;
   location: string; // Code  Abréviation
-  status: 'Active' | 'Inactive' | 'Maintenance' | 'Vérification Requise' | 'En Attente d\'Installation'; // Etat
+  status: 'En cours' | 'En service' | 'Résilié'; // Etat
   lastUpdate: string;
   fournisseur?: string;
   typeChassis?: string;
