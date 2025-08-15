@@ -157,9 +157,9 @@ export default function BillingPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Réf. Facteur</TableHead>
               <TableHead>N° Compteur</TableHead>
               <TableHead>N° Police</TableHead>
-              <TableHead>Réf. Facteur</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead className="text-center">Nombre de Factures</TableHead>
               <TableHead className="text-center">Factures Impayées</TableHead>
@@ -170,9 +170,9 @@ export default function BillingPage() {
           <TableBody>
             {filteredData.map((item) => (
               <TableRow key={item.meterId}>
+                <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-mono">{item.meterId}</TableCell>
                 <TableCell className="font-mono">{item.policeNumber}</TableCell>
-                <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">{item.billCount}</TableCell>
                 <TableCell className="text-center">
