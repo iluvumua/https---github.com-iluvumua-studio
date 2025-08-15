@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 function NewBill() {
     const searchParams = useSearchParams();
     const meterId = searchParams.get('meterId');
-    const title = meterId ? "Ajouter une nouvelle facture" : "Ajouter une nouvelle référence";
+    const title = meterId ? "Ajouter une nouvelle facture" : "Ajouter une nouvelle facture";
     
     return (
         <Card>
