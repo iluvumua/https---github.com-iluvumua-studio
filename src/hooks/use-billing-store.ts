@@ -18,7 +18,7 @@ export const useBillingStore = create<BillingState>((set) => ({
   updateBill: (updatedBill) =>
     set((state) => ({
         bills: state.bills.map((item) =>
-            item.id === updatedBill.id ? updatedBill : item
+            item.id === updatedBill.id ? { ...item, ...updatedBill } : item
         ),
     })),
 }));

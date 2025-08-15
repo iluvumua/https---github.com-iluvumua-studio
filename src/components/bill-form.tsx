@@ -7,7 +7,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Save, X } from "lucide-react";
+import { AlertCircle, Loader2, Save, X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useMetersStore } from "@/hooks/use-meters-store";
@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "./ui/switch";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 const formSchema = z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
@@ -27,6 +28,7 @@ const formSchema = z.object({
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
   status: z.enum(["Payée", "Impayée"]),
   convenableSTEG: z.boolean().default(false),
+  montantSTEG: z.coerce.number().optional(),
   
   // Basse Tension
   ancienIndex: z.coerce.number().optional(),
@@ -47,6 +49,12 @@ const formSchema = z.object({
 }, {
     message: "Le montant est requis pour le type Forfaitaire.",
     path: ["amount"],
+}).refine(data => {
+    if (!data.convenableSTEG && data.montantSTEG === undefined) return false;
+    return true;
+}, {
+    message: "Le montant STEG est requis si la facture n'est pas convenable.",
+    path: ["montantSTEG"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -121,7 +129,7 @@ export function BillForm({ meterId }: BillFormProps) {
         month: "",
         typeTension: "Basse Tension",
         status: "Impayée",
-        convenableSTEG: false,
+        convenableSTEG: true,
     }
   });
 
@@ -165,6 +173,7 @@ export function BillForm({ meterId }: BillFormProps) {
         consumptionKWh: values.consumptionKWh ?? 0,
         amount: values.amount ?? 0,
         convenableSTEG: values.convenableSTEG,
+        montantSTEG: values.montantSTEG,
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         ancien_index_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_jour : undefined,
@@ -184,6 +193,8 @@ export function BillForm({ meterId }: BillFormProps) {
   const isCalculated = watchedValues.typeTension === 'Basse Tension' || watchedValues.typeTension === 'Moyen Tension Tranche Horaire';
   const isForfait = watchedValues.typeTension === 'Moyen Tension Forfaitaire';
   const cancelHref = meterId ? `/dashboard/billing/${meterId}` : '/dashboard/billing';
+  
+  const difference = (watchedValues.montantSTEG ?? 0) - (watchedValues.amount ?? 0);
 
   return (
     <Form {...form}>
@@ -277,7 +288,7 @@ export function BillForm({ meterId }: BillFormProps) {
             )} />
 
             <FormField control={form.control} name="amount" render={({ field }) => (
-                <FormItem><FormLabel>Montant (TND)</FormLabel>
+                <FormItem><FormLabel>Montant Calculé (TND)</FormLabel>
                     <FormControl>
                         <Input type="number" step="0.001" {...field} readOnly={isCalculated}/>
                     </FormControl>
@@ -319,6 +330,29 @@ export function BillForm({ meterId }: BillFormProps) {
                     </FormItem>
                 )}
                 />
+            
+            {!watchedValues.convenableSTEG && (
+                <div className="md:col-span-2 space-y-4">
+                    <FormField control={form.control} name="montantSTEG" render={({ field }) => (
+                        <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
+                            <FormControl>
+                                <Input type="number" step="0.001" {...field}/>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    {typeof watchedValues.montantSTEG === 'number' && typeof watchedValues.amount === 'number' && (
+                         <Alert variant={difference === 0 ? "default" : "destructive"}>
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Vérification de Montant</AlertTitle>
+                            <AlertDescription>
+                                Différence: {difference.toLocaleString('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 })}
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                </div>
+            )}
+
 
             </div>
             <div className="flex justify-end gap-2 mt-8">
