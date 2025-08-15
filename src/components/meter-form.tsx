@@ -29,20 +29,7 @@ const formSchema = z.object({
   policeNumber: z.string().optional(),
   referenceFacteur: z.string().length(9, "La Réf. Facteur doit comporter 9 chiffres.").optional(),
   typeTension: z.enum(["Moyenne Tension", "Basse Tension"]),
-  status: z.enum(['En cours', 'En service', 'Résilié', 'Substitué']),
-  associationType: z.enum(["building", "equipment", "none"]).default("none"),
-  buildingId: z.string().optional(),
-  equipmentId: z.string().optional(),
-  dateDemandeInstallation: z.date().optional(),
-  dateMiseEnService: z.date().optional(),
   description: z.string().optional(),
-}).refine(data => {
-    if (data.associationType === 'building' && !data.buildingId) return false;
-    if (data.associationType === 'equipment' && !data.equipmentId) return false;
-    return true;
-}, {
-    message: "Veuillez sélectionner une entité à associer.",
-    path: ["associationType"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -65,28 +52,17 @@ export function MeterForm({ onFinished }: MeterFormProps) {
         policeNumber: "",
         referenceFacteur: "",
         typeTension: "Moyenne Tension",
-        status: "En cours",
-        associationType: "none",
-        buildingId: "",
-        equipmentId: "",
         description: "",
     }
   });
 
-  const associationType = form.watch("associationType");
-  const status = form.watch("status");
-
   const onSubmit = (values: FormValues) => {
     const newMeter: Meter = {
         id: values.id,
-        status: values.status,
+        status: 'En cours', // Default status
         typeTension: values.typeTension,
         policeNumber: values.policeNumber,
         referenceFacteur: values.referenceFacteur,
-        buildingId: values.associationType === 'building' ? values.buildingId : undefined,
-        equipmentId: values.associationType === 'equipment' ? values.equipmentId : undefined,
-        dateDemandeInstallation: values.dateDemandeInstallation?.toISOString().split('T')[0],
-        dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
         description: values.description,
         lastUpdate: new Date().toISOString().split('T')[0],
     };
@@ -104,7 +80,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
     if (onFinished) {
         onFinished();
     } else {
-        router.push('/dashboard/meters');
+        router.push('/dashboard/billing');
     }
   }
 
@@ -114,10 +90,10 @@ export function MeterForm({ onFinished }: MeterFormProps) {
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
                 <FormField control={form.control} name="id" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: 552200" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( <FormItem><FormLabel>Réf. Facteur (9 chiffres)</FormLabel><FormControl><Input placeholder="ex: 378051249" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Réf. Facteur (9 chiffres)</FormLabel><FormControl><Input placeholder="ex: 378051249" {...field} /></FormControl><FormMessage /></FormItem> )} />
 
                 <FormField control={form.control} name="typeTension" render={({ field }) => (
-                    <FormItem><FormLabel>Type de Tension</FormLabel>
+                    <FormItem className="md:col-span-2"><FormLabel>Type de Tension</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
@@ -129,103 +105,6 @@ export function MeterForm({ onFinished }: MeterFormProps) {
                     </FormItem>
                 )} />
 
-                 <FormField control={form.control} name="status" render={({ field }) => (
-                    <FormItem><FormLabel>État</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                            <SelectItem value="En cours">En cours</SelectItem>
-                            <SelectItem value="En service">En service</SelectItem>
-                            <SelectItem value="Résilié">Résilié</SelectItem>
-                            <SelectItem value="Substitué">Substitué</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )} />
-                
-                {status === 'En cours' && (
-                    <FormField control={form.control} name="dateDemandeInstallation" render={({ field }) => (
-                        <FormItem className="flex flex-col pt-2"><FormLabel>Date de Demande d'Installation</FormLabel>
-                            <Popover><PopoverTrigger asChild>
-                                <FormControl>
-                                <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                                    {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
-                            </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                )}
-
-                {status === 'En service' && (
-                    <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
-                        <FormItem className="flex flex-col pt-2"><FormLabel>Date de Mise en Service</FormLabel>
-                            <Popover><PopoverTrigger asChild>
-                                <FormControl>
-                                <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                                    {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
-                            </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                )}
-
-                <div className="md:col-span-2">
-                <FormField control={form.control} name="associationType" render={({ field }) => (
-                    <FormItem className="space-y-3"><FormLabel>Associer à :</FormLabel>
-                        <FormControl>
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
-                                <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="none" /></FormControl><FormLabel className="font-normal">Aucun</FormLabel></FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="building" /></FormControl><FormLabel className="font-normal">Bâtiment</FormLabel></FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="equipment" /></FormControl><FormLabel className="font-normal">Équipement</FormLabel></FormItem>
-                            </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )} />
-                </div>
-                
-                {associationType === 'building' && (
-                     <FormField control={form.control} name="buildingId" render={({ field }) => (
-                        <FormItem className="md:col-span-2"><FormLabel>Bâtiment</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un bâtiment"/></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {buildings.map(b => <SelectItem key={b.id} value={b.id}>{b.name} ({b.code})</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )} />
-                )}
-
-                 {associationType === 'equipment' && (
-                     <FormField control={form.control} name="equipmentId" render={({ field }) => (
-                        <FormItem className="md:col-span-2"><FormLabel>Équipement</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un équipement"/></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {equipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )} />
-                )}
                  <FormField control={form.control} name="description" render={({ field }) => (
                     <FormItem className="md:col-span-2">
                         <FormLabel>Description</FormLabel>
