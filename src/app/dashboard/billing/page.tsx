@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, FileText, PlusCircle, Search, ChevronRight } from "lucide-react";
+import { File, FileText, PlusCircle, Search, ChevronRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,6 +32,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -155,12 +156,11 @@ export default function BillingPage() {
               <TableHead>Réf. Facteur</TableHead>
               <TableHead>N° Compteur</TableHead>
               <TableHead>N° Police</TableHead>
-              <TableHead>Description</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead className="text-center">Nombre de Factures</TableHead>
               <TableHead className="text-center">Factures Impayées</TableHead>
               <TableHead className="text-right">Montant Total</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -169,20 +169,6 @@ export default function BillingPage() {
                 <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-mono">{item.meterId}</TableCell>
                 <TableCell className="font-mono">{item.policeNumber}</TableCell>
-                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                  {item.description ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="cursor-default">{item.description}</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">{item.description}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <span>-</span>
-                  )}
-                </TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">{item.billCount}</TableCell>
                 <TableCell className="text-center">
@@ -196,11 +182,25 @@ export default function BillingPage() {
                 </TableCell>
                 <TableCell className="text-right font-medium">{formatCurrency(item.totalAmount)}</TableCell>
                 <TableCell>
-                    <Button variant="ghost" size="icon" asChild>
-                        <Link href={`/dashboard/billing/${item.meterId}`}>
-                            <ChevronRight className="h-4 w-4" />
-                        </Link>
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        {item.description && (
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <Info className="h-4 w-4" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent>
+                                    <p className="text-sm">{item.description}</p>
+                                </PopoverContent>
+                            </Popover>
+                        )}
+                        <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/dashboard/billing/${item.meterId}`}>
+                                <ChevronRight className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    </div>
                 </TableCell>
               </TableRow>
             ))}
