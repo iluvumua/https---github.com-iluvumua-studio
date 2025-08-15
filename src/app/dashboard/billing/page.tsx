@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, FileText, PlusCircle, Search, ChevronRight, Info } from "lucide-react";
+import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ReplaceMeterForm } from "@/components/replace-meter-form";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -60,30 +61,29 @@ export default function BillingPage() {
     return "Non Associé";
   }
 
-  const meterBillingData = meters.map(meter => {
-    const meterBills = bills.filter(b => b.meterId === meter.id);
-    const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
-    const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
+  const meterBillingData = meters
+    .filter(meter => meter.status !== 'Substitué')
+    .map(meter => {
+        const meterBills = bills.filter(b => b.meterId === meter.id);
+        const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
+        const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
 
-    return {
-        meterId: meter.id,
-        associationName: getAssociationName(meter.id),
-        unpaidAmount,
-        unpaidCount: unpaidBills.length,
-        referenceFacteur: meter?.referenceFacteur || 'N/A',
-        policeNumber: meter?.policeNumber || 'N/A',
-        description: meter?.description || "",
-    }
-  });
+        return {
+            ...meter,
+            associationName: getAssociationName(meter.id),
+            unpaidAmount,
+            unpaidCount: unpaidBills.length,
+        }
+    });
 
   const filteredData = meterBillingData.filter(item => {
     const query = searchTerm.toLowerCase();
     return (
-      item.meterId.toLowerCase().includes(query) ||
+      item.id.toLowerCase().includes(query) ||
       item.associationName.toLowerCase().includes(query) ||
-      item.referenceFacteur.toLowerCase().includes(query) ||
-      item.policeNumber.toLowerCase().includes(query) ||
-      item.description.toLowerCase().includes(query)
+      (item.referenceFacteur && item.referenceFacteur.toLowerCase().includes(query)) ||
+      (item.policeNumber && item.policeNumber.toLowerCase().includes(query)) ||
+      (item.description && item.description.toLowerCase().includes(query))
     );
   });
 
@@ -160,9 +160,9 @@ export default function BillingPage() {
           </TableHeader>
           <TableBody>
             {filteredData.map((item) => (
-              <TableRow key={item.meterId}>
+              <TableRow key={item.id}>
                 <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
-                <TableCell className="font-mono">{item.meterId}</TableCell>
+                <TableCell className="font-mono">{item.id}</TableCell>
                 <TableCell className="font-mono">{item.policeNumber}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">
@@ -188,8 +188,11 @@ export default function BillingPage() {
                                 </PopoverContent>
                             </Popover>
                         )}
+                        {item.status === 'Résilié' && user.role === 'Financier' && (
+                             <ReplaceMeterForm oldMeter={item} />
+                        )}
                         <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/dashboard/billing/${item.meterId}`}>
+                            <Link href={`/dashboard/billing/${item.id}`}>
                                 <ChevronRight className="h-4 w-4" />
                             </Link>
                         </Button>
