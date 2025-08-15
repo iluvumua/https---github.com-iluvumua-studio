@@ -124,7 +124,7 @@ export default function BillingPage() {
                 </Button>
                  {user.role === 'Financier' && (
                     <Button size="sm" className="h-8 gap-1" asChild>
-                        <Link href="/dashboard/meters/new">
+                        <Link href="/dashboard/billing/new">
                             <PlusCircle className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                                 Ajouter Référence
@@ -146,7 +146,7 @@ export default function BillingPage() {
                  <div className="mt-6 w-full max-w-sm">
                    {user.role === 'Financier' && (
                         <Button className="w-full" asChild>
-                            <Link href="/dashboard/meters/new">
+                            <Link href="/dashboard/billing/new">
                                 <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Référence
                             </Link>
                         </Button>
