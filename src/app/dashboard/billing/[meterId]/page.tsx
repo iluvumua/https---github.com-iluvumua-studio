@@ -90,7 +90,7 @@ export default function MeterBillingPage() {
             <div>
                 <CardTitle>Factures pour le Compteur <span className="font-mono text-primary">{meterId}</span></CardTitle>
                 <CardDescription>
-                  Police: {meter?.policeNumber || 'N/A'} | Réf. Facteur: {meter?.referenceFacteur || 'N/A'}
+                  Police: {meter?.policeNumber || 'N/A'} | Réf. Facteur: {meter?.referenceFacteur || 'N/A'} | Total Factures: {meterBills.length}
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
