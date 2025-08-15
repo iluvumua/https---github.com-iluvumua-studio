@@ -62,15 +62,12 @@ export default function BillingPage() {
 
   const meterBillingData = meters.map(meter => {
     const meterBills = bills.filter(b => b.meterId === meter.id);
-    const totalAmount = meterBills.reduce((acc, bill) => acc + bill.amount, 0);
     const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
     const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
 
     return {
         meterId: meter.id,
         associationName: getAssociationName(meter.id),
-        billCount: meterBills.length,
-        totalAmount,
         unpaidAmount,
         unpaidCount: unpaidBills.length,
         referenceFacteur: meter?.referenceFacteur || 'N/A',
@@ -157,9 +154,7 @@ export default function BillingPage() {
               <TableHead>N° Compteur</TableHead>
               <TableHead>N° Police</TableHead>
               <TableHead>Associé à</TableHead>
-              <TableHead className="text-center">Nombre de Factures</TableHead>
               <TableHead className="text-center">Factures Impayées</TableHead>
-              <TableHead className="text-right">Montant Total</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -170,7 +165,6 @@ export default function BillingPage() {
                 <TableCell className="font-mono">{item.meterId}</TableCell>
                 <TableCell className="font-mono">{item.policeNumber}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
-                <TableCell className="text-center">{item.billCount}</TableCell>
                 <TableCell className="text-center">
                     {item.unpaidCount > 0 ? (
                         <span className="text-red-500 font-medium">
@@ -180,7 +174,6 @@ export default function BillingPage() {
                         <span>0</span>
                     )}
                 </TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(item.totalAmount)}</TableCell>
                 <TableCell>
                     <div className="flex items-center gap-1">
                         {item.description && (
