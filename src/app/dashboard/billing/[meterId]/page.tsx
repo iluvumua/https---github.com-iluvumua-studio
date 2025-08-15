@@ -30,6 +30,7 @@ import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
 import { useMetersStore } from "@/hooks/use-meters-store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function MeterBillingPage() {
   const params = useParams();
@@ -39,6 +40,8 @@ export default function MeterBillingPage() {
   const { meters } = useMetersStore();
   const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
+  const [convenableFilter, setConvenableFilter] = useState<"all" | "yes" | "no">("all");
+
 
   const meter = meters.find(m => m.id === meterId);
   const meterBills = bills.filter(b => b.meterId === meterId);
@@ -66,11 +69,17 @@ export default function MeterBillingPage() {
 
   const filteredBills = meterBills.filter(bill => {
     const query = searchTerm.toLowerCase();
-    return (
+    const matchesSearch = (
       bill.reference.toLowerCase().includes(query) ||
       bill.typeTension.toLowerCase().includes(query) ||
       bill.status.toLowerCase().includes(query)
     );
+
+    const matchesConvenable = convenableFilter === 'all' || 
+                             (convenableFilter === 'yes' && bill.convenableSTEG) || 
+                             (convenableFilter === 'no' && !bill.convenableSTEG);
+
+    return matchesSearch && matchesConvenable;
   });
 
   return (
@@ -90,11 +99,21 @@ export default function MeterBillingPage() {
                     <Input
                         type="search"
                         placeholder="Rechercher facture..."
-                        className="pl-8 sm:w-[200px] lg:w-[300px]"
+                        className="pl-8 sm:w-[200px] lg:w-[200px]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+                 <Select value={convenableFilter} onValueChange={(value) => setConvenableFilter(value as any)}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filtrer par convenance" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Tous</SelectItem>
+                        <SelectItem value="yes">Convenable</SelectItem>
+                        <SelectItem value="no">Non Convenable</SelectItem>
+                    </SelectContent>
+                </Select>
                 <Button size="sm" variant="outline" className="h-8 gap-1">
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
