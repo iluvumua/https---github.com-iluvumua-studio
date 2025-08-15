@@ -9,11 +9,12 @@ import { Suspense } from 'react';
 function NewBill() {
     const searchParams = useSearchParams();
     const meterId = searchParams.get('meterId');
+    const title = meterId ? "Ajouter une nouvelle facture" : "Ajouter une nouvelle référence";
     
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Ajouter une nouvelle facture</CardTitle>
+                <CardTitle>{title}</CardTitle>
                 <CardDescription>
                     Remplissez les détails de la facture ci-dessous.
                 </CardDescription>

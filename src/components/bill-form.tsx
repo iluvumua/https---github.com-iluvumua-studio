@@ -159,8 +159,8 @@ export function BillForm({ meterId }: BillFormProps) {
         month: values.month,
         status: values.status,
         typeTension: values.typeTension,
-        consumptionKWh: values.consumptionKWh,
-        amount: values.amount,
+        consumptionKWh: values.consumptionKWh ?? 0,
+        amount: values.amount ?? 0,
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         ancien_index_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_jour : undefined,
@@ -197,10 +197,6 @@ export function BillForm({ meterId }: BillFormProps) {
                     </Select>
                     <FormMessage />
                 </FormItem>
-            )} />
-
-            <FormField control={form.control} name="month" render={({ field }) => (
-                <FormItem><FormLabel>Mois</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
 
             <FormField control={form.control} name="typeTension" render={({ field }) => (
@@ -296,6 +292,10 @@ export function BillForm({ meterId }: BillFormProps) {
                     </Select>
                     <FormMessage />
                 </FormItem>
+            )} />
+
+             <FormField control={form.control} name="month" render={({ field }) => (
+                <FormItem className="md:col-span-2"><FormLabel>Mois Facture</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
 
             </div>
