@@ -44,7 +44,7 @@ export default function MeterBillingPage() {
   const meterBills = bills.filter(b => b.meterId === meterId);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
+    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(amount);
   }
    const formatKWh = (amount: number) => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' kWh';
@@ -171,7 +171,21 @@ export default function MeterBillingPage() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(bill.amount)}</TableCell>
+                <TableCell className="text-right font-medium">
+                  {formatCurrency(bill.amount)}
+                  {!bill.convenableSTEG && typeof bill.montantSTEG === 'number' && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      STEG: {formatCurrency(bill.montantSTEG)}
+                      <br />
+                      <span className={cn(
+                        'font-semibold',
+                        (bill.montantSTEG - bill.amount) !== 0 ? 'text-destructive' : ''
+                      )}>
+                        Diff: {formatCurrency(bill.montantSTEG - bill.amount)}
+                      </span>
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Tooltip>
