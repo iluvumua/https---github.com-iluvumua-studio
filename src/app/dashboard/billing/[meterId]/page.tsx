@@ -68,7 +68,6 @@ export default function MeterBillingPage() {
     const query = searchTerm.toLowerCase();
     return (
       bill.reference.toLowerCase().includes(query) ||
-      bill.month.toLowerCase().includes(query) ||
       bill.typeTension.toLowerCase().includes(query) ||
       bill.status.toLowerCase().includes(query)
     );
@@ -82,7 +81,7 @@ export default function MeterBillingPage() {
             <div>
                 <CardTitle>Factures pour le Compteur <span className="font-mono text-primary">{meterId}</span></CardTitle>
                 <CardDescription>
-                  Police: {meter?.policeNumber || 'N/A'}
+                  Police: {meter?.policeNumber || 'N/A'} | Réf. Facteur: {meter?.referenceFacteur || 'N/A'}
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
