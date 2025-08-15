@@ -16,7 +16,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loader2, Pencil, Save, X } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import type { Bill } from "@/lib/types";
@@ -26,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  reference: z.string().min(1, "La référence est requise."),
+  reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   month: z.string().min(1, "Le mois est requis."),
   consumptionKWh: z.coerce.number(),
   amount: z.coerce.number(),
@@ -88,7 +87,7 @@ export function EditBillForm({ bill }: EditBillFormProps) {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <FormField control={form.control} name="reference" render={({ field }) => (
-                  <FormItem><FormLabel>Réf. Facture</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>N° Facture (13 chiffres)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="month" render={({ field }) => (
                   <FormItem><FormLabel>Mois</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>

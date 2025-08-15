@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  reference: z.string().min(1, "La référence est requise."),
+  reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   month: z.string().min(1, "Le mois est requis."),
   consumptionKWh: z.coerce.number().optional(),
@@ -186,7 +186,7 @@ export function BillForm({ meterId }: BillFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
             <FormField control={form.control} name="reference" render={({ field }) => (
-                <FormItem><FormLabel>Réf. Facture</FormLabel><FormControl><Input placeholder="ex: 261737151" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>N° Facture (13 chiffres)</FormLabel><FormControl><Input placeholder="ex: 2023080123456" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             
             <FormField control={form.control} name="meterId" render={({ field }) => (

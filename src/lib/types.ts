@@ -34,7 +34,7 @@ export type Building = {
 
 export type Bill = {
   id: string;
-  reference: string; // Référence Facture Steg
+  reference: string; // Facture Number (13 digits)
   meterId: string; // Numéro du compteur Steg
   month: string;
   amount: number;
@@ -60,7 +60,7 @@ export type Bill = {
 export type Meter = {
     id: string; // N° Compteur STEG
     policeNumber?: string;
-    referenceFacteur?: string;
+    referenceFacteur?: string; // 9-digit code
     buildingId?: string;
     equipmentId?: string;
     status: 'En cours' | 'En service' | 'Résilié' | 'Substitué';
