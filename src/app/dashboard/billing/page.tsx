@@ -127,7 +127,7 @@ export default function BillingPage() {
                         <Link href="/dashboard/billing/new">
                             <PlusCircle className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                                Ajouter Facture
+                                Ajouter Référence
                             </span>
                         </Link>
                     </Button>
@@ -147,7 +147,7 @@ export default function BillingPage() {
                    {user.role === 'Financier' && (
                         <Button className="w-full" asChild>
                             <Link href="/dashboard/billing/new">
-                                <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Facture
+                                <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Référence
                             </Link>
                         </Button>
                     )}
