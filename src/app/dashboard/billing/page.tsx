@@ -26,6 +26,12 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -84,6 +90,7 @@ export default function BillingPage() {
   });
 
   return (
+    <TooltipProvider>
     <Card>
       <CardHeader>
          <div className="flex items-center justify-between">
@@ -162,7 +169,20 @@ export default function BillingPage() {
                 <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-mono">{item.meterId}</TableCell>
                 <TableCell className="font-mono">{item.policeNumber}</TableCell>
-                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.description}</TableCell>
+                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                  {item.description ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-default">{item.description}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">{item.description}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <span>-</span>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">{item.billCount}</TableCell>
                 <TableCell className="text-center">
@@ -189,5 +209,6 @@ export default function BillingPage() {
         )}
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }
