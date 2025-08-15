@@ -53,33 +53,19 @@ export default function BillingPage() {
     return "Non Associé";
   }
 
-  const billsByMeter = bills.reduce((acc, bill) => {
-    if (!acc[bill.meterId]) {
-      acc[bill.meterId] = {
-        bills: [],
-        totalAmount: 0,
-        unpaidAmount: 0,
-        unpaidCount: 0,
-      };
-    }
-    acc[bill.meterId].bills.push(bill);
-    acc[bill.meterId].totalAmount += bill.amount;
-    if (bill.status === 'Impayée') {
-      acc[bill.meterId].unpaidAmount += bill.amount;
-      acc[bill.meterId].unpaidCount++;
-    }
-    return acc;
-  }, {} as Record<string, { bills: typeof bills, totalAmount: number, unpaidAmount: number, unpaidCount: number }>);
-  
-  const meterBillingData = Object.entries(billsByMeter).map(([meterId, data]) => {
-    const meter = meters.find(m => m.id === meterId);
+  const meterBillingData = meters.map(meter => {
+    const meterBills = bills.filter(b => b.meterId === meter.id);
+    const totalAmount = meterBills.reduce((acc, bill) => acc + bill.amount, 0);
+    const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
+    const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
+
     return {
-        meterId,
-        associationName: getAssociationName(meterId),
-        billCount: data.bills.length,
-        totalAmount: data.totalAmount,
-        unpaidAmount: data.unpaidAmount,
-        unpaidCount: data.unpaidCount,
+        meterId: meter.id,
+        associationName: getAssociationName(meter.id),
+        billCount: meterBills.length,
+        totalAmount,
+        unpaidAmount,
+        unpaidCount: unpaidBills.length,
         referenceFacteur: meter?.referenceFacteur || 'N/A',
         policeNumber: meter?.policeNumber || 'N/A',
     }
