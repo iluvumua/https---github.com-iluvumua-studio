@@ -10,7 +10,7 @@ interface BillingState {
 }
 
 export const useBillingStore = create<BillingState>((set) => ({
-  bills: billingData,
+  bills: billingData.map(b => ({ ...b, convenableSTEG: true })), // Default existing to true
   addBill: (newBill) =>
     set((state) => ({
       bills: [newBill, ...state.bills],

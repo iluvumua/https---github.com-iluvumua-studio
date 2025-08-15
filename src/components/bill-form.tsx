@@ -16,6 +16,7 @@ import type { Bill } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "./ui/switch";
 
 const formSchema = z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
@@ -25,6 +26,7 @@ const formSchema = z.object({
   amount: z.coerce.number().optional(),
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
   status: z.enum(["Payée", "Impayée"]),
+  convenableSTEG: z.boolean().default(false),
   
   // Basse Tension
   ancienIndex: z.coerce.number().optional(),
@@ -119,6 +121,7 @@ export function BillForm({ meterId }: BillFormProps) {
         month: "",
         typeTension: "Basse Tension",
         status: "Impayée",
+        convenableSTEG: false,
     }
   });
 
@@ -161,6 +164,7 @@ export function BillForm({ meterId }: BillFormProps) {
         typeTension: values.typeTension,
         consumptionKWh: values.consumptionKWh ?? 0,
         amount: values.amount ?? 0,
+        convenableSTEG: values.convenableSTEG,
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         ancien_index_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_jour : undefined,
@@ -295,8 +299,26 @@ export function BillForm({ meterId }: BillFormProps) {
             )} />
 
              <FormField control={form.control} name="month" render={({ field }) => (
-                <FormItem className="md:col-span-2"><FormLabel>Mois Facture</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Mois Facture</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
+
+             <FormField
+                control={form.control}
+                name="convenableSTEG"
+                render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm md:col-span-2">
+                    <div className="space-y-0.5">
+                        <FormLabel>Convenable avec STEG</FormLabel>
+                    </div>
+                    <FormControl>
+                        <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        />
+                    </FormControl>
+                    </FormItem>
+                )}
+                />
 
             </div>
             <div className="flex justify-end gap-2 mt-8">
