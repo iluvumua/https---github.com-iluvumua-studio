@@ -68,6 +68,7 @@ export default function BillingPage() {
         unpaidCount: unpaidBills.length,
         referenceFacteur: meter?.referenceFacteur || 'N/A',
         policeNumber: meter?.policeNumber || 'N/A',
+        description: meter?.description || "",
     }
   });
 
@@ -77,7 +78,8 @@ export default function BillingPage() {
       item.meterId.toLowerCase().includes(query) ||
       item.associationName.toLowerCase().includes(query) ||
       item.referenceFacteur.toLowerCase().includes(query) ||
-      item.policeNumber.toLowerCase().includes(query)
+      item.policeNumber.toLowerCase().includes(query) ||
+      item.description.toLowerCase().includes(query)
     );
   });
 
@@ -146,6 +148,7 @@ export default function BillingPage() {
               <TableHead>Réf. Facteur</TableHead>
               <TableHead>N° Compteur</TableHead>
               <TableHead>N° Police</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead className="text-center">Nombre de Factures</TableHead>
               <TableHead className="text-center">Factures Impayées</TableHead>
@@ -159,6 +162,7 @@ export default function BillingPage() {
                 <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-mono">{item.meterId}</TableCell>
                 <TableCell className="font-mono">{item.policeNumber}</TableCell>
+                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{item.description}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">{item.billCount}</TableCell>
                 <TableCell className="text-center">
