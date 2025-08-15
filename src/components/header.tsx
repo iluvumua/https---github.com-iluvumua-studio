@@ -40,6 +40,7 @@ export function Header() {
     meters: "Compteurs",
     billing: "Facturation",
     calcul: "Calcul",
+    "add-reference": "Ajouter Référence",
   };
 
   return (

@@ -47,7 +47,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function MeterForm() {
+interface MeterFormProps {
+    onFinished?: () => void;
+}
+
+export function MeterForm({ onFinished }: MeterFormProps) {
   const { addMeter } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
@@ -88,9 +92,22 @@ export function MeterForm() {
     };
     addMeter(newMeter);
     toast({ title: "Compteur ajouté", description: "Le nouveau compteur a été enregistré avec succès." });
-    router.push('/dashboard/meters');
+    
+    if (onFinished) {
+        onFinished();
+    } else {
+        router.push('/dashboard/meters');
+    }
   }
   
+  const handleCancel = () => {
+    if (onFinished) {
+        onFinished();
+    } else {
+        router.push('/dashboard/meters');
+    }
+  }
+
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -220,8 +237,8 @@ export function MeterForm() {
                  )} />
             </div>
             <div className="flex justify-end gap-2 mt-8">
-                <Button type="button" variant="ghost" asChild>
-                    <Link href="/dashboard/meters"><X className="mr-2" /> Annuler</Link>
+                <Button type="button" variant="ghost" onClick={handleCancel}>
+                    <X className="mr-2" /> Annuler
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
