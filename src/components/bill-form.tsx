@@ -130,6 +130,19 @@ export function BillForm({ meterId }: BillFormProps) {
         typeTension: "Basse Tension",
         status: "Impayée",
         convenableSTEG: true,
+        consumptionKWh: 0,
+        amount: 0,
+        montantSTEG: 0,
+        ancienIndex: 0,
+        nouveauIndex: 0,
+        ancien_index_jour: 0,
+        nouveau_index_jour: 0,
+        ancien_index_pointe: 0,
+        nouveau_index_pointe: 0,
+        ancien_index_soir: 0,
+        nouveau_index_soir: 0,
+        ancien_index_nuit: 0,
+        nouveau_index_nuit: 0,
     }
   });
 
@@ -223,16 +236,16 @@ export function BillForm({ meterId }: BillFormProps) {
                             typeTension: value as any,
                             consumptionKWh: 0,
                             amount: 0,
-                            ancienIndex: undefined,
-                            nouveauIndex: undefined,
-                            ancien_index_jour: undefined,
-                            nouveau_index_jour: undefined,
-                            ancien_index_pointe: undefined,
-                            nouveau_index_pointe: undefined,
-                            ancien_index_soir: undefined,
-                            nouveau_index_soir: undefined,
-                            ancien_index_nuit: undefined,
-                            nouveau_index_nuit: undefined,
+                            ancienIndex: 0,
+                            nouveauIndex: 0,
+                            ancien_index_jour: 0,
+                            nouveau_index_jour: 0,
+                            ancien_index_pointe: 0,
+                            nouveau_index_pointe: 0,
+                            ancien_index_soir: 0,
+                            nouveau_index_soir: 0,
+                            ancien_index_nuit: 0,
+                            nouveau_index_nuit: 0,
                         });
                     }} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
@@ -281,7 +294,7 @@ export function BillForm({ meterId }: BillFormProps) {
             <FormField control={form.control} name="consumptionKWh" render={({ field }) => (
                 <FormItem><FormLabel>Consommation (kWh)</FormLabel>
                     <FormControl>
-                        <Input type="number" {...field} readOnly={isCalculated} disabled={isForfait} />
+                        <Input type="number" {...field} value={field.value ?? 0} readOnly={isCalculated} disabled={isForfait} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -290,7 +303,7 @@ export function BillForm({ meterId }: BillFormProps) {
             <FormField control={form.control} name="amount" render={({ field }) => (
                 <FormItem><FormLabel>Montant Calculé (TND)</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.001" {...field} readOnly={isCalculated}/>
+                        <Input type="number" step="0.001" {...field} value={field.value ?? 0} readOnly={isCalculated}/>
                     </FormControl>
                     <FormMessage />
                 </FormItem>
@@ -336,7 +349,7 @@ export function BillForm({ meterId }: BillFormProps) {
                     <FormField control={form.control} name="montantSTEG" render={({ field }) => (
                         <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
                             <FormControl>
-                                <Input type="number" step="0.001" {...field}/>
+                                <Input type="number" step="0.001" {...field} value={field.value ?? 0}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
