@@ -161,7 +161,7 @@ export default function MetersPage() {
                   const allAssociatedEquipment = [...new Set([...associatedEquipment, ...equipmentInBuilding])];
 
                   return (
-                    <Collapsible asChild key={meter.id} tagName="tbody">
+                    <Collapsible asChild key={meter.id}>
                         <TableBody className="border-b">
                           <TableRow>
                               <TableCell className="font-mono">{meter.id}</TableCell>
