@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet, Pencil, CheckSquare, MapPin, Search } from "lucide-react";
+import { File, Sheet, Pencil, CheckSquare, MapPin, Search, Gauge, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -261,6 +261,20 @@ export default function EquipmentPage() {
                                         <MapPin className="h-4 w-4" />
                                     </Link>
                                 </Button>
+                            )}
+                            {item.compteurId && (
+                                <>
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href="/dashboard/meters">
+                                            <Gauge className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/dashboard/billing/${item.compteurId}`}>
+                                            <FileText className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </>
                             )}
                             <VerifyEquipmentButton equipment={item} />
                              <Button variant="ghost" size="icon" asChild>
