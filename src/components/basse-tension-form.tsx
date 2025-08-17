@@ -34,24 +34,31 @@ export function BasseTensionForm() {
         },
     });
 
-    const watch = useWatch({ control: form.control });
+    const watchedValues = useWatch({ control: form.control });
+
+    const ancien_index = parseFloat(String(watchedValues.ancien_index)) || 0;
+    const nouveau_index = parseFloat(String(watchedValues.nouveau_index)) || 0;
+    const prix_unitaire = parseFloat(String(watchedValues.prix_unitaire)) || 0;
+    const redevances_fixes = parseFloat(String(watchedValues.redevances_fixes)) || 0;
+    const contr_ertt = parseFloat(String(watchedValues.contr_ertt)) || 0;
+    const tva = parseFloat(String(watchedValues.tva)) || 0;
 
     let consommation = 0;
-    if (watch.nouveau_index >= watch.ancien_index) {
-        consommation = watch.nouveau_index - watch.ancien_index;
+    if (nouveau_index >= ancien_index) {
+        consommation = nouveau_index - ancien_index;
     } else {
-        const indexLength = String(watch.ancien_index).length;
+        const indexLength = String(ancien_index).length;
         if (indexLength > 0) {
             const maxValue = Number('9'.repeat(indexLength));
-            consommation = (maxValue - watch.ancien_index) + watch.nouveau_index + 1;
+            consommation = (maxValue - ancien_index) + nouveau_index + 1;
         } else {
-            consommation = watch.nouveau_index;
+            consommation = nouveau_index;
         }
     }
 
-    const montant_consommation = consommation * watch.prix_unitaire;
-    const total_consommation = montant_consommation + watch.redevances_fixes;
-    const total_taxes = watch.contr_ertt + watch.tva;
+    const montant_consommation = consommation * prix_unitaire;
+    const total_consommation = montant_consommation + redevances_fixes;
+    const total_taxes = contr_ertt + tva;
     const montant_a_payer = total_consommation + total_taxes;
 
     function onSubmit(values: FormValues) {
