@@ -5,6 +5,7 @@ import { useState } from "react";
 import { File, Sheet, Pencil, CheckSquare, MapPin, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import Link from "next/link";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -120,6 +121,11 @@ export default function EquipmentPage() {
             event.target.value = '';
         }
     };
+    
+    const formatShortDate = (dateString?: string) => {
+        if (!dateString) return "N/A";
+        return format(new Date(dateString), "dd/MM/yyyy");
+    }
 
     const filteredEquipment = equipment.filter(item => {
         const query = searchTerm.toLowerCase();
@@ -226,6 +232,7 @@ export default function EquipmentPage() {
                   <TableHead>Fournisseur</TableHead>
                   <TableHead>Tension</TableHead>
                   <TableHead>District STEG</TableHead>
+                  <TableHead>Date Mise en Service</TableHead>
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -245,6 +252,7 @@ export default function EquipmentPage() {
                     <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
                     <TableCell className="truncate whitespace-nowrap">{item.tension}</TableCell>
                     <TableCell className="truncate whitespace-nowrap">{item.districtSteg}</TableCell>
+                    <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
                     <TableCell>
                         <div className="flex items-center gap-1">
                              {item.coordX && item.coordY && (
