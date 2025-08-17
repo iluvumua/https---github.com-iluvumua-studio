@@ -41,7 +41,13 @@ export function BasseTensionForm() {
 
     const watch = useWatch({ control: form.control });
 
-    const consommation = Math.max(0, watch.nouveau_index - watch.ancien_index);
+    let consommation = 0;
+    if (watch.nouveau_index >= watch.ancien_index) {
+        consommation = watch.nouveau_index - watch.ancien_index;
+    } else {
+        // Handle meter rollover (e.g., from 99999 to 0)
+        consommation = (99999 - watch.ancien_index) + watch.nouveau_index + 1;
+    }
 
     const calculateMontantConsommation = (cons: number) => {
         let montant = 0;

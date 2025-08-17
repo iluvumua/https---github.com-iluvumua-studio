@@ -77,7 +77,14 @@ const mt_pu = {
 }
 
 const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0) => {
-    const consommation = Math.max(0, nouveauIndex - ancienIndex);
+    let consommation = 0;
+    if (nouveauIndex >= ancienIndex) {
+        consommation = nouveauIndex - ancienIndex;
+    } else {
+        // Handle meter rollover (e.g., from 99999 to 0)
+        consommation = (99999 - ancienIndex) + nouveauIndex + 1;
+    }
+    
     let montant = 0;
     let rest = consommation;
     if (rest > 0) { const t4 = Math.max(0, rest - 200); montant += t4 * bt_pu.tranche4; rest -= t4; }
@@ -262,10 +269,10 @@ export function BillForm({ meterId }: BillFormProps) {
             {watchedValues.typeTension === 'Basse Tension' && (
                 <div className="grid grid-cols-2 gap-4 rounded-md border p-4 md:col-span-2">
                     <FormField control={form.control} name="ancienIndex" render={({ field }) => (
-                        <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
-                        <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
             )}
@@ -273,20 +280,20 @@ export function BillForm({ meterId }: BillFormProps) {
             {watchedValues.typeTension === 'Moyen Tension Tranche Horaire' && (
                 <div className="space-y-4 rounded-md border p-4 md:col-span-2">
                     <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Jour</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                      <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Soir</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                 </div>
             )}
