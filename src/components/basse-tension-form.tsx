@@ -46,7 +46,13 @@ export function BasseTensionForm() {
         consommation = watch.nouveau_index - watch.ancien_index;
     } else {
         // Handle meter rollover (e.g., from 99999 to 0)
-        consommation = (99999 - watch.ancien_index) + watch.nouveau_index + 1;
+        const indexLength = String(watch.ancien_index).length;
+        if (indexLength > 0) {
+            const maxValue = Number('9'.repeat(indexLength));
+            consommation = (maxValue - watch.ancien_index) + watch.nouveau_index + 1;
+        } else {
+            consommation = watch.nouveau_index; // Should not happen with valid data
+        }
     }
 
     const calculateMontantConsommation = (cons: number) => {
