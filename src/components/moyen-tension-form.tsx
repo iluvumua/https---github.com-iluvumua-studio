@@ -50,12 +50,21 @@ export function MoyenTensionForm() {
         },
     });
 
-    const watch = useWatch({ control: form.control });
+    const watchedValues = useWatch({ control: form.control });
 
-    const consommation_jour = Math.max(0, watch.nouveau_index_jour - watch.ancien_index_jour);
-    const consommation_pointe = Math.max(0, watch.nouveau_index_pointe - watch.ancien_index_pointe);
-    const consommation_soir = Math.max(0, watch.nouveau_index_soir - watch.ancien_index_soir);
-    const consommation_nuit = Math.max(0, watch.nouveau_index_nuit - watch.ancien_index_nuit);
+    const ancien_index_jour = parseFloat(String(watchedValues.ancien_index_jour)) || 0;
+    const nouveau_index_jour = parseFloat(String(watchedValues.nouveau_index_jour)) || 0;
+    const ancien_index_pointe = parseFloat(String(watchedValues.ancien_index_pointe)) || 0;
+    const nouveau_index_pointe = parseFloat(String(watchedValues.nouveau_index_pointe)) || 0;
+    const ancien_index_soir = parseFloat(String(watchedValues.ancien_index_soir)) || 0;
+    const nouveau_index_soir = parseFloat(String(watchedValues.nouveau_index_soir)) || 0;
+    const ancien_index_nuit = parseFloat(String(watchedValues.ancien_index_nuit)) || 0;
+    const nouveau_index_nuit = parseFloat(String(watchedValues.nouveau_index_nuit)) || 0;
+    
+    const consommation_jour = Math.max(0, nouveau_index_jour - ancien_index_jour);
+    const consommation_pointe = Math.max(0, nouveau_index_pointe - ancien_index_pointe);
+    const consommation_soir = Math.max(0, nouveau_index_soir - ancien_index_soir);
+    const consommation_nuit = Math.max(0, nouveau_index_nuit - ancien_index_nuit);
     
     const montant_jour = consommation_jour * pu.jour;
     const montant_pointe = consommation_pointe * pu.pointe_ete;

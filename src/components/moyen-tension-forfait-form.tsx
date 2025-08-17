@@ -31,26 +31,55 @@ type FormValues = z.infer<typeof formSchema>;
 export function MoyenTensionForfaitForm() {
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {},
+        defaultValues: {
+            ancien_index: 1483440,
+            nouveau_index: 1489924,
+            coefficient_multiplicateur: 1.0,
+            perte_en_charge: 130,
+            perte_a_vide: 260,
+            pu_consommation: 0.291,
+            prime_puissance: 250.000,
+            tva_consommation_percent: 19,
+            tva_redevance_percent: 19,
+            contribution_rtt: 3.500,
+            surtaxe_municipale: 68.740,
+            avance_consommation: 31.134,
+            bonification: 100.017,
+        },
     });
 
-    const watch = useWatch({ control: form.control });
+    const watchedValues = useWatch({ control: form.control });
+
+    const ancien_index = parseFloat(String(watchedValues.ancien_index)) || 0;
+    const nouveau_index = parseFloat(String(watchedValues.nouveau_index)) || 0;
+    const coefficient_multiplicateur = parseFloat(String(watchedValues.coefficient_multiplicateur)) || 0;
+    const perte_en_charge = parseFloat(String(watchedValues.perte_en_charge)) || 0;
+    const perte_a_vide = parseFloat(String(watchedValues.perte_a_vide)) || 0;
+    const pu_consommation = parseFloat(String(watchedValues.pu_consommation)) || 0;
+    const prime_puissance = parseFloat(String(watchedValues.prime_puissance)) || 0;
+    const tva_consommation_percent = parseFloat(String(watchedValues.tva_consommation_percent)) || 0;
+    const tva_redevance_percent = parseFloat(String(watchedValues.tva_redevance_percent)) || 0;
+    const contribution_rtt = parseFloat(String(watchedValues.contribution_rtt)) || 0;
+    const surtaxe_municipale = parseFloat(String(watchedValues.surtaxe_municipale)) || 0;
+    const avance_consommation = parseFloat(String(watchedValues.avance_consommation)) || 0;
+    const bonification = parseFloat(String(watchedValues.bonification)) || 0;
+    
 
     // Calculations
-    const energie_enregistree = Math.max(0, watch.nouveau_index - watch.ancien_index) * watch.coefficient_multiplicateur;
-    const consommation_a_facturer = energie_enregistree + watch.perte_en_charge + watch.perte_a_vide;
-    const montant_consommation = consommation_a_facturer * watch.pu_consommation;
+    const energie_enregistree = Math.max(0, nouveau_index - ancien_index) * coefficient_multiplicateur;
+    const consommation_a_facturer = energie_enregistree + perte_en_charge + perte_a_vide;
+    const montant_consommation = consommation_a_facturer * pu_consommation;
     const sous_total_consommation = montant_consommation; // In this bill, it's just the consumption amount
     
-    const total_1 = sous_total_consommation - watch.bonification;
-    const total_2 = total_1 + watch.prime_puissance;
+    const total_1 = sous_total_consommation - bonification;
+    const total_2 = total_1 + prime_puissance;
     
-    const tva_consommation = total_1 * (watch.tva_consommation_percent / 100);
-    const tva_redevance = watch.prime_puissance * (watch.tva_redevance_percent / 100);
+    const tva_consommation = total_1 * (tva_consommation_percent / 100);
+    const tva_redevance = prime_puissance * (tva_redevance_percent / 100);
 
-    const total_3 = total_2 + tva_consommation + tva_redevance + watch.contribution_rtt + watch.surtaxe_municipale;
+    const total_3 = total_2 + tva_consommation + tva_redevance + contribution_rtt + surtaxe_municipale;
     
-    const net_a_payer = total_3 + watch.avance_consommation;
+    const net_a_payer = total_3 + avance_consommation;
 
 
     function onSubmit(values: FormValues) {
@@ -98,19 +127,19 @@ export function MoyenTensionForfaitForm() {
                         <CardContent className="space-y-3 text-sm">
                              <div className="flex justify-between items-center"><span>Consommation à Facturer:</span><span className="font-mono">{formatKWh(consommation_a_facturer)} kWh</span></div>
                              <div className="flex justify-between items-center"><span>Montant Consommation:</span><span className="font-mono">{formatDT(montant_consommation)}</span></div>
-                             <div className="flex justify-between items-center"><span>Bonification:</span><span className="font-mono text-green-500">-{formatDT(watch.bonification)}</span></div>
+                             <div className="flex justify-between items-center"><span>Bonification:</span><span className="font-mono text-green-500">-{formatDT(bonification)}</span></div>
                              <Separator />
                              <div className="flex justify-between items-center font-medium"><span>Total 1:</span><span className="font-mono">{formatDT(total_1)}</span></div>
-                             <div className="flex justify-between items-center"><span>Prime de Puissance:</span><span className="font-mono">{formatDT(watch.prime_puissance)}</span></div>
+                             <div className="flex justify-between items-center"><span>Prime de Puissance:</span><span className="font-mono">{formatDT(prime_puissance)}</span></div>
                              <Separator />
                              <div className="flex justify-between items-center font-medium"><span>Total 2:</span><span className="font-mono">{formatDT(total_2)}</span></div>
                              <div className="flex justify-between items-center"><span>TVA/Consommation:</span><span className="font-mono">{formatDT(tva_consommation)}</span></div>
                              <div className="flex justify-between items-center"><span>TVA/Redevance:</span><span className="font-mono">{formatDT(tva_redevance)}</span></div>
-                             <div className="flex justify-between items-center"><span>Contribution RTT:</span><span className="font-mono">{formatDT(watch.contribution_rtt)}</span></div>
-                             <div className="flex justify-between items-center"><span>Surtaxe Municipale:</span><span className="font-mono">{formatDT(watch.surtaxe_municipale)}</span></div>
+                             <div className="flex justify-between items-center"><span>Contribution RTT:</span><span className="font-mono">{formatDT(contribution_rtt)}</span></div>
+                             <div className="flex justify-between items-center"><span>Surtaxe Municipale:</span><span className="font-mono">{formatDT(surtaxe_municipale)}</span></div>
                             <Separator />
                              <div className="flex justify-between items-center font-medium"><span>Total 3:</span><span className="font-mono">{formatDT(total_3)}</span></div>
-                             <div className="flex justify-between items-center"><span>Avance/Consom.:</span><span className="font-mono">{formatDT(watch.avance_consommation)}</span></div>
+                             <div className="flex justify-between items-center"><span>Avance/Consom.:</span><span className="font-mono">{formatDT(avance_consommation)}</span></div>
                              <Separator />
                               <div className="flex justify-between items-center text-lg">
                                 <span className="font-bold">Net à Payer:</span>
