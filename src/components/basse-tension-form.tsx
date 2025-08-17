@@ -13,13 +13,10 @@ import { Separator } from '@/components/ui/separator';
 const formSchema = z.object({
     ancien_index: z.coerce.number().default(0),
     nouveau_index: z.coerce.number().default(0),
+    prix_unitaire: z.coerce.number().default(0.250),
     redevances_fixes: z.coerce.number().default(28.000),
     contr_ertt: z.coerce.number().default(0.000),
     tva: z.coerce.number().default(5.320),
-    pu_tranche1: z.coerce.number().default(0.195),
-    pu_tranche2: z.coerce.number().default(0.239),
-    pu_tranche3: z.coerce.number().default(0.330),
-    pu_tranche4: z.coerce.number().default(0.408),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -30,13 +27,10 @@ export function BasseTensionForm() {
         defaultValues: {
             ancien_index: 328093,
             nouveau_index: 328093,
+            prix_unitaire: 0.250,
             redevances_fixes: 28.000,
             contr_ertt: 0.000,
             tva: 5.320,
-            pu_tranche1: 0.195,
-            pu_tranche2: 0.239,
-            pu_tranche3: 0.330,
-            pu_tranche4: 0.408,
         },
     });
 
@@ -55,33 +49,7 @@ export function BasseTensionForm() {
         }
     }
 
-    const calculateMontantConsommation = (cons: number) => {
-        let montant = 0;
-        let rest = cons;
-
-        if (rest > 0) {
-            const t4 = Math.max(0, rest - 200);
-            montant += t4 * watch.pu_tranche4;
-            rest -= t4;
-        }
-        if (rest > 0) {
-            const t3 = Math.max(0, rest - 100);
-            montant += t3 * watch.pu_tranche3;
-            rest -= t3;
-        }
-        if (rest > 0) {
-            const t2 = Math.max(0, rest - 50);
-            montant += t2 * watch.pu_tranche2;
-            rest -= t2;
-        }
-        if (rest > 0) {
-            montant += rest * watch.pu_tranche1;
-        }
-
-        return montant;
-    }
-
-    const montant_consommation = calculateMontantConsommation(consommation);
+    const montant_consommation = consommation * watch.prix_unitaire;
     const total_consommation = montant_consommation + watch.redevances_fixes;
     const total_taxes = watch.contr_ertt + watch.tva;
     const montant_a_payer = total_consommation + total_taxes;
@@ -106,21 +74,10 @@ export function BasseTensionForm() {
                                    <FormField control={form.control} name="ancien_index" render={({ field }) => ( <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                                    <FormField control={form.control} name="nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                                 </div>
+                                <FormField control={form.control} name="prix_unitaire" render={({ field }) => ( <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 <FormField control={form.control} name="redevances_fixes" render={({ field }) => ( <FormItem><FormLabel>Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 <FormField control={form.control} name="contr_ertt" render={({ field }) => ( <FormItem><FormLabel>Contr. ERTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 <FormField control={form.control} name="tva" render={({ field }) => ( <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Tarifs (Prix Unitaire)</CardTitle>
-                                <CardDescription>Prix par kWh pour chaque tranche.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                               <FormField control={form.control} name="pu_tranche1" render={({ field }) => ( <FormItem><FormLabel>Tranche 1 (0-50)</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                               <FormField control={form.control} name="pu_tranche2" render={({ field }) => ( <FormItem><FormLabel>Tranche 2 (51-100)</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                               <FormField control={form.control} name="pu_tranche3" render={({ field }) => ( <FormItem><FormLabel>Tranche 3 (101-200)</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                               <FormField control={form.control} name="pu_tranche4" render={({ field }) => ( <FormItem><FormLabel>Tranche 4 ({'>'}200)</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             </CardContent>
                         </Card>
                     </div>
