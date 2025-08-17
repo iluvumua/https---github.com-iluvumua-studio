@@ -153,8 +153,7 @@ export default function MetersPage() {
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {filteredMeters.map((meter) => {
+              {filteredMeters.map((meter) => {
                   const associatedBuilding = meter.buildingId ? buildings.find(b => b.id === meter.buildingId) : null;
                   const associatedEquipment = meter.equipmentId ? equipment.filter(e => e.id === meter.equipmentId) : [];
                   const equipmentInBuilding = associatedBuilding ? equipment.filter(e => e.location === associatedBuilding.code) : [];
@@ -162,101 +161,100 @@ export default function MetersPage() {
                   const allAssociatedEquipment = [...new Set([...associatedEquipment, ...equipmentInBuilding])];
 
                   return (
-                    <Collapsible asChild key={meter.id} tagName="tbody" className="border-b">
-                      <>
-                        <TableRow>
-                            <TableCell className="font-mono">{meter.id}</TableCell>
-                            <TableCell className="font-mono">{meter.policeNumber}</TableCell>
-                            <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{meter.description}</TableCell>
-                            <TableCell>
-                              <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
-                                {meter.typeTension}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                   "whitespace-nowrap",
-                                    meter.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                                    meter.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
-                                    meter.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                                    meter.status === 'Substitué' && 'text-yellow-500 border-yellow-500/50 bg-yellow-500/10'
-                                )}
-                              >
-                                {meter.status}
-                              </Badge>
-                            </TableCell>
-                             <TableCell className="text-xs text-muted-foreground">{formatShortDate(meter.lastUpdate)}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                 <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <Info className="h-4 w-4" />
-                                    </Button>
-                                 </CollapsibleTrigger>
-                                <EditMeterForm meter={meter} />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        <CollapsibleContent asChild>
-                            <tr className="bg-muted/50 hover:bg-muted/50">
-                            <TableCell colSpan={8} className="p-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <Card>
-                                         <CardHeader>
-                                            <CardTitle className="flex items-center gap-2 text-base">
-                                                <Info className="h-5 w-5" /> Informations Générales
-                                            </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="text-sm space-y-2">
-                                            {meter.dateDemandeInstallation && <p><strong>Demande le:</strong> {formatDate(meter.dateDemandeInstallation)}</p>}
-                                            {meter.dateMiseEnService && <p><strong>Mise en service le:</strong> {formatDate(meter.dateMiseEnService)}</p>}
-                                            {meter.description && <p><strong>Description:</strong><br/>{meter.description}</p>}
-                                            {!meter.dateDemandeInstallation && !meter.dateMiseEnService && !meter.description && <p className="text-muted-foreground">Aucune information supplémentaire.</p>}
-                                        </CardContent>
-                                    </Card>
-
-                                    {associatedBuilding && (
-                                    <Card>
-                                        <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-base">
-                                            <Building className="h-5 w-5" /> Bâtiment Associé
-                                        </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="text-sm space-y-1">
-                                        <p><strong>Code:</strong> {associatedBuilding.code}</p>
-                                        <p><strong>Nom:</strong> {associatedBuilding.name}</p>
-                                        <p><strong>Adresse:</strong> {associatedBuilding.address}</p>
-                                        <p><strong>Commune:</strong> {associatedBuilding.commune}</p>
-                                        </CardContent>
-                                    </Card>
-                                    )}
-                                    {allAssociatedEquipment.length > 0 && (
-                                    <Card>
-                                        <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-base">
-                                            <HardDrive className="h-5 w-5" /> Équipements Associés
-                                        </CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="text-sm">
-                                        <ul className="list-disc pl-5 space-y-1">
-                                            {allAssociatedEquipment.map(eq => (
-                                                <li key={eq.id}>{eq.name} ({eq.type})</li>
-                                            ))}
-                                        </ul>
-                                        </CardContent>
-                                    </Card>
-                                    )}
+                    <Collapsible asChild key={meter.id} tagName="tbody">
+                        <TableBody className="border-b">
+                          <TableRow>
+                              <TableCell className="font-mono">{meter.id}</TableCell>
+                              <TableCell className="font-mono">{meter.policeNumber}</TableCell>
+                              <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
+                              <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{meter.description}</TableCell>
+                              <TableCell>
+                                <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
+                                  {meter.typeTension}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                     "whitespace-nowrap",
+                                      meter.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                                      meter.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                                      meter.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                                      meter.status === 'Substitué' && 'text-yellow-500 border-yellow-500/50 bg-yellow-500/10'
+                                  )}
+                                >
+                                  {meter.status}
+                                </Badge>
+                              </TableCell>
+                               <TableCell className="text-xs text-muted-foreground">{formatShortDate(meter.lastUpdate)}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                   <CollapsibleTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                          <Info className="h-4 w-4" />
+                                      </Button>
+                                   </CollapsibleTrigger>
+                                  <EditMeterForm meter={meter} />
                                 </div>
-                            </TableCell>
-                            </tr>
-                        </CollapsibleContent>
-                      </>
+                              </TableCell>
+                            </TableRow>
+                          <CollapsibleContent asChild>
+                              <tr className="bg-muted/50 hover:bg-muted/50">
+                              <TableCell colSpan={8} className="p-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                      <Card>
+                                           <CardHeader>
+                                              <CardTitle className="flex items-center gap-2 text-base">
+                                                  <Info className="h-5 w-5" /> Informations Générales
+                                              </CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="text-sm space-y-2">
+                                              {meter.dateDemandeInstallation && <p><strong>Demande le:</strong> {formatDate(meter.dateDemandeInstallation)}</p>}
+                                              {meter.dateMiseEnService && <p><strong>Mise en service le:</strong> {formatDate(meter.dateMiseEnService)}</p>}
+                                              {meter.description && <p><strong>Description:</strong><br/>{meter.description}</p>}
+                                              {!meter.dateDemandeInstallation && !meter.dateMiseEnService && !meter.description && <p className="text-muted-foreground">Aucune information supplémentaire.</p>}
+                                          </CardContent>
+                                      </Card>
+
+                                      {associatedBuilding && (
+                                      <Card>
+                                          <CardHeader>
+                                          <CardTitle className="flex items-center gap-2 text-base">
+                                              <Building className="h-5 w-5" /> Bâtiment Associé
+                                          </CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="text-sm space-y-1">
+                                          <p><strong>Code:</strong> {associatedBuilding.code}</p>
+                                          <p><strong>Nom:</strong> {associatedBuilding.name}</p>
+                                          <p><strong>Adresse:</strong> {associatedBuilding.address}</p>
+                                          <p><strong>Commune:</strong> {associatedBuilding.commune}</p>
+                                          </CardContent>
+                                      </Card>
+                                      )}
+                                      {allAssociatedEquipment.length > 0 && (
+                                      <Card>
+                                          <CardHeader>
+                                          <CardTitle className="flex items-center gap-2 text-base">
+                                              <HardDrive className="h-5 w-5" /> Équipements Associés
+                                          </CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="text-sm">
+                                          <ul className="list-disc pl-5 space-y-1">
+                                              {allAssociatedEquipment.map(eq => (
+                                                  <li key={eq.id}>{eq.name} ({eq.type})</li>
+                                              ))}
+                                          </ul>
+                                          </CardContent>
+                                      </Card>
+                                      )}
+                                  </div>
+                              </TableCell>
+                              </tr>
+                          </CollapsibleContent>
+                        </TableBody>
                     </Collapsible>
                 )})}
-              </TableBody>
             </Table>
             )}
           </CardContent>
