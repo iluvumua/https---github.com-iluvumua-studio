@@ -260,7 +260,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.surtaxe_municipale,
     watchedValues.avance_consommation,
     watchedValues.bonification,
-    form.setValue,
+    form,
   ]);
 
 
