@@ -221,6 +221,8 @@ export function BillForm({ meterId }: BillFormProps) {
   const cancelHref = meterId ? `/dashboard/billing/${meterId}` : '/dashboard/billing';
   
   const difference = (watchedValues.montantSTEG ?? 0) - (watchedValues.amount ?? 0);
+  
+  const availableMeters = meters.filter(m => m.status === 'En service');
 
   return (
     <Form {...form}>
@@ -234,7 +236,7 @@ export function BillForm({ meterId }: BillFormProps) {
                 <FormItem><FormLabel>N° Compteur</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterId}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
-                        <SelectContent>{meters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>))}</SelectContent>
+                        <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>))}</SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>
