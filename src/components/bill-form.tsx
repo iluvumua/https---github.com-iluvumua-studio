@@ -100,7 +100,7 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
     } else {
         const indexLength = String(numAncienIndex).length;
         if (indexLength > 0) {
-            const maxValue = Math.pow(10, indexLength) -1;
+            const maxValue = Number('9'.repeat(indexLength));
             consommation = (maxValue - numAncienIndex) + numNouveauIndex + 1;
         } else {
             consommation = numNouveauIndex;
@@ -116,11 +116,27 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
     return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
 }
 
+const calculateConsumptionWithRollover = (ancien: number, nouveau: number): number => {
+    if (nouveau >= ancien) {
+        return nouveau - ancien;
+    }
+    const ancienStr = String(ancien);
+    if (ancienStr.length === 0) return nouveau;
+    const maxValue = parseInt('9'.repeat(ancienStr.length), 10);
+    return (maxValue - ancien) + nouveau + 1;
+};
+
+
 const calculateMoyenTensionHoraire = (values: FormValues) => {
-    const consommation_jour = (Math.max(0, (Number(values.nouveau_index_jour) || 0) - (Number(values.ancien_index_jour) || 0))) * (Number(values.coefficient_jour) || 1);
-    const consommation_pointe = (Math.max(0, (Number(values.nouveau_index_pointe) || 0) - (Number(values.ancien_index_pointe) || 0))) * (Number(values.coefficient_pointe) || 1);
-    const consommation_soir = (Math.max(0, (Number(values.nouveau_index_soir) || 0) - (Number(values.ancien_index_soir) || 0))) * (Number(values.coefficient_soir) || 1);
-    const consommation_nuit = (Math.max(0, (Number(values.nouveau_index_nuit) || 0) - (Number(values.ancien_index_nuit) || 0))) * (Number(values.coefficient_nuit) || 1);
+    const consommation_jour_raw = calculateConsumptionWithRollover(Number(values.ancien_index_jour) || 0, Number(values.nouveau_index_jour) || 0);
+    const consommation_pointe_raw = calculateConsumptionWithRollover(Number(values.ancien_index_pointe) || 0, Number(values.nouveau_index_pointe) || 0);
+    const consommation_soir_raw = calculateConsumptionWithRollover(Number(values.ancien_index_soir) || 0, Number(values.nouveau_index_soir) || 0);
+    const consommation_nuit_raw = calculateConsumptionWithRollover(Number(values.ancien_index_nuit) || 0, Number(values.nouveau_index_nuit) || 0);
+    
+    const consommation_jour = consommation_jour_raw * (Number(values.coefficient_jour) || 1);
+    const consommation_pointe = consommation_pointe_raw * (Number(values.coefficient_pointe) || 1);
+    const consommation_soir = consommation_soir_raw * (Number(values.coefficient_soir) || 1);
+    const consommation_nuit = consommation_nuit_raw * (Number(values.coefficient_nuit) || 1);
 
     const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
 
@@ -240,9 +256,9 @@ export function BillForm({ meterId }: BillFormProps) {
   useEffect(() => {
     if (watchedValues.typeTension === "Basse Tension") {
         const { consommation, montant } = calculateBasseTension(
-            Number(watchedValues.ancienIndex), 
-            Number(watchedValues.nouveauIndex), 
-            Number(watchedValues.prix_unitaire_bt)
+            watchedValues.ancienIndex, 
+            watchedValues.nouveauIndex, 
+            watchedValues.prix_unitaire_bt
         );
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
@@ -566,3 +582,5 @@ export function BillForm({ meterId }: BillFormProps) {
     </Form>
   );
 }
+
+    
