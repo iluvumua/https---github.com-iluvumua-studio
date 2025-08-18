@@ -105,10 +105,10 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
 }
 
 const calculateMoyenTensionHoraire = (values: FormValues) => {
-    const consommation_jour = Math.max(0, (values.nouveau_index_jour || 0) - (values.ancien_index_jour || 0));
-    const consommation_pointe = Math.max(0, (values.nouveau_index_pointe || 0) - (values.ancien_index_pointe || 0));
-    const consommation_soir = Math.max(0, (values.nouveau_index_soir || 0) - (values.ancien_index_soir || 0));
-    const consommation_nuit = Math.max(0, (values.nouveau_index_nuit || 0) - (values.ancien_index_nuit || 0));
+    const consommation_jour = Math.max(0, (Number(values.nouveau_index_jour) || 0) - (Number(values.ancien_index_jour) || 0));
+    const consommation_pointe = Math.max(0, (Number(values.nouveau_index_pointe) || 0) - (Number(values.ancien_index_pointe) || 0));
+    const consommation_soir = Math.max(0, (Number(values.nouveau_index_soir) || 0) - (Number(values.ancien_index_soir) || 0));
+    const consommation_nuit = Math.max(0, (Number(values.nouveau_index_nuit) || 0) - (Number(values.ancien_index_nuit) || 0));
 
     const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
 
@@ -162,7 +162,7 @@ export function BillForm({ meterId }: BillFormProps) {
 
   useEffect(() => {
     if (watchedValues.typeTension === "Basse Tension") {
-        const { consommation, montant } = calculateBasseTension(watchedValues.ancienIndex, watchedValues.nouveauIndex);
+        const { consommation, montant } = calculateBasseTension(Number(watchedValues.ancienIndex) || 0, Number(watchedValues.nouveauIndex) || 0);
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
     } else if (watchedValues.typeTension === "Moyen Tension Tranche Horaire") {
@@ -183,7 +183,8 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.ancien_index_nuit,
     watchedValues.nouveau_index_nuit,
     form.setValue,
-    form
+    form,
+    watchedValues
   ]);
 
 
@@ -219,7 +220,7 @@ export function BillForm({ meterId }: BillFormProps) {
   const isForfait = watchedValues.typeTension === 'Moyen Tension Forfaitaire';
   const cancelHref = meterId ? `/dashboard/billing/${meterId}` : '/dashboard/billing';
   
-  const difference = (watchedValues.montantSTEG ?? 0) - (watchedValues.amount ?? 0);
+  const difference = (Number(watchedValues.montantSTEG) || 0) - (Number(watchedValues.amount) || 0);
   
   const availableMeters = meters.filter(m => m.status === 'En service');
 
