@@ -81,13 +81,12 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
     if (nouveauIndex >= ancienIndex) {
         consommation = nouveauIndex - ancienIndex;
     } else {
-        // Handle meter rollover dynamically based on index length
         const indexLength = String(ancienIndex).length;
         if (indexLength > 0) {
             const maxValue = Number('9'.repeat(indexLength));
             consommation = (maxValue - ancienIndex) + nouveauIndex + 1;
         } else {
-            consommation = nouveauIndex; // Should not happen with valid data
+            consommation = nouveauIndex;
         }
     }
     
