@@ -2,6 +2,7 @@
 "use client";
 
 import { File, Building2, PlusCircle } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,6 +45,23 @@ export default function BuildingsPage() {
         return 'outline';
     };
 
+    const handleExport = () => {
+        const dataToExport = buildings.map(building => ({
+            "Code Bâtiment": building.code,
+            "Nom du Site": building.name,
+            "Commune": building.commune,
+            "Délégation": building.delegation,
+            "Nature": getNatureLabel(building.nature),
+            "Propriété": building.propriete,
+            "ID Compteur": building.meterId || 'N/A',
+            "Adresse": building.address,
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Bâtiments");
+        XLSX.writeFile(workbook, `batiments.xlsx`);
+    };
+
   return (
     <Card>
       <CardHeader>
@@ -55,7 +73,7 @@ export default function BuildingsPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="h-8 gap-1">
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                     Exporter

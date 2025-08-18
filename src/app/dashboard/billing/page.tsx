@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import * as XLSX from 'xlsx';
 import {
   Card,
   CardContent,
@@ -86,6 +87,22 @@ export default function BillingPage() {
       (item.description && item.description.toLowerCase().includes(query))
     );
   });
+  
+  const handleExport = () => {
+    const dataToExport = filteredData.map(item => ({
+        "Réf. Facteur": item.referenceFacteur,
+        "N° Compteur": item.id,
+        "N° Police": item.policeNumber,
+        "Associé à": item.associationName,
+        "Factures Impayées (Nombre)": item.unpaidCount,
+        "Factures Impayées (Montant)": item.unpaidAmount,
+        "Description": item.description,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Facturation");
+    XLSX.writeFile(workbook, `facturation_compteurs.xlsx`);
+  };
 
   return (
     <TooltipProvider>
@@ -109,7 +126,7 @@ export default function BillingPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Button size="sm" variant="outline" className="h-8 gap-1">
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                     Exporter

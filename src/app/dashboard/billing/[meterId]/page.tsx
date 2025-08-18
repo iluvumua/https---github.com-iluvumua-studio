@@ -4,6 +4,7 @@
 import { useState, useMemo } from "react";
 import { Calculator, File, FileText, PlusCircle, Search, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import * as XLSX from 'xlsx';
 import {
   Card,
   CardContent,
@@ -107,6 +108,23 @@ export default function MeterBillingPage() {
     return matchesSearch && matchesConvenable;
   });
 
+  const handleExport = () => {
+    const dataToExport = filteredBills.map(bill => ({
+        "N° Facture": bill.reference,
+        "Type": bill.typeTension,
+        "Statut": bill.status,
+        "Consommation (kWh)": bill.consumptionKWh,
+        "Montant": bill.amount,
+        "Convenable STEG": bill.convenableSTEG ? 'Oui' : 'Non',
+        "Montant STEG": bill.montantSTEG,
+        "Mois": bill.month,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Factures ${selectedMeterId}`);
+    XLSX.writeFile(workbook, `factures_${selectedMeterId}.xlsx`);
+  };
+
   return (
     <TooltipProvider>
     <Card>
@@ -156,7 +174,7 @@ export default function MeterBillingPage() {
                         <SelectItem value="no">Non Convenable</SelectItem>
                     </SelectContent>
                 </Select>
-                <Button size="sm" variant="outline" className="h-8 gap-1">
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                     Exporter

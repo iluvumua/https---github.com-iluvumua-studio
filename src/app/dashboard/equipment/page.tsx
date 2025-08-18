@@ -5,6 +5,7 @@ import { useState } from "react";
 import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
+import * as XLSX from 'xlsx';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -92,6 +93,24 @@ export default function EquipmentPage() {
         return statuses ? statuses.includes(item.status) : false;
     });
 
+    const handleExport = () => {
+        const dataToExport = filteredEquipment.map(item => ({
+            "Nom_MSAN": item.name,
+            "État": item.status,
+            "Type": item.type,
+            "Fournisseur": item.fournisseur,
+            "Tension": item.tension,
+            "District STEG": item.districtSteg,
+            "Date Mise en Service": item.dateMiseEnService ? formatShortDate(item.dateMiseEnService) : 'N/A',
+            "Dernière MAJ": formatShortDate(item.lastUpdate),
+            "ID Compteur": item.compteurId || 'N/A',
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Équipements");
+        XLSX.writeFile(workbook, `equipements_${activeTab}.xlsx`);
+    };
+
   return (
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center">
@@ -112,7 +131,7 @@ export default function EquipmentPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-          <Button size="sm" variant="outline" className="h-8 gap-1">
+          <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Exporter
