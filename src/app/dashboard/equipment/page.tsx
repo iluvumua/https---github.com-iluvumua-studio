@@ -2,8 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, Sheet, Pencil, CheckSquare, MapPin, Search, Gauge, FileText } from "lucide-react";
-import * as XLSX from "xlsx";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 
@@ -63,65 +62,12 @@ function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
 
 
 export default function EquipmentPage() {
-    const { equipment, addEquipment } = useEquipmentStore();
+    const { equipment } = useEquipmentStore();
     const [activeTab, setActiveTab] = useState("all");
     const { toast } = useToast();
     const { user } = useUser();
     const [searchTerm, setSearchTerm] = useState("");
 
-    const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const data = new Uint8Array(e.target?.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet) as any[];
-
-                const newEquipments: Equipment[] = json.map((row, index) => {
-                    let coordY: number | undefined;
-                    let coordX: number | undefined;
-
-                    const yx = row["Y/X"];
-                    if(typeof yx === 'string' && yx.includes(',')) {
-                        const parts = yx.split(',');
-                        coordY = parseFloat(parts[0].trim());
-                        coordX = parseFloat(parts[1].trim());
-                    }
-
-                    return {
-                        id: `EQP-${Date.now()}-${index}`,
-                        name: row["Nom_MSAN"] || row["Nom"] || row["name"] || "N/A",
-                        type: row["Type"] || row["type"] || "N/A",
-                        location: row["Emplacement"] || row["location"] || row["Code  Abréviation"] || "N/A",
-                        status: 'En cours',
-                        lastUpdate: new Date().toISOString().split('T')[0],
-                        fournisseur: row["Fournisseur"] || row["supplier"] || "N/A",
-                        typeChassis: row["Type de Chassie"] || row["typeChassis"] || "N/A",
-                        tension: (row["Tension"] === 'BT' || row["Tension"] === 'MT') ? row["Tension"] : undefined,
-                        districtSteg: row["District STEG"] || row["districtSteg"] || "N/A",
-                        coordX: coordX || row["coordX"] || row["X_Localisation"] || undefined,
-                        coordY: coordY || row["coordY"] || row["Y_Localisation"] || undefined,
-                        designation: row["Nom de l'MSAN (GéoNetwork)"] || row["Nom Workflow"] || row["Nom \nEquipement / Bâtiment"],
-                    }
-                });
-
-                newEquipments.forEach(addEquipment);
-
-                toast({
-                    title: "Importation Réussie",
-                    description: `${newEquipments.length} équipements ont été importés et sont en attente de vérification.`,
-                });
-
-            };
-            reader.readAsArrayBuffer(file);
-             // Reset file input to allow re-uploading the same file
-            event.target.value = '';
-        }
-    };
-    
     const formatShortDate = (dateString?: string) => {
         if (!dateString) return "N/A";
         return format(new Date(dateString), "dd/MM/yyyy");
@@ -166,18 +112,6 @@ export default function EquipmentPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-           <label htmlFor="import-file">
-              <Button size="sm" variant="outline" className="h-8 gap-1" asChild>
-                <span className="cursor-pointer">
-                    <Sheet className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Importer
-                    </span>
-                </span>
-              </Button>
-            </label>
-            <input type="file" id="import-file" className="hidden" accept=".xlsx, .xls" onChange={handleImport} />
-
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
