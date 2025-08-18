@@ -218,7 +218,7 @@ export default function EquipmentPage() {
                             {item.compteurId && (
                                 <>
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href="/dashboard/meters">
+                                        <Link href={`/dashboard/meters?search=${item.compteurId}`}>
                                             <Gauge className="h-4 w-4" />
                                         </Link>
                                     </Button>

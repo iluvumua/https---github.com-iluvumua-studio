@@ -2,7 +2,7 @@
 "use client";
 
 import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info } from "lucide-react";
-import React from "react";
+import React, { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,12 +32,16 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Meter } from "@/lib/types";
+import { useSearchParams } from "next/navigation";
 
-export default function MetersPage() {
+function MetersPageComponent() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get('search') || "";
+  
+  const [searchTerm, setSearchTerm] = React.useState(initialSearch);
   const [activeTab, setActiveTab] = React.useState("all");
 
   const getAssociationName = (meter: (typeof meters)[0]) => {
@@ -262,4 +266,12 @@ export default function MetersPage() {
       </TabsContent>
     </Tabs>
   );
+}
+
+export default function MetersPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <MetersPageComponent />
+        </Suspense>
+    )
 }
