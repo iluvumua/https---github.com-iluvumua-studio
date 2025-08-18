@@ -90,6 +90,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
         dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
         buildingId: values.associationType === 'building' ? values.buildingId : undefined,
         equipmentId: values.associationType === 'equipment' ? values.equipmentId : undefined,
+        referenceFacteur: undefined,
     };
 
     addMeter(newMeter);
