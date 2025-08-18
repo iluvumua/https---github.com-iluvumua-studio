@@ -63,7 +63,7 @@ export default function BillingPage() {
   }
 
   const meterBillingData = meters
-    .filter(meter => meter.status !== 'Substitué')
+    .filter(meter => meter.status !== 'Substitué' && meter.referenceFacteur)
     .map(meter => {
         const meterBills = bills.filter(b => b.meterId === meter.id);
         const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
@@ -149,9 +149,9 @@ export default function BillingPage() {
         {filteredData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <FileText className="h-16 w-16 text-muted-foreground" />
-                <h3 className="mt-6 text-xl font-semibold">Aucune facture trouvée</h3>
+                <h3 className="mt-6 text-xl font-semibold">Aucun compteur à facturer</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    Commencez par ajouter votre première facture pour la voir ici.
+                    Assurez-vous que les compteurs ont une référence de facturation pour les voir ici.
                 </p>
                  <div className="mt-6 w-full max-w-sm">
                    {user.role === 'Financier' && (
