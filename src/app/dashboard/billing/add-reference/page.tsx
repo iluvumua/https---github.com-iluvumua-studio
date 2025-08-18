@@ -1,7 +1,7 @@
 
 "use client";
 
-import { MeterForm } from "@/components/meter-form";
+import { ReferenceFacteurForm } from "@/components/reference-facteur-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 
@@ -11,13 +11,13 @@ export default function NewReferencePage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Ajouter une nouvelle référence de facturation</CardTitle>
+                <CardTitle>Ajouter/Modifier une référence de facturation</CardTitle>
                 <CardDescription>
-                    Remplissez les détails ci-dessous pour créer une nouvelle référence.
+                    Sélectionnez un compteur et saisissez sa référence de facteur.
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <MeterForm onFinished={() => router.push('/dashboard/billing')} />
+                <ReferenceFacteurForm onFinished={() => router.push('/dashboard/billing')} />
             </CardContent>
         </Card>
     );
