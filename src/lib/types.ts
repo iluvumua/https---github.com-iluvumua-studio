@@ -46,6 +46,7 @@ export type Bill = {
   // Basse tension fields
   ancienIndex?: number;
   nouveauIndex?: number;
+  prix_unitaire_bt?: number;
 
   // Moyen tension horaire fields
   ancien_index_jour?: number;
@@ -56,6 +57,21 @@ export type Bill = {
   nouveau_index_soir?: number;
   ancien_index_nuit?: number;
   nouveau_index_nuit?: number;
+
+  // Moyen tension forfaitaire fields
+  mtf_ancien_index?: number;
+  mtf_nouveau_index?: number;
+  coefficient_multiplicateur?: number;
+  perte_en_charge?: number;
+  perte_a_vide?: number;
+  pu_consommation?: number;
+  prime_puissance?: number;
+  tva_consommation_percent?: number;
+  tva_redevance_percent?: number;
+  contribution_rtt?: number;
+  surtaxe_municipale?: number;
+  avance_consommation?: number;
+  bonification?: number;
 };
 
 export type Meter = {
