@@ -182,9 +182,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.nouveau_index_soir,
     watchedValues.ancien_index_nuit,
     watchedValues.nouveau_index_nuit,
-    form.setValue,
     form,
-    watchedValues
   ]);
 
 
