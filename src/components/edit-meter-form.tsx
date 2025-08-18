@@ -26,7 +26,6 @@ import Link from "next/link";
 const formSchema = z.object({
   id: z.string().min(1, "Le N° de compteur est requis."),
   policeNumber: z.string().optional(),
-  referenceFacteur: z.string().length(9, "La Réf. Facteur doit comporter 9 chiffres.").optional(),
   typeTension: z.enum(["Moyenne Tension", "Basse Tension"]),
   status: z.enum(['En cours', 'En service', 'Résilié', 'Substitué']),
   associationType: z.enum(["building", "equipment", "none"]).default("none"),
@@ -68,7 +67,6 @@ export function EditMeterForm({ meter, onFinished }: EditMeterFormProps) {
     defaultValues: {
         id: meter.id,
         policeNumber: meter.policeNumber || "",
-        referenceFacteur: meter.referenceFacteur || "",
         typeTension: meter.typeTension,
         status: meter.status,
         associationType: getAssociationType(),
@@ -103,8 +101,7 @@ export function EditMeterForm({ meter, onFinished }: EditMeterFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="grid gap-4 py-4 max-h-[65vh] overflow-y-auto pr-4 md:grid-cols-2">
                 <FormField control={form.control} name="id" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: 552200" {...field} readOnly /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( <FormItem className="md:col-span-2"><FormLabel>Réf. Facteur (9 chiffres)</FormLabel><FormControl><Input placeholder="ex: 378051249" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} /></FormControl><FormMessage /></FormItem> )} />
 
                 <FormField control={form.control} name="typeTension" render={({ field }) => (
                     <FormItem><FormLabel>Type de Tension</FormLabel>
@@ -240,5 +237,7 @@ export function EditMeterForm({ meter, onFinished }: EditMeterFormProps) {
     </Form>
   );
 }
+
+    
 
     
