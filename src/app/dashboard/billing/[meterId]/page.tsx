@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState } from "react";
-import { Calculator, File, FileText, PlusCircle, Search } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Calculator, File, FileText, PlusCircle, Search, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,17 +34,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function MeterBillingPage() {
   const params = useParams();
-  const meterId = params.meterId as string;
+  const initialMeterId = params.meterId as string;
 
   const { bills } = useBillingStore();
   const { meters } = useMetersStore();
   const { user } = useUser();
+  
+  const [selectedMeterId, setSelectedMeterId] = useState(initialMeterId);
   const [searchTerm, setSearchTerm] = useState("");
   const [convenableFilter, setConvenableFilter] = useState<"all" | "yes" | "no">("all");
 
+  const meterHistory = useMemo(() => {
+    const history = new Map<string, any>();
+    const allMeters = meters;
 
-  const meter = meters.find(m => m.id === meterId);
-  const meterBills = bills.filter(b => b.meterId === meterId);
+    let current = allMeters.find(m => m.id === initialMeterId);
+    if (!current) return [];
+
+    // Go backwards in history
+    while (current) {
+        history.set(current.id, current);
+        current = allMeters.find(m => m.id === current.replaces);
+    }
+    
+    // Go forwards in history
+    current = allMeters.find(m => m.id === initialMeterId);
+    while (current) {
+        history.set(current.id, current);
+        current = allMeters.find(m => m.id === current.replacedBy);
+    }
+
+    return Array.from(history.values());
+  }, [initialMeterId, meters]);
+
+  const currentMeterDetails = meters.find(m => m.id === selectedMeterId);
+
+  const meterBills = bills.filter(b => b.meterId === selectedMeterId);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(amount);
@@ -88,12 +113,29 @@ export default function MeterBillingPage() {
       <CardHeader>
          <div className="flex items-center justify-between">
             <div>
-                <CardTitle>Factures pour le Compteur <span className="font-mono text-primary">{meterId}</span></CardTitle>
+                <CardTitle>Factures pour le Compteur <span className="font-mono text-primary">{selectedMeterId}</span></CardTitle>
                 <CardDescription>
-                  Police: {meter?.policeNumber || 'N/A'} | Réf. Facteur: {meter?.referenceFacteur || 'N/A'} | Total Factures: {meterBills.length}
+                  Police: {currentMeterDetails?.policeNumber || 'N/A'} | Réf. Facteur: {currentMeterDetails?.referenceFacteur || 'N/A'} | Total Factures: {meterBills.length}
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
+                 {meterHistory.length > 1 && (
+                    <Select value={selectedMeterId} onValueChange={setSelectedMeterId}>
+                        <SelectTrigger className="w-[220px]">
+                             <div className="flex items-center gap-2">
+                                <History className="h-4 w-4" />
+                                <SelectValue placeholder="Voir l'historique" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {meterHistory.map(meter => (
+                                <SelectItem key={meter.id} value={meter.id}>
+                                    {meter.id} ({meter.status})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                 )}
                  <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -122,7 +164,7 @@ export default function MeterBillingPage() {
                 </Button>
                  {user.role === 'Financier' && (
                     <Button size="sm" className="h-8 gap-1" asChild>
-                        <Link href={`/dashboard/billing/new?meterId=${meterId}`}>
+                        <Link href={`/dashboard/billing/new?meterId=${selectedMeterId}`}>
                             <PlusCircle className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                                 Ajouter Facture
@@ -144,7 +186,7 @@ export default function MeterBillingPage() {
                 <div className="mt-6 w-full max-w-sm">
                    {user.role === 'Financier' && (
                         <Button className="w-full" asChild>
-                            <Link href={`/dashboard/billing/new?meterId=${meterId}`}>
+                            <Link href={`/dashboard/billing/new?meterId=${selectedMeterId}`}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Facture
                             </Link>
                         </Button>

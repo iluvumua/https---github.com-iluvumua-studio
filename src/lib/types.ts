@@ -71,4 +71,7 @@ export type Meter = {
     dateMiseEnService?: string;
     description?: string;
     lastUpdate?: string;
+    replaces?: string; // ID of the meter this one replaces
+    replacedBy?: string; // ID of the meter that replaced this one
 }
+

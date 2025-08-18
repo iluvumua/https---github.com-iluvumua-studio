@@ -37,7 +37,7 @@ interface ReplaceMeterFormProps {
 export function ReplaceMeterForm({ oldMeter }: ReplaceMeterFormProps) {
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const { meters, updateMeter, addMeter } = useMetersStore();
+  const { meters, updateMeter } = useMetersStore();
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -52,30 +52,36 @@ export function ReplaceMeterForm({ oldMeter }: ReplaceMeterFormProps) {
   }
   
   const onSubmit = (values: FormValues) => {
-    // 1. Find the selected meter to update its status
     const newMeterTemplate = meters.find(m => m.id === values.newMeterId);
     
     if (newMeterTemplate) {
+         // Update the new meter
          updateMeter({
             ...newMeterTemplate,
-            ...oldMeter, // Inherit properties like association
-            id: newMeterTemplate.id, // Keep the new meter's ID
             status: 'En service',
             lastUpdate: new Date().toISOString().split('T')[0],
             dateMiseEnService: new Date().toISOString().split('T')[0],
             description: `Remplace le compteur ${oldMeter.id}.`,
+            replaces: oldMeter.id,
+            policeNumber: oldMeter.policeNumber,
+            referenceFacteur: oldMeter.referenceFacteur,
+            buildingId: oldMeter.buildingId,
+            equipmentId: oldMeter.equipmentId,
          });
+
+        // Update the old meter
+        updateMeter({
+          ...oldMeter,
+          status: 'Substitué',
+          replacedBy: values.newMeterId,
+          lastUpdate: new Date().toISOString().split('T')[0],
+          description: `${oldMeter.description || ''} (Remplacé par ${values.newMeterId})`.trim(),
+        });
+
+        toast({ title: "Compteur Remplacé", description: `Le compteur ${oldMeter.id} a été remplacé par ${values.newMeterId}.` });
     }
 
-    // 2. Update the old meter's status to 'Substitué'
-    updateMeter({
-      ...oldMeter,
-      status: 'Substitué',
-      lastUpdate: new Date().toISOString().split('T')[0],
-      description: `${oldMeter.description || ''} (Remplacé par ${values.newMeterId})`.trim(),
-    });
 
-    toast({ title: "Compteur Remplacé", description: `Le compteur ${oldMeter.id} a été remplacé par ${values.newMeterId}.` });
     form.reset({ newMeterId: "" });
     setIsOpen(false);
   }
@@ -151,3 +157,4 @@ export function ReplaceMeterForm({ oldMeter }: ReplaceMeterFormProps) {
     </Dialog>
   );
 }
+
