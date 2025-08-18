@@ -57,6 +57,14 @@ export type Bill = {
   nouveau_index_soir?: number;
   ancien_index_nuit?: number;
   nouveau_index_nuit?: number;
+  coefficient_jour?: number;
+  coefficient_pointe?: number;
+  coefficient_soir?: number;
+  coefficient_nuit?: number;
+  prix_unitaire_jour?: number;
+  prix_unitaire_pointe?: number;
+  prix_unitaire_soir?: number;
+  prix_unitaire_nuit?: number;
 
   // Moyen tension forfaitaire fields
   mtf_ancien_index?: number;

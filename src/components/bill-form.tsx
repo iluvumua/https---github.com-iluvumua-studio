@@ -45,6 +45,14 @@ const formSchema = z.object({
   nouveau_index_soir: z.coerce.number().optional(),
   ancien_index_nuit: z.coerce.number().optional(),
   nouveau_index_nuit: z.coerce.number().optional(),
+  coefficient_jour: z.coerce.number().optional(),
+  coefficient_pointe: z.coerce.number().optional(),
+  coefficient_soir: z.coerce.number().optional(),
+  coefficient_nuit: z.coerce.number().optional(),
+  prix_unitaire_jour: z.coerce.number().optional(),
+  prix_unitaire_pointe: z.coerce.number().optional(),
+  prix_unitaire_soir: z.coerce.number().optional(),
+  prix_unitaire_nuit: z.coerce.number().optional(),
 
   // Moyen Tension Forfaitaire
   mtf_ancien_index: z.coerce.number().optional(),
@@ -82,12 +90,6 @@ const bt_redevances_fixes = 28.000;
 const bt_tva = 5.320;
 const bt_contr_ertt = 0.000;
 
-const mt_pu = {
-    jour: 0.290,
-    pointe_ete: 0.417,
-    nuit: 0.222,
-}
-
 const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0, prixUnitaire: number = 0) => {
     let consommation = 0;
     const numAncienIndex = Number(ancienIndex);
@@ -115,22 +117,28 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
 }
 
 const calculateMoyenTensionHoraire = (values: FormValues) => {
-    const consommation_jour = Math.max(0, (Number(values.nouveau_index_jour) || 0) - (Number(values.ancien_index_jour) || 0));
-    const consommation_pointe = Math.max(0, (Number(values.nouveau_index_pointe) || 0) - (Number(values.ancien_index_pointe) || 0));
-    const consommation_soir = Math.max(0, (Number(values.nouveau_index_soir) || 0) - (Number(values.ancien_index_soir) || 0));
-    const consommation_nuit = Math.max(0, (Number(values.nouveau_index_nuit) || 0) - (Number(values.ancien_index_nuit) || 0));
+    const consommation_jour = (Math.max(0, (Number(values.nouveau_index_jour) || 0) - (Number(values.ancien_index_jour) || 0))) * (Number(values.coefficient_jour) || 1);
+    const consommation_pointe = (Math.max(0, (Number(values.nouveau_index_pointe) || 0) - (Number(values.ancien_index_pointe) || 0))) * (Number(values.coefficient_pointe) || 1);
+    const consommation_soir = (Math.max(0, (Number(values.nouveau_index_soir) || 0) - (Number(values.ancien_index_soir) || 0))) * (Number(values.coefficient_soir) || 1);
+    const consommation_nuit = (Math.max(0, (Number(values.nouveau_index_nuit) || 0) - (Number(values.ancien_index_nuit) || 0))) * (Number(values.coefficient_nuit) || 1);
 
     const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
 
-    const montant_jour = consommation_jour * mt_pu.jour;
-    const montant_pointe = consommation_pointe * mt_pu.pointe_ete;
-    const montant_soir = 0; // Assumption for now
-    const montant_nuit = consommation_nuit * mt_pu.nuit;
+    const montant_jour = consommation_jour * (Number(values.prix_unitaire_jour) || 0);
+    const montant_pointe = consommation_pointe * (Number(values.prix_unitaire_pointe) || 0);
+    const montant_soir = consommation_soir * (Number(values.prix_unitaire_soir) || 0);
+    const montant_nuit = consommation_nuit * (Number(values.prix_unitaire_nuit) || 0);
     
-    // This is a simplified subtotal. A real bill has more fees.
     const subtotal = montant_jour + montant_pointe + montant_soir + montant_nuit; 
 
-    return { consommation: totalConsumption, montant: parseFloat(subtotal.toFixed(3)) };
+    return { 
+        consommation: totalConsumption, 
+        montant: parseFloat(subtotal.toFixed(3)),
+        consommation_jour,
+        consommation_pointe,
+        consommation_soir,
+        consommation_nuit,
+    };
 }
 
 const calculateMoyenTensionForfait = (values: FormValues) => {
@@ -173,6 +181,10 @@ export function BillForm({ meterId }: BillFormProps) {
   const router = useRouter();
   const { toast } = useToast();
 
+  const [mthConsumptions, setMthConsumptions] = useState({
+    jour: 0, pointe: 0, soir: 0, nuit: 0
+  });
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -198,6 +210,14 @@ export function BillForm({ meterId }: BillFormProps) {
         nouveau_index_soir: 0,
         ancien_index_nuit: 0,
         nouveau_index_nuit: 0,
+        coefficient_jour: 1,
+        coefficient_pointe: 1,
+        coefficient_soir: 1,
+        coefficient_nuit: 1,
+        prix_unitaire_jour: 0.290,
+        prix_unitaire_pointe: 0.417,
+        prix_unitaire_soir: 0.290,
+        prix_unitaire_nuit: 0.222,
         // MT Forfait
         mtf_ancien_index: 1483440,
         mtf_nouveau_index: 1489924,
@@ -219,13 +239,23 @@ export function BillForm({ meterId }: BillFormProps) {
 
   useEffect(() => {
     if (watchedValues.typeTension === "Basse Tension") {
-        const { consommation, montant } = calculateBasseTension(Number(watchedValues.ancienIndex) || 0, Number(watchedValues.nouveauIndex) || 0, Number(watchedValues.prix_unitaire_bt) || 0);
+        const { consommation, montant } = calculateBasseTension(
+            Number(watchedValues.ancienIndex), 
+            Number(watchedValues.nouveauIndex), 
+            Number(watchedValues.prix_unitaire_bt)
+        );
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
     } else if (watchedValues.typeTension === "Moyen Tension Tranche Horaire") {
-        const { consommation, montant } = calculateMoyenTensionHoraire(watchedValues);
+        const { consommation, montant, ...consumptions } = calculateMoyenTensionHoraire(watchedValues);
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
+        setMthConsumptions({
+            jour: consumptions.consommation_jour,
+            pointe: consumptions.consommation_pointe,
+            soir: consumptions.consommation_soir,
+            nuit: consumptions.consommation_nuit,
+        })
     } else if (watchedValues.typeTension === "Moyen Tension Forfaitaire") {
         const { consommation, montant } = calculateMoyenTensionForfait(watchedValues);
         form.setValue("consumptionKWh", consommation);
@@ -238,27 +268,21 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.nouveauIndex,
     watchedValues.prix_unitaire_bt,
     // MT Horaire
-    watchedValues.ancien_index_jour,
-    watchedValues.nouveau_index_jour,
-    watchedValues.ancien_index_pointe,
-    watchedValues.nouveau_index_pointe,
-    watchedValues.ancien_index_soir,
-    watchedValues.nouveau_index_soir,
-    watchedValues.ancien_index_nuit,
-    watchedValues.nouveau_index_nuit,
+    watchedValues.ancien_index_jour, watchedValues.nouveau_index_jour,
+    watchedValues.ancien_index_pointe, watchedValues.nouveau_index_pointe,
+    watchedValues.ancien_index_soir, watchedValues.nouveau_index_soir,
+    watchedValues.ancien_index_nuit, watchedValues.nouveau_index_nuit,
+    watchedValues.coefficient_jour, watchedValues.coefficient_pointe,
+    watchedValues.coefficient_soir, watchedValues.coefficient_nuit,
+    watchedValues.prix_unitaire_jour, watchedValues.prix_unitaire_pointe,
+    watchedValues.prix_unitaire_soir, watchedValues.prix_unitaire_nuit,
     // MT Forfait
-    watchedValues.mtf_ancien_index,
-    watchedValues.mtf_nouveau_index,
-    watchedValues.coefficient_multiplicateur,
-    watchedValues.perte_en_charge,
-    watchedValues.perte_a_vide,
-    watchedValues.pu_consommation,
-    watchedValues.prime_puissance,
-    watchedValues.tva_consommation_percent,
-    watchedValues.tva_redevance_percent,
-    watchedValues.contribution_rtt,
-    watchedValues.surtaxe_municipale,
-    watchedValues.avance_consommation,
+    watchedValues.mtf_ancien_index, watchedValues.mtf_nouveau_index,
+    watchedValues.coefficient_multiplicateur, watchedValues.perte_en_charge,
+    watchedValues.perte_a_vide, watchedValues.pu_consommation,
+    watchedValues.prime_puissance, watchedValues.tva_consommation_percent,
+    watchedValues.tva_redevance_percent, watchedValues.contribution_rtt,
+    watchedValues.surtaxe_municipale, watchedValues.avance_consommation,
     watchedValues.bonification,
     form,
   ]);
@@ -280,6 +304,7 @@ export function BillForm({ meterId }: BillFormProps) {
         // BT
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
+        prix_unitaire_bt: values.typeTension === "Basse Tension" ? values.prix_unitaire_bt : undefined,
         
         // MT Horaire
         ancien_index_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_jour : undefined,
@@ -290,7 +315,15 @@ export function BillForm({ meterId }: BillFormProps) {
         nouveau_index_soir: values.typeTension === "Moyen Tension Tranche Horaire" ? values.nouveau_index_soir : undefined,
         ancien_index_nuit: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_nuit : undefined,
         nouveau_index_nuit: values.typeTension === "Moyen Tension Tranche Horaire" ? values.nouveau_index_nuit : undefined,
-        
+        coefficient_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.coefficient_jour : undefined,
+        coefficient_pointe: values.typeTension === "Moyen Tension Tranche Horaire" ? values.coefficient_pointe : undefined,
+        coefficient_soir: values.typeTension === "Moyen Tension Tranche Horaire" ? values.coefficient_soir : undefined,
+        coefficient_nuit: values.typeTension === "Moyen Tension Tranche Horaire" ? values.coefficient_nuit : undefined,
+        prix_unitaire_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prix_unitaire_jour : undefined,
+        prix_unitaire_pointe: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prix_unitaire_pointe : undefined,
+        prix_unitaire_soir: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prix_unitaire_soir : undefined,
+        prix_unitaire_nuit: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prix_unitaire_nuit : undefined,
+
         // MT Forfait
         mtf_ancien_index: values.typeTension === "Moyen Tension Forfaitaire" ? values.mtf_ancien_index : undefined,
         mtf_nouveau_index: values.typeTension === "Moyen Tension Forfaitaire" ? values.mtf_nouveau_index : undefined,
@@ -317,6 +350,8 @@ export function BillForm({ meterId }: BillFormProps) {
   const difference = (Number(watchedValues.montantSTEG) || 0) - (Number(watchedValues.amount) || 0);
   
   const availableMeters = meters.filter(m => m.status === 'En service');
+
+  const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
 
   return (
     <Form {...form}>
@@ -374,22 +409,46 @@ export function BillForm({ meterId }: BillFormProps) {
 
             {watchedValues.typeTension === 'Moyen Tension Tranche Horaire' && (
                 <div className="space-y-4 rounded-md border p-4 md:col-span-2">
-                    <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                    <div className="grid grid-cols-4 gap-4">
+                        <FormLabel className="col-span-2">Index</FormLabel>
+                        <FormLabel>Coefficient</FormLabel>
+                        <FormLabel>P.U.</FormLabel>
                     </div>
-                     <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                    {/* Jour */}
+                    <div className="grid grid-cols-4 gap-4 items-end">
+                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
-                     <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                    {/* Pointe */}
+                     <div className="grid grid-cols-4 gap-4 items-end">
+                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Anc. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                    {/* Soir */}
+                     <div className="grid grid-cols-4 gap-4 items-end">
+                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
+                    {/* Nuit */}
+                    <div className="grid grid-cols-4 gap-4 items-end">
+                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                    </div>
+                    <Separator />
+                     <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                        <div className="flex justify-between"><span>Conso. Jour:</span> <span className="font-mono">{formatKWh(mthConsumptions.jour)} kWh</span></div>
+                        <div className="flex justify-between"><span>Conso. Pointe:</span> <span className="font-mono">{formatKWh(mthConsumptions.pointe)} kWh</span></div>
+                        <div className="flex justify-between"><span>Conso. Soir:</span> <span className="font-mono">{formatKWh(mthConsumptions.soir)} kWh</span></div>
+                        <div className="flex justify-between"><span>Conso. Nuit:</span> <span className="font-mono">{formatKWh(mthConsumptions.nuit)} kWh</span></div>
+                     </div>
                 </div>
             )}
             
