@@ -25,7 +25,6 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
-import { EditMeterForm } from "@/components/edit-meter-form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -199,7 +198,11 @@ function MetersPageComponent() {
                                           <Info className="h-4 w-4" />
                                       </Button>
                                    </CollapsibleTrigger>
-                                  <EditMeterForm meter={meter} />
+                                   <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/dashboard/meters/${meter.id}/edit`}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
                                 </div>
                               </TableCell>
                             </TableRow>
