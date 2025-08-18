@@ -33,6 +33,7 @@ const formSchema = z.object({
   // Basse Tension
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
+  prix_unitaire_bt: z.coerce.number().optional(),
   
   // Moyen Tension Horaire
   ancien_index_jour: z.coerce.number().optional(),
@@ -60,12 +61,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 // Calculation constants
-const bt_pu = {
-    tranche1: 0.195,
-    tranche2: 0.239,
-    tranche3: 0.330,
-    tranche4: 0.408,
-}
 const bt_redevances_fixes = 28.000;
 const bt_tva = 5.320;
 const bt_contr_ertt = 0.000;
@@ -76,7 +71,7 @@ const mt_pu = {
     nuit: 0.222,
 }
 
-const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0) => {
+const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0, prixUnitaire: number = 0) => {
     let consommation = 0;
     if (nouveauIndex >= ancienIndex) {
         consommation = nouveauIndex - ancienIndex;
@@ -90,12 +85,7 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
         }
     }
     
-    let montant = 0;
-    let rest = consommation;
-    if (rest > 0) { const t4 = Math.max(0, rest - 200); montant += t4 * bt_pu.tranche4; rest -= t4; }
-    if (rest > 0) { const t3 = Math.max(0, rest - 100); montant += t3 * bt_pu.tranche3; rest -= t3; }
-    if (rest > 0) { const t2 = Math.max(0, rest - 50); montant += t2 * bt_pu.tranche2; rest -= t2; }
-    if (rest > 0) { montant += rest * bt_pu.tranche1; }
+    const montant = consommation * prixUnitaire;
     
     const total_consommation = montant + bt_redevances_fixes;
     const total_taxes = bt_contr_ertt + bt_tva;
@@ -147,6 +137,7 @@ export function BillForm({ meterId }: BillFormProps) {
         montantSTEG: 0,
         ancienIndex: 0,
         nouveauIndex: 0,
+        prix_unitaire_bt: 0.250,
         ancien_index_jour: 0,
         nouveau_index_jour: 0,
         ancien_index_pointe: 0,
@@ -162,7 +153,7 @@ export function BillForm({ meterId }: BillFormProps) {
 
   useEffect(() => {
     if (watchedValues.typeTension === "Basse Tension") {
-        const { consommation, montant } = calculateBasseTension(Number(watchedValues.ancienIndex) || 0, Number(watchedValues.nouveauIndex) || 0);
+        const { consommation, montant } = calculateBasseTension(Number(watchedValues.ancienIndex) || 0, Number(watchedValues.nouveauIndex) || 0, Number(watchedValues.prix_unitaire_bt) || 0);
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
     } else if (watchedValues.typeTension === "Moyen Tension Tranche Horaire") {
@@ -174,6 +165,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.typeTension,
     watchedValues.ancienIndex,
     watchedValues.nouveauIndex,
+    watchedValues.prix_unitaire_bt,
     watchedValues.ancien_index_jour,
     watchedValues.nouveau_index_jour,
     watchedValues.ancien_index_pointe,
@@ -182,7 +174,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.nouveau_index_soir,
     watchedValues.ancien_index_nuit,
     watchedValues.nouveau_index_nuit,
-    form,
+    form.setValue,
   ]);
 
 
@@ -279,6 +271,9 @@ export function BillForm({ meterId }: BillFormProps) {
                     )} />
                     <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
                         <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
+                        <FormItem className="md:col-span-2"><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
             )}
