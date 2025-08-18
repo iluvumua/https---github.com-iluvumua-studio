@@ -9,7 +9,6 @@ export type Equipment = {
   fournisseur?: string;
   typeChassis?: string;
   designation?: string; // Nom de l'MSAN (GéoNetwork) ou Nom Workflow
-  tension?: 'BT' | 'MT';
   districtSteg?: string;
   coordX?: number;
   coordY?: number;
@@ -74,4 +73,3 @@ export type Meter = {
     replaces?: string; // ID of the meter this one replaces
     replacedBy?: string; // ID of the meter that replaced this one
 }
-

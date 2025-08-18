@@ -58,7 +58,6 @@ const formSchema = z.object({
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
   designation: z.string().optional(),
-  tension: z.enum(['BT', 'MT'], { required_error: "La tension est requise."}),
   districtSteg: z.string().min(1, "Le district STEG est requis."),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
@@ -90,7 +89,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       localisation: initialEquipment?.location || "",
       typeChassis: initialEquipment?.typeChassis || "",
       designation: initialEquipment?.designation || "",
-      tension: initialEquipment?.tension || undefined,
       districtSteg: initialEquipment?.districtSteg || "",
       coordX: initialEquipment?.coordX ?? undefined,
       coordY: initialEquipment?.coordY ?? undefined,
@@ -177,7 +175,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
             designation: values.designation,
-            tension: values.tension,
             districtSteg: values.districtSteg,
             coordX: values.coordX,
             coordY: values.coordY,
@@ -197,7 +194,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
             designation: values.designation || undefined,
-            tension: values.tension,
             districtSteg: values.districtSteg,
             coordX: values.coordX,
             coordY: values.coordY,
@@ -270,27 +266,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         {equipmentTypes.map(type => (
                             <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                         ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="tension"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tension</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner la tension" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="BT">BT (Basse Tension)</SelectItem>
-                        <SelectItem value="MT">MT (Moyenne Tension)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
