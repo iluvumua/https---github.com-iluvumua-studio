@@ -167,14 +167,12 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   const onSubmit = (values: FormValues) => {
     if (isEditMode && initialEquipment) {
-        const isActivating = initialEquipment.status === 'En cours' && values.compteurId && values.dateMiseEnService;
-        
         const updated: Equipment = {
             ...initialEquipment,
             name: generatedName,
             type: values.type,
             location: values.localisation,
-            status: isActivating ? 'En service' : (values.status as Equipment['status']),
+            status: values.status as Equipment['status'],
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
@@ -218,7 +216,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     );
   }
 
-  const isInstallationStep = isEditMode && initialEquipment.status === 'En cours' && !!initialEquipment.verifiedBy;
   const isServiceStep = isEditMode && initialEquipment.status === 'En service';
 
   return (
@@ -358,74 +355,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
-
-                {isInstallationStep && (
-                     <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 rounded-md border p-4">
-                        <FormField
-                            control={form.control}
-                            name="compteurId"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>N° du Compteur Installé</FormLabel>
-                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                        <SelectValue placeholder="Sélectionner un compteur" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {meters.filter(m => m.status === 'En service').map(meter => (
-                                            <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="dateMiseEnService"
-                            render={({ field }) => (
-                            <FormItem className="flex flex-col pt-2">
-                                <FormLabel>Date de Mise en Service</FormLabel>
-                                <Popover>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                    <Button
-                                        variant={"outline"}
-                                        className={cn(
-                                        "pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                        )}
-                                    >
-                                        {field.value ? (
-                                        format(field.value, "PPP")
-                                        ) : (
-                                        <span>Choisir une date</span>
-                                        )}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                        date > new Date() || date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
-                                    />
-                                </PopoverContent>
-                                </Popover>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                    </div>
-                )}
               
                 {isServiceStep && (
                      <div className="md:col-span-2">
@@ -464,7 +393,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 </Button>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2" /> {isInstallationStep ? 'Mettre en service' : 'Enregistrer'}
+                    <Save className="mr-2" /> Enregistrer
                 </Button>
             </div>
           </form>

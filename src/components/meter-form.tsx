@@ -7,7 +7,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Save, X } from "lucide-react";
+import { CalendarIcon, Loader2, Save, X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useMetersStore } from "@/hooks/use-meters-store";
@@ -19,6 +19,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Textarea } from "./ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar } from "./ui/calendar";
 
 const formSchema = z.object({
   id: z.string().min(1, "Le N° de compteur est requis."),
@@ -28,6 +32,7 @@ const formSchema = z.object({
   associationType: z.enum(["building", "equipment", "none"]).default("none"),
   buildingId: z.string().optional(),
   equipmentId: z.string().optional(),
+  dateMiseEnService: z.date().optional(),
 }).refine(data => {
     if (data.associationType === 'building' && !data.buildingId) return false;
     if (data.associationType === 'equipment' && !data.equipmentId) return false;
@@ -35,6 +40,12 @@ const formSchema = z.object({
 }, {
     message: "Veuillez sélectionner une entité à associer.",
     path: ["associationType"],
+}).refine(data => {
+    if (data.associationType === 'equipment' && !data.dateMiseEnService) return false;
+    return true;
+}, {
+    message: "La date de mise en service est requise pour un équipement.",
+    path: ["dateMiseEnService"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -46,7 +57,7 @@ interface MeterFormProps {
 export function MeterForm({ onFinished }: MeterFormProps) {
   const { addMeter } = useMetersStore();
   const { buildings } = useBuildingsStore();
-  const { equipment } = useEquipmentStore();
+  const { equipment, updateEquipment } = useEquipmentStore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -60,24 +71,44 @@ export function MeterForm({ onFinished }: MeterFormProps) {
         associationType: "none",
         buildingId: "",
         equipmentId: "",
+        dateMiseEnService: undefined,
     }
   });
 
   const associationType = form.watch("associationType");
 
   const onSubmit = (values: FormValues) => {
+    const isActivatingEquipment = values.associationType === 'equipment' && values.equipmentId && values.dateMiseEnService;
+
     const newMeter: Meter = {
         id: values.id,
-        status: 'En cours', // Default status
+        status: isActivatingEquipment ? 'En service' : 'En cours',
         typeTension: values.typeTension,
         policeNumber: values.policeNumber,
         description: values.description,
         lastUpdate: new Date().toISOString().split('T')[0],
+        dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
         buildingId: values.associationType === 'building' ? values.buildingId : undefined,
         equipmentId: values.associationType === 'equipment' ? values.equipmentId : undefined,
     };
+
     addMeter(newMeter);
-    toast({ title: "Compteur ajouté", description: "Le nouveau compteur a été enregistré avec succès." });
+
+    if (isActivatingEquipment) {
+        const equipmentToUpdate = equipment.find(e => e.id === values.equipmentId);
+        if (equipmentToUpdate) {
+            updateEquipment({
+                ...equipmentToUpdate,
+                status: 'En service',
+                dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
+                compteurId: newMeter.id,
+                lastUpdate: new Date().toISOString().split('T')[0],
+            });
+            toast({ title: "Compteur ajouté et équipement activé", description: "Le nouvel équipement a été mis en service." });
+        }
+    } else {
+        toast({ title: "Compteur ajouté", description: "Le nouveau compteur a été enregistré avec succès." });
+    }
     
     if (onFinished) {
         onFinished();
@@ -93,6 +124,8 @@ export function MeterForm({ onFinished }: MeterFormProps) {
         router.push('/dashboard/billing');
     }
   }
+  
+  const availableEquipment = equipment.filter(e => e.status === 'En cours');
 
   return (
     <Form {...form}>
@@ -144,17 +177,40 @@ export function MeterForm({ onFinished }: MeterFormProps) {
                 )}
 
                  {associationType === 'equipment' && (
-                     <FormField control={form.control} name="equipmentId" render={({ field }) => (
-                        <FormItem className="md:col-span-2"><FormLabel>Équipement</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un équipement"/></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {equipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )} />
+                     <>
+                        <FormField control={form.control} name="equipmentId" render={({ field }) => (
+                            <FormItem><FormLabel>Équipement (En cours)</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un équipement"/></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        {availableEquipment.length > 0 ? (
+                                             availableEquipment.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)
+                                        ) : (
+                                            <SelectItem value="none" disabled>Aucun équipement en cours</SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
+                            <FormItem className="flex flex-col pt-2"><FormLabel>Date de Mise en Service</FormLabel>
+                                <Popover><PopoverTrigger asChild>
+                                    <FormControl>
+                                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                        {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </>
                 )}
 
                  <FormField control={form.control} name="description" render={({ field }) => (
