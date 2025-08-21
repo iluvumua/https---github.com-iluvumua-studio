@@ -9,7 +9,6 @@ export type Equipment = {
   fournisseur?: string;
   typeChassis?: string;
   designation?: string; // Nom de l'MSAN (GéoNetwork) ou Nom Workflow
-  districtSteg?: string;
   coordX?: number;
   coordY?: number;
   compteurId?: string;
@@ -65,6 +64,10 @@ export type Bill = {
   prix_unitaire_pointe?: number;
   prix_unitaire_soir?: number;
   prix_unitaire_nuit?: number;
+  consommation_jour?: number;
+  consommation_pointe?: number;
+  consommation_soir?: number;
+  consommation_nuit?: number;
 
   // Moyen tension forfaitaire fields
   mtf_ancien_index?: number;

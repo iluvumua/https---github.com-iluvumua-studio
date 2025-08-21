@@ -49,8 +49,6 @@ const equipmentTypes = [
     { value: 'FDT', label: 'SRO & FDT' },
 ]
 
-const districtStegOptions = ["SOUSSE CENTRE", "SOUSSE NORD"];
-
 const formSchema = z.object({
   name: z.string().optional(),
   type: z.string().min(1, "Le type est requis."),
@@ -58,7 +56,6 @@ const formSchema = z.object({
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
   designation: z.string().optional(),
-  districtSteg: z.string().min(1, "Le district STEG est requis."),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
   compteurId: z.string().optional(),
@@ -89,7 +86,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       localisation: initialEquipment?.location || "",
       typeChassis: initialEquipment?.typeChassis || "",
       designation: initialEquipment?.designation || "",
-      districtSteg: initialEquipment?.districtSteg || "",
       coordX: initialEquipment?.coordX ?? undefined,
       coordY: initialEquipment?.coordY ?? undefined,
       compteurId: initialEquipment?.compteurId || "",
@@ -99,16 +95,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   });
 
   const watchAllFields = form.watch();
-  const watchedLocalisation = form.watch("localisation");
-
-  useEffect(() => {
-    if (watchedLocalisation) {
-      const locationInfo = locationsData.find(loc => loc.abbreviation === watchedLocalisation);
-      if (locationInfo && locationInfo.districtSteg) {
-        form.setValue("districtSteg", locationInfo.districtSteg);
-      }
-    }
-  }, [watchedLocalisation, form]);
 
   useEffect(() => {
     const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
@@ -175,7 +161,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
             designation: values.designation,
-            districtSteg: values.districtSteg,
             coordX: values.coordX,
             coordY: values.coordY,
             compteurId: values.compteurId,
@@ -194,7 +179,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
             designation: values.designation || undefined,
-            districtSteg: values.districtSteg,
             coordX: values.coordX,
             coordY: values.coordY,
         }
@@ -298,28 +282,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
-               <FormField
-                control={form.control}
-                name="districtSteg"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>District STEG</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value} >
-                       <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Choisir un district" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                          {districtStegOptions.map(district => (
-                            <SelectItem key={district} value={district}>{district}</SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+               
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <Label>Coordonnées</Label>

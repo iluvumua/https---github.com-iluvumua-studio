@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ReplaceMeterForm } from "@/components/replace-meter-form";
+import { locationsData } from "@/lib/locations";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -48,23 +49,29 @@ export default function BillingPage() {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
   }
 
-  const getAssociationName = (meterId: string) => {
+  const getAssociationInfo = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
     if (!meter) return { name: "N/A", district: "N/A" };
+    
+    let locationCode: string | undefined;
+
     if (meter.buildingId) {
         const building = buildings.find(b => b.id === meter.buildingId);
+        locationCode = building?.code;
         // A building might have equipment in it, check if we can derive district from that.
         const equipmentInBuilding = equipment.find(e => e.location === building?.code);
+        const district = locationsData.find(l => l.code === (equipmentInBuilding?.location || building?.code))?.districtSteg || "N/A";
         return { 
             name: building?.name || "Bâtiment Inconnu",
-            district: equipmentInBuilding?.districtSteg || "N/A"
+            district,
         };
     }
     if (meter.equipmentId) {
         const eq = equipment.find(e => e.id === meter.equipmentId);
+        const district = locationsData.find(l => l.abbreviation === eq?.location)?.districtSteg || "N/A";
         return { 
             name: eq?.name || "Équipement Inconnu",
-            district: eq?.districtSteg || "N/A"
+            district,
         };
     }
     return { name: "Non Associé", district: "N/A" };
@@ -76,7 +83,7 @@ export default function BillingPage() {
         const meterBills = bills.filter(b => b.meterId === meter.id);
         const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
         const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
-        const associationInfo = getAssociationName(meter.id);
+        const associationInfo = getAssociationInfo(meter.id);
 
         return {
             ...meter,

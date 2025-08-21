@@ -99,7 +99,6 @@ export default function EquipmentPage() {
             "État": item.status,
             "Type": item.type,
             "Fournisseur": item.fournisseur,
-            "District STEG": item.districtSteg,
             "Date Mise en Service": item.dateMiseEnService ? formatShortDate(item.dateMiseEnService) : 'N/A',
             "Dernière MAJ": formatShortDate(item.lastUpdate),
             "ID Compteur": item.compteurId || 'N/A',
@@ -182,7 +181,6 @@ export default function EquipmentPage() {
                   <TableHead>État</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Fournisseur</TableHead>
-                  <TableHead>District STEG</TableHead>
                   <TableHead>Date Mise en Service</TableHead>
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
@@ -201,7 +199,6 @@ export default function EquipmentPage() {
                     </TableCell>
                     <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
                     <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
-                    <TableCell className="truncate whitespace-nowrap">{item.districtSteg}</TableCell>
                     <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
                     <TableCell>
                         <div className="flex items-center gap-1">
