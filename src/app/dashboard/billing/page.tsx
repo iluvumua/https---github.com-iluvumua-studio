@@ -50,16 +50,24 @@ export default function BillingPage() {
 
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
-    if (!meter) return "N/A";
+    if (!meter) return { name: "N/A", district: "N/A" };
     if (meter.buildingId) {
         const building = buildings.find(b => b.id === meter.buildingId);
-        return building?.name || "Bâtiment Inconnu";
+        // A building might have equipment in it, check if we can derive district from that.
+        const equipmentInBuilding = equipment.find(e => e.location === building?.code);
+        return { 
+            name: building?.name || "Bâtiment Inconnu",
+            district: equipmentInBuilding?.districtSteg || "N/A"
+        };
     }
     if (meter.equipmentId) {
         const eq = equipment.find(e => e.id === meter.equipmentId);
-        return eq?.name || "Équipement Inconnu";
+        return { 
+            name: eq?.name || "Équipement Inconnu",
+            district: eq?.districtSteg || "N/A"
+        };
     }
-    return "Non Associé";
+    return { name: "Non Associé", district: "N/A" };
   }
 
   const meterBillingData = meters
@@ -68,10 +76,12 @@ export default function BillingPage() {
         const meterBills = bills.filter(b => b.meterId === meter.id);
         const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
         const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
+        const associationInfo = getAssociationName(meter.id);
 
         return {
             ...meter,
-            associationName: getAssociationName(meter.id),
+            associationName: associationInfo.name,
+            districtSteg: associationInfo.district,
             unpaidAmount,
             unpaidCount: unpaidBills.length,
         }
@@ -84,6 +94,7 @@ export default function BillingPage() {
       item.associationName.toLowerCase().includes(query) ||
       (item.referenceFacteur && item.referenceFacteur.toLowerCase().includes(query)) ||
       (item.policeNumber && item.policeNumber.toLowerCase().includes(query)) ||
+      (item.districtSteg && item.districtSteg.toLowerCase().includes(query)) ||
       (item.description && item.description.toLowerCase().includes(query))
     );
   });
@@ -93,6 +104,7 @@ export default function BillingPage() {
         "Réf. Facteur": item.referenceFacteur,
         "N° Compteur": item.id,
         "N° Police": item.policeNumber,
+        "District STEG": item.districtSteg,
         "Associé à": item.associationName,
         "Factures Impayées (Nombre)": item.unpaidCount,
         "Factures Impayées (Montant)": item.unpaidAmount,
@@ -170,6 +182,7 @@ export default function BillingPage() {
               <TableHead>Réf. Facteur</TableHead>
               <TableHead>N° Compteur</TableHead>
               <TableHead>N° Police</TableHead>
+              <TableHead>District STEG</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead className="text-center">Factures Impayées</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
@@ -181,6 +194,7 @@ export default function BillingPage() {
                 <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-mono">{item.id}</TableCell>
                 <TableCell className="font-mono">{item.policeNumber}</TableCell>
+                <TableCell>{item.districtSteg}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">
                     {item.unpaidCount > 0 ? (
