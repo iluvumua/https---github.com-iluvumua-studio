@@ -35,15 +35,15 @@ export const billingData: Bill[] = [
 ];
 
 export const metersData: Meter[] = [
-    { id: '537400', policeNumber: '25-537400-99', referenceFacteur: '378051241', equipmentId: 'EQP-004', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2022-01-01', description: 'Compteur pour Kantaoui', lastUpdate: '2023-10-15' },
-    { id: '542300', policeNumber: '25-542300-99', referenceFacteur: '378051242', buildingId: '12', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2021-11-15', lastUpdate: '2023-10-15' },
-    { id: '542440', policeNumber: '25-542440-99', referenceFacteur: '378051243', buildingId: '13', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2021-12-20', lastUpdate: '2023-10-15' },
-    { id: '545040', policeNumber: '25-545040-99', referenceFacteur: '378051244', buildingId: '3', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2020-05-10', lastUpdate: '2023-10-15' },
-    { id: '548710', policeNumber: '25-548710-99', referenceFacteur: '378051245', buildingId: '10', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2019-03-25', lastUpdate: '2023-10-15' },
-    { id: '597878951', policeNumber: '25-597878951-99', referenceFacteur: '378051246', buildingId: '55', typeTension: 'Basse Tension', status: 'En service', dateMiseEnService: '2023-08-01', lastUpdate: '2023-10-15' },
-    { id: '587687455', policeNumber: '25-587687455-99', referenceFacteur: '378051247', equipmentId: 'EQP-005', typeTension: 'Moyenne Tension', status: 'Résilié', description: 'Ancien compteur pour équipement Huawei, maintenant résilié.', lastUpdate: '2023-10-22' },
-    { id: '552201', policeNumber: '25-552201-99', referenceFacteur: '378051248', equipmentId: 'EQP-006', typeTension: 'Moyenne Tension', status: 'En cours', dateDemandeInstallation: '2023-11-05', description: 'En attente d\'installation pour le nouveau MSI.', lastUpdate: '2023-11-05' },
-    { id: '552200', policeNumber: '25-552200-99', referenceFacteur: '378051249', buildingId: '1', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2022-03-10', description: 'Compteur principal du Complexe Sousse République.', lastUpdate: '2023-10-15' },
+    { id: '537400', policeNumber: '25-537400-99', referenceFacteur: '378051241', equipmentId: 'EQP-004', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2022-01-01', description: 'Compteur pour Kantaoui', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE NORD' },
+    { id: '542300', policeNumber: '25-542300-99', referenceFacteur: '378051242', buildingId: '12', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2021-11-15', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
+    { id: '542440', policeNumber: '25-542440-99', referenceFacteur: '378051243', buildingId: '13', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2021-12-20', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
+    { id: '545040', policeNumber: '25-545040-99', referenceFacteur: '378051244', buildingId: '3', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2020-05-10', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
+    { id: '548710', policeNumber: '25-548710-99', referenceFacteur: '378051245', buildingId: '10', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2019-03-25', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
+    { id: '597878951', policeNumber: '25-597878951-99', referenceFacteur: '378051246', buildingId: '55', typeTension: 'Basse Tension', status: 'En service', dateMiseEnService: '2023-08-01', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
+    { id: '587687455', policeNumber: '25-587687455-99', referenceFacteur: '378051247', equipmentId: 'EQP-005', typeTension: 'Moyenne Tension', status: 'Résilié', description: 'Ancien compteur pour équipement Huawei, maintenant résilié.', lastUpdate: '2023-10-22', districtSteg: 'SOUSSE CENTRE' },
+    { id: '552201', policeNumber: '25-552201-99', referenceFacteur: '378051248', equipmentId: 'EQP-006', typeTension: 'Moyenne Tension', status: 'En cours', dateDemandeInstallation: '2023-11-05', description: 'En attente d\'installation pour le nouveau MSI.', lastUpdate: '2023-11-05', districtSteg: 'SOUSSE CENTRE' },
+    { id: '552200', policeNumber: '25-552200-99', referenceFacteur: '378051249', buildingId: '1', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2022-03-10', description: 'Compteur principal du Complexe Sousse République.', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
 ];
 
 

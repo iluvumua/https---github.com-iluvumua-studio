@@ -34,6 +34,7 @@ const formSchema = z.object({
   dateDemandeInstallation: z.date().optional(),
   dateMiseEnService: z.date().optional(),
   description: z.string().optional(),
+  districtSteg: z.string().min(1, "Le district STEG est requis."),
 }).refine(data => {
     if (data.associationType === 'building' && !data.buildingId) return false;
     if (data.associationType === 'equipment' && !data.equipmentId) return false;
@@ -75,6 +76,7 @@ export function EditMeterForm({ meter, onFinished }: EditMeterFormProps) {
         dateDemandeInstallation: meter.dateDemandeInstallation ? new Date(meter.dateDemandeInstallation) : undefined,
         dateMiseEnService: meter.dateMiseEnService ? new Date(meter.dateMiseEnService) : undefined,
         description: meter.description || "",
+        districtSteg: meter.districtSteg || "",
     }
   });
 
@@ -129,6 +131,16 @@ export function EditMeterForm({ meter, onFinished }: EditMeterFormProps) {
                     </Select>
                     <FormMessage />
                     </FormItem>
+                )} />
+
+                <FormField control={form.control} name="districtSteg" render={({ field }) => ( 
+                    <FormItem className="md:col-span-2">
+                        <FormLabel>District STEG</FormLabel>
+                        <FormControl>
+                            <Input placeholder="ex: SOUSSE CENTRE" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem> 
                 )} />
                 
                 {status === 'En cours' && (

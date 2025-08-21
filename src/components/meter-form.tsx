@@ -33,6 +33,7 @@ const formSchema = z.object({
   buildingId: z.string().optional(),
   equipmentId: z.string().optional(),
   dateMiseEnService: z.date().optional(),
+  districtSteg: z.string().min(1, "Le district STEG est requis."),
 }).refine(data => {
     if (data.associationType === 'building' && !data.buildingId) return false;
     if (data.associationType === 'equipment' && !data.equipmentId) return false;
@@ -72,6 +73,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
         buildingId: "",
         equipmentId: "",
         dateMiseEnService: undefined,
+        districtSteg: "",
     }
   });
 
@@ -91,6 +93,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
         buildingId: values.associationType === 'building' ? values.buildingId : undefined,
         equipmentId: values.associationType === 'equipment' ? values.equipmentId : undefined,
         referenceFacteur: undefined,
+        districtSteg: values.districtSteg,
     };
 
     addMeter(newMeter);
@@ -136,7 +139,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
                 <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 
                 <FormField control={form.control} name="typeTension" render={({ field }) => (
-                    <FormItem className="md:col-span-2"><FormLabel>Type de Tension</FormLabel>
+                    <FormItem><FormLabel>Type de Tension</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
@@ -146,6 +149,16 @@ export function MeterForm({ onFinished }: MeterFormProps) {
                     </Select>
                     <FormMessage />
                     </FormItem>
+                )} />
+
+                <FormField control={form.control} name="districtSteg" render={({ field }) => ( 
+                    <FormItem>
+                        <FormLabel>District STEG</FormLabel>
+                        <FormControl>
+                            <Input placeholder="ex: SOUSSE CENTRE" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem> 
                 )} />
 
                 <div className="md:col-span-2">

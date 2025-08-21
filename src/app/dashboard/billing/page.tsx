@@ -49,32 +49,19 @@ export default function BillingPage() {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
   }
 
-  const getAssociationInfo = (meterId: string) => {
+  const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
-    if (!meter) return { name: "N/A", district: "N/A" };
+    if (!meter) return "N/A";
     
-    let locationCode: string | undefined;
-
     if (meter.buildingId) {
         const building = buildings.find(b => b.id === meter.buildingId);
-        locationCode = building?.code;
-        // A building might have equipment in it, check if we can derive district from that.
-        const equipmentInBuilding = equipment.find(e => e.location === building?.code);
-        const district = locationsData.find(l => l.code === (equipmentInBuilding?.location || building?.code))?.districtSteg || "N/A";
-        return { 
-            name: building?.name || "Bâtiment Inconnu",
-            district,
-        };
+        return building?.name || "Bâtiment Inconnu";
     }
     if (meter.equipmentId) {
         const eq = equipment.find(e => e.id === meter.equipmentId);
-        const district = locationsData.find(l => l.abbreviation === eq?.location)?.districtSteg || "N/A";
-        return { 
-            name: eq?.name || "Équipement Inconnu",
-            district,
-        };
+        return eq?.name || "Équipement Inconnu";
     }
-    return { name: "Non Associé", district: "N/A" };
+    return "Non Associé";
   }
 
   const meterBillingData = meters
@@ -83,12 +70,11 @@ export default function BillingPage() {
         const meterBills = bills.filter(b => b.meterId === meter.id);
         const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
         const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
-        const associationInfo = getAssociationInfo(meter.id);
 
         return {
             ...meter,
-            associationName: associationInfo.name,
-            districtSteg: associationInfo.district,
+            associationName: getAssociationName(meter.id),
+            districtSteg: meter.districtSteg || "N/A",
             unpaidAmount,
             unpaidCount: unpaidBills.length,
         }
