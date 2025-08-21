@@ -133,14 +133,19 @@ export function EditMeterForm({ meter, onFinished }: EditMeterFormProps) {
                     </FormItem>
                 )} />
 
-                <FormField control={form.control} name="districtSteg" render={({ field }) => ( 
-                    <FormItem className="md:col-span-2">
-                        <FormLabel>District STEG</FormLabel>
-                        <FormControl>
-                            <Input placeholder="ex: SOUSSE CENTRE" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem> 
+                <FormField control={form.control} name="districtSteg" render={({ field }) => (
+                    <FormItem className="md:col-span-2"><FormLabel>District STEG</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un district"/></SelectTrigger></FormControl>
+                            <SelectContent>
+                                <SelectItem value="Enfidha">Enfidha</SelectItem>
+                                <SelectItem value="Msaken">Msaken</SelectItem>
+                                <SelectItem value="Sousse Centre">Sousse Centre</SelectItem>
+                                <SelectItem value="Sousse Nord">Sousse Nord</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    <FormMessage />
+                    </FormItem>
                 )} />
                 
                 {status === 'En cours' && (
