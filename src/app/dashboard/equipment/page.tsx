@@ -38,7 +38,7 @@ function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
     const { updateEquipment } = useEquipmentStore();
     const { toast } = useToast();
 
-    if (user.role !== 'Magasinier' || equipment.status !== 'En cours') {
+    if (equipment.status !== 'En cours') {
         return null;
     }
 
@@ -223,7 +223,6 @@ export default function EquipmentPage() {
                                     </Button>
                                 </>
                             )}
-                            <VerifyEquipmentButton equipment={item} />
                              <Button variant="ghost" size="icon" asChild>
                                 <Link href={`/dashboard/equipment/${item.id}/edit`}>
                                     <Pencil className="h-4 w-4" />

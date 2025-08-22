@@ -17,7 +17,7 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Archive, Sun, Moon, Laptop } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Sun, Moon, Laptop } from "lucide-react";
 import { useUser, UserRole } from "@/hooks/use-user";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -25,7 +25,6 @@ const roleIcons = {
   Financier: Briefcase,
   'Moyen Bâtiment': Building,
   Technicien: Wrench,
-  Magasinier: Archive,
 }
 
 export function UserNav() {
