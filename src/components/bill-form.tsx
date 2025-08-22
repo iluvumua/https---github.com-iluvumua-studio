@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,6 +53,20 @@ const formSchema = z.object({
   prix_unitaire_pointe: z.coerce.number().optional(),
   prix_unitaire_soir: z.coerce.number().optional(),
   prix_unitaire_nuit: z.coerce.number().optional(),
+  consommation_jour: z.coerce.number().optional(),
+  consommation_pointe: z.coerce.number().optional(),
+  consommation_soir: z.coerce.number().optional(),
+  consommation_nuit: z.coerce.number().optional(),
+  prime_puissance_mth: z.coerce.number().optional(),
+  depassement_puissance: z.coerce.number().optional(),
+  location_materiel: z.coerce.number().optional(),
+  frais_intervention: z.coerce.number().optional(),
+  frais_relance: z.coerce.number().optional(),
+  frais_retard: z.coerce.number().optional(),
+  tva_consommation: z.coerce.number().optional(),
+  tva_redevance: z.coerce.number().optional(),
+  contribution_rtt_mth: z.coerce.number().optional(),
+  surtaxe_municipale_mth: z.coerce.number().optional(),
 
   // Moyen Tension Forfaitaire
   mtf_ancien_index: z.coerce.number().optional(),
@@ -117,26 +131,29 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
 }
 
 const calculateConsumptionWithRollover = (ancien: number, nouveau: number): number => {
-    if (nouveau >= ancien) {
-        return nouveau - ancien;
+    const numAncien = Number(ancien) || 0;
+    const numNouveau = Number(nouveau) || 0;
+
+    if (numNouveau >= numAncien) {
+        return numNouveau - numAncien;
     }
-    const ancienStr = String(ancien);
-    if (ancienStr.length === 0) return nouveau;
+    const ancienStr = String(numAncien);
+    if (ancienStr.length === 0) return numNouveau;
     const maxValue = parseInt('9'.repeat(ancienStr.length), 10);
-    return (maxValue - ancien) + nouveau + 1;
+    return (maxValue - numAncien) + numNouveau + 1;
 };
 
 
 const calculateMoyenTensionHoraire = (values: FormValues) => {
-    const consommation_jour_raw = calculateConsumptionWithRollover(Number(values.ancien_index_jour) || 0, Number(values.nouveau_index_jour) || 0);
-    const consommation_pointe_raw = calculateConsumptionWithRollover(Number(values.ancien_index_pointe) || 0, Number(values.nouveau_index_pointe) || 0);
-    const consommation_soir_raw = calculateConsumptionWithRollover(Number(values.ancien_index_soir) || 0, Number(values.nouveau_index_soir) || 0);
-    const consommation_nuit_raw = calculateConsumptionWithRollover(Number(values.ancien_index_nuit) || 0, Number(values.nouveau_index_nuit) || 0);
+    const consommation_jour_calc = calculateConsumptionWithRollover(values.ancien_index_jour, values.nouveau_index_jour);
+    const consommation_pointe_calc = calculateConsumptionWithRollover(values.ancien_index_pointe, values.nouveau_index_pointe);
+    const consommation_soir_calc = calculateConsumptionWithRollover(values.ancien_index_soir, values.nouveau_index_soir);
+    const consommation_nuit_calc = calculateConsumptionWithRollover(values.ancien_index_nuit, values.nouveau_index_nuit);
     
-    const consommation_jour = consommation_jour_raw * (Number(values.coefficient_jour) || 1);
-    const consommation_pointe = consommation_pointe_raw * (Number(values.coefficient_pointe) || 1);
-    const consommation_soir = consommation_soir_raw * (Number(values.coefficient_soir) || 1);
-    const consommation_nuit = consommation_nuit_raw * (Number(values.coefficient_nuit) || 1);
+    const consommation_jour = (Number(values.consommation_jour) || 0) * (Number(values.coefficient_jour) || 1);
+    const consommation_pointe = (Number(values.consommation_pointe) || 0) * (Number(values.coefficient_pointe) || 1);
+    const consommation_soir = (Number(values.consommation_soir) || 0) * (Number(values.coefficient_soir) || 1);
+    const consommation_nuit = (Number(values.consommation_nuit) || 0) * (Number(values.coefficient_nuit) || 1);
 
     const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
 
@@ -147,13 +164,27 @@ const calculateMoyenTensionHoraire = (values: FormValues) => {
     
     const subtotal = montant_jour + montant_pointe + montant_soir + montant_nuit; 
 
+    const group1Total = (Number(values.prime_puissance_mth) || 0) +
+                        (Number(values.depassement_puissance) || 0) +
+                        (Number(values.location_materiel) || 0) +
+                        (Number(values.frais_intervention) || 0) +
+                        (Number(values.frais_relance) || 0) +
+                        (Number(values.frais_retard) || 0);
+    
+    const group2Total = (Number(values.tva_consommation) || 0) +
+                        (Number(values.tva_redevance) || 0) +
+                        (Number(values.contribution_rtt_mth) || 0) +
+                        (Number(values.surtaxe_municipale_mth) || 0);
+    
+    const finalAmount = subtotal + group1Total + group2Total;
+
     return { 
         consommation: totalConsumption, 
-        montant: parseFloat(subtotal.toFixed(3)),
-        consommation_jour,
-        consommation_pointe,
-        consommation_soir,
-        consommation_nuit,
+        montant: parseFloat(finalAmount.toFixed(3)),
+        consommation_jour_calc,
+        consommation_pointe_calc,
+        consommation_soir_calc,
+        consommation_nuit_calc,
     };
 }
 
@@ -196,11 +227,7 @@ export function BillForm({ meterId }: BillFormProps) {
   const { addBill } = useBillingStore();
   const router = useRouter();
   const { toast } = useToast();
-
-  const [mthConsumptions, setMthConsumptions] = useState({
-    jour: 0, pointe: 0, soir: 0, nuit: 0
-  });
-
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -234,6 +261,20 @@ export function BillForm({ meterId }: BillFormProps) {
         prix_unitaire_pointe: 0.417,
         prix_unitaire_soir: 0.290,
         prix_unitaire_nuit: 0.222,
+        consommation_jour: 0,
+        consommation_pointe: 0,
+        consommation_soir: 0,
+        consommation_nuit: 0,
+        prime_puissance_mth: 0,
+        depassement_puissance: 0,
+        location_materiel: 0,
+        frais_intervention: 0,
+        frais_relance: 0,
+        frais_retard: 0,
+        tva_consommation: 0,
+        tva_redevance: 0,
+        contribution_rtt_mth: 0,
+        surtaxe_municipale_mth: 0,
         // MT Forfait
         mtf_ancien_index: 1483440,
         mtf_nouveau_index: 1489924,
@@ -263,15 +304,23 @@ export function BillForm({ meterId }: BillFormProps) {
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
     } else if (watchedValues.typeTension === "Moyen Tension Tranche Horaire") {
-        const { consommation, montant, ...consumptions } = calculateMoyenTensionHoraire(watchedValues);
+        const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(watchedValues);
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
-        setMthConsumptions({
-            jour: consumptions.consommation_jour,
-            pointe: consumptions.consommation_pointe,
-            soir: consumptions.consommation_soir,
-            nuit: consumptions.consommation_nuit,
-        })
+
+        if (form.getValues('consommation_jour') === 0 && calcs.consommation_jour_calc > 0) {
+            form.setValue("consommation_jour", calcs.consommation_jour_calc);
+        }
+        if (form.getValues('consommation_pointe') === 0 && calcs.consommation_pointe_calc > 0) {
+            form.setValue("consommation_pointe", calcs.consommation_pointe_calc);
+        }
+        if (form.getValues('consommation_soir') === 0 && calcs.consommation_soir_calc > 0) {
+            form.setValue("consommation_soir", calcs.consommation_soir_calc);
+        }
+        if (form.getValues('consommation_nuit') === 0 && calcs.consommation_nuit_calc > 0) {
+            form.setValue("consommation_nuit", calcs.consommation_nuit_calc);
+        }
+
     } else if (watchedValues.typeTension === "Moyen Tension Forfaitaire") {
         const { consommation, montant } = calculateMoyenTensionForfait(watchedValues);
         form.setValue("consumptionKWh", consommation);
@@ -292,6 +341,13 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.coefficient_soir, watchedValues.coefficient_nuit,
     watchedValues.prix_unitaire_jour, watchedValues.prix_unitaire_pointe,
     watchedValues.prix_unitaire_soir, watchedValues.prix_unitaire_nuit,
+    watchedValues.consommation_jour, watchedValues.consommation_pointe,
+    watchedValues.consommation_soir, watchedValues.consommation_nuit,
+    watchedValues.prime_puissance_mth, watchedValues.depassement_puissance,
+    watchedValues.location_materiel, watchedValues.frais_intervention,
+    watchedValues.frais_relance, watchedValues.frais_retard,
+    watchedValues.tva_consommation, watchedValues.tva_redevance,
+    watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth,
     // MT Forfait
     watchedValues.mtf_ancien_index, watchedValues.mtf_nouveau_index,
     watchedValues.coefficient_multiplicateur, watchedValues.perte_en_charge,
@@ -300,7 +356,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.tva_redevance_percent, watchedValues.contribution_rtt,
     watchedValues.surtaxe_municipale, watchedValues.avance_consommation,
     watchedValues.bonification,
-    form,
+    form.setValue,
   ]);
 
 
@@ -339,6 +395,21 @@ export function BillForm({ meterId }: BillFormProps) {
         prix_unitaire_pointe: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prix_unitaire_pointe : undefined,
         prix_unitaire_soir: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prix_unitaire_soir : undefined,
         prix_unitaire_nuit: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prix_unitaire_nuit : undefined,
+        consommation_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.consommation_jour : undefined,
+        consommation_pointe: values.typeTension === "Moyen Tension Tranche Horaire" ? values.consommation_pointe : undefined,
+        consommation_soir: values.typeTension === "Moyen Tension Tranche Horaire" ? values.consommation_soir : undefined,
+        consommation_nuit: values.typeTension === "Moyen Tension Tranche Horaire" ? values.consommation_nuit : undefined,
+        prime_puissance_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prime_puissance_mth : undefined,
+        depassement_puissance: values.typeTension === "Moyen Tension Tranche Horaire" ? values.depassement_puissance : undefined,
+        location_materiel: values.typeTension === "Moyen Tension Tranche Horaire" ? values.location_materiel : undefined,
+        frais_intervention: values.typeTension === "Moyen Tension Tranche Horaire" ? values.frais_intervention : undefined,
+        frais_relance: values.typeTension === "Moyen Tension Tranche Horaire" ? values.frais_relance : undefined,
+        frais_retard: values.typeTension === "Moyen Tension Tranche Horaire" ? values.frais_retard : undefined,
+        tva_consommation: values.typeTension === "Moyen Tension Tranche Horaire" ? values.tva_consommation : undefined,
+        tva_redevance: values.typeTension === "Moyen Tension Tranche Horaire" ? values.tva_redevance : undefined,
+        contribution_rtt_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.contribution_rtt_mth : undefined,
+        surtaxe_municipale_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.surtaxe_municipale_mth : undefined,
+
 
         // MT Forfait
         mtf_ancien_index: values.typeTension === "Moyen Tension Forfaitaire" ? values.mtf_ancien_index : undefined,
@@ -368,6 +439,30 @@ export function BillForm({ meterId }: BillFormProps) {
   const availableMeters = meters.filter(m => m.status === 'En service');
 
   const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
+  const formatDT = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
+  
+  const mthGroup1Total = useMemo(() => {
+    return (Number(watchedValues.prime_puissance_mth) || 0) +
+           (Number(watchedValues.depassement_puissance) || 0) +
+           (Number(watchedValues.location_materiel) || 0) +
+           (Number(watchedValues.frais_intervention) || 0) +
+           (Number(watchedValues.frais_relance) || 0) +
+           (Number(watchedValues.frais_retard) || 0);
+  }, [
+    watchedValues.prime_puissance_mth, watchedValues.depassement_puissance,
+    watchedValues.location_materiel, watchedValues.frais_intervention,
+    watchedValues.frais_relance, watchedValues.frais_retard
+  ]);
+
+  const mthGroup2Total = useMemo(() => {
+    return (Number(watchedValues.tva_consommation) || 0) +
+           (Number(watchedValues.tva_redevance) || 0) +
+           (Number(watchedValues.contribution_rtt_mth) || 0) +
+           (Number(watchedValues.surtaxe_municipale_mth) || 0);
+  }, [
+    watchedValues.tva_consommation, watchedValues.tva_redevance,
+    watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth
+  ]);
 
   return (
     <Form {...form}>
@@ -390,7 +485,6 @@ export function BillForm({ meterId }: BillFormProps) {
             <FormField control={form.control} name="typeTension" render={({ field }) => (
                 <FormItem><FormLabel>Type Tension</FormLabel>
                     <Select onValueChange={(value) => {
-                        form.setValue('typeTension', value as any);
                         form.reset({
                             ...form.getValues(),
                             typeTension: value as any,
@@ -460,11 +554,42 @@ export function BillForm({ meterId }: BillFormProps) {
                     </div>
                     <Separator />
                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                        <div className="flex justify-between"><span>Conso. Jour:</span> <span className="font-mono">{formatKWh(mthConsumptions.jour)} kWh</span></div>
-                        <div className="flex justify-between"><span>Conso. Pointe:</span> <span className="font-mono">{formatKWh(mthConsumptions.pointe)} kWh</span></div>
-                        <div className="flex justify-between"><span>Conso. Soir:</span> <span className="font-mono">{formatKWh(mthConsumptions.soir)} kWh</span></div>
-                        <div className="flex justify-between"><span>Conso. Nuit:</span> <span className="font-mono">{formatKWh(mthConsumptions.nuit)} kWh</span></div>
+                        <FormField control={form.control} name="consommation_jour" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Jour:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_pointe" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Pointe:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_soir" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Soir:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_nuit" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Nuit:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
                      </div>
+                    <Separator />
+                     <div className="space-y-4 rounded-md border p-4">
+                        <h4 className="font-medium text-sm">Groupe 1: Redevances</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between items-center font-semibold">
+                            <span>Montant Groupe 1:</span>
+                            <span>{formatDT(mthGroup1Total)}</span>
+                        </div>
+                    </div>
+                     <div className="space-y-4 rounded-md border p-4">
+                        <h4 className="font-medium text-sm">Groupe 2: Taxes</h4>
+                         <div className="grid grid-cols-2 gap-4">
+                            <FormField control={form.control} name="tva_consommation" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="tva_redevance" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="surtaxe_municipale_mth" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between items-center font-semibold">
+                            <span>Montant Groupe 2:</span>
+                            <span>{formatDT(mthGroup2Total)}</span>
+                        </div>
+                    </div>
                 </div>
             )}
             

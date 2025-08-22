@@ -68,6 +68,16 @@ export type Bill = {
   consommation_pointe?: number;
   consommation_soir?: number;
   consommation_nuit?: number;
+  prime_puissance_mth?: number;
+  depassement_puissance?: number;
+  location_materiel?: number;
+  frais_intervention?: number;
+  frais_relance?: number;
+  frais_retard?: number;
+  tva_consommation?: number;
+  tva_redevance?: number;
+  contribution_rtt_mth?: number;
+  surtaxe_municipale_mth?: number;
 
   // Moyen tension forfaitaire fields
   mtf_ancien_index?: number;
