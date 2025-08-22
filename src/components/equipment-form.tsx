@@ -107,15 +107,13 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         let counterPart = "";
         if (isEditMode && initialEquipment) {
             const nameParts = initialEquipment.name.split('_');
-            const potentialCounter = nameParts[3];
-            // Regex to find MSI, MSN, etc. followed by numbers
+            const potentialCounter = nameParts.length > 3 ? nameParts[3] : '';
             const match = potentialCounter.match(/([A-Z]+)(\d+)/);
             if(match && match[2]) {
                  counterPart = match[2];
             } else {
                  counterPart = "01";
             }
-
         } else {
             const supplierEquipmentCount = allEquipment.filter(eq => {
                 const eqFournisseurInfo = fournisseurs.find(f => f.value === eq.fournisseur);
