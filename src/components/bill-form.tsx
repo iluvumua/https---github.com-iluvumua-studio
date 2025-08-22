@@ -24,6 +24,7 @@ const formSchema = z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   month: z.string().min(1, "Le mois est requis."),
+  nombreMois: z.coerce.number().optional(),
   consumptionKWh: z.coerce.number().optional(),
   amount: z.coerce.number().optional(),
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
@@ -104,10 +105,11 @@ const bt_redevances_fixes = 28.000;
 const bt_tva = 5.320;
 const bt_contr_ertt = 0.000;
 
-const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0, prixUnitaire: number = 0) => {
+const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0, prixUnitaire: number = 0, nombreMois: number = 1) => {
     let consommation = 0;
     const numAncienIndex = Number(ancienIndex);
     const numNouveauIndex = Number(nouveauIndex);
+    const numNombreMois = Number(nombreMois) || 1;
 
     if (numNouveauIndex >= numAncienIndex) {
         consommation = numNouveauIndex - numAncienIndex;
@@ -123,8 +125,8 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
     
     const montant = consommation * Number(prixUnitaire);
     
-    const total_consommation = montant + bt_redevances_fixes;
-    const total_taxes = bt_contr_ertt + bt_tva;
+    const total_consommation = montant + (bt_redevances_fixes * numNombreMois);
+    const total_taxes = (bt_contr_ertt + bt_tva) * numNombreMois;
     const montant_a_payer = total_consommation + total_taxes;
     
     return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
@@ -234,6 +236,7 @@ export function BillForm({ meterId }: BillFormProps) {
         reference: "",
         meterId: meterId || "",
         month: "",
+        nombreMois: 1,
         typeTension: "Basse Tension",
         status: "Impayée",
         convenableSTEG: true,
@@ -299,7 +302,8 @@ export function BillForm({ meterId }: BillFormProps) {
         const { consommation, montant } = calculateBasseTension(
             watchedValues.ancienIndex, 
             watchedValues.nouveauIndex, 
-            watchedValues.prix_unitaire_bt
+            watchedValues.prix_unitaire_bt,
+            watchedValues.nombreMois
         );
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
@@ -332,6 +336,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.ancienIndex,
     watchedValues.nouveauIndex,
     watchedValues.prix_unitaire_bt,
+    watchedValues.nombreMois,
     // MT Horaire
     watchedValues.ancien_index_jour, watchedValues.nouveau_index_jour,
     watchedValues.ancien_index_pointe, watchedValues.nouveau_index_pointe,
@@ -357,6 +362,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.surtaxe_municipale, watchedValues.avance_consommation,
     watchedValues.bonification,
     form.setValue,
+    form
   ]);
 
 
@@ -366,6 +372,7 @@ export function BillForm({ meterId }: BillFormProps) {
         reference: values.reference,
         meterId: values.meterId,
         month: values.month,
+        nombreMois: values.nombreMois,
         status: values.status,
         typeTension: values.typeTension,
         consumptionKWh: values.consumptionKWh ?? 0,
@@ -512,7 +519,10 @@ export function BillForm({ meterId }: BillFormProps) {
                         <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
-                        <FormItem className="md:col-span-2"><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="nombreMois" render={({ field }) => (
+                        <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
             )}
@@ -651,6 +661,11 @@ export function BillForm({ meterId }: BillFormProps) {
              <FormField control={form.control} name="month" render={({ field }) => (
                 <FormItem><FormLabel>Mois Facture</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
+            
+            <FormField control={form.control} name="nombreMois" render={({ field }) => (
+                <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
+
 
              <FormField
                 control={form.control}

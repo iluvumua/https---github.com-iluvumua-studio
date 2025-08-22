@@ -41,6 +41,7 @@ export type Bill = {
   typeTension: 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire';
   convenableSTEG?: boolean;
   montantSTEG?: number;
+  nombreMois?: number;
   
   // Basse tension fields
   ancienIndex?: number;
