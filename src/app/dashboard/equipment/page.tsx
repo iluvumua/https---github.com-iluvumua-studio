@@ -181,7 +181,7 @@ export default function EquipmentPage() {
                   <TableHead>État</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Fournisseur</TableHead>
-                  <TableHead>Date Mise en Service</TableHead>
+                  <TableHead>Date Mise en Service Équip.</TableHead>
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>

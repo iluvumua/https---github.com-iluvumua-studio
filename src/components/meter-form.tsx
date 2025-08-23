@@ -213,7 +213,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
                             </FormItem>
                         )} />
                          <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
-                            <FormItem className="flex flex-col pt-2"><FormLabel>Date de Mise en Service</FormLabel>
+                            <FormItem className="flex flex-col pt-2"><FormLabel>Date de Mise en Service d'Équipement</FormLabel>
                                 <Popover><PopoverTrigger asChild>
                                     <FormControl>
                                     <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
