@@ -11,7 +11,7 @@ import type { Meter } from '@/lib/types';
 import { useMetersStore } from '@/hooks/use-meters-store';
 import { MeterInstallationForm } from '@/components/meter-installation-form';
 import { EquipmentCommissioningForm } from '@/components/equipment-commissioning-form';
-import { CheckCircle, Circle, RadioButtonChecked } from 'lucide-react';
+import { CheckCircle, Circle, CircleDotDashed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
@@ -101,7 +101,7 @@ export default function NewMeterWorkflowPage() {
             return <CheckCircle className="h-6 w-6 text-green-500" />;
         }
         if (currentStep === step) {
-            return <RadioButtonChecked className="h-6 w-6 text-primary animate-pulse" />;
+            return <CircleDotDashed className="h-6 w-6 text-primary animate-pulse" />;
         }
         return <Circle className="h-6 w-6 text-muted-foreground" />;
     }
