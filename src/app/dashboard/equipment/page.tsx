@@ -258,7 +258,6 @@ export default function EquipmentPage() {
                                         <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
                                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                                           <div><span className="font-medium text-muted-foreground">Localisation:</span> {item.location}</div>
-                                          <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(item.lastUpdate)}</div>
                                           <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
                                           {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
                                           {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
@@ -274,6 +273,7 @@ export default function EquipmentPage() {
                                                 <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                                                 <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                                                 <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
+                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
                                                 <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                                                 <div className="col-span-full mt-2">
                                                     <Button variant="link" size="sm" className="p-0 h-auto" asChild>
@@ -306,5 +306,7 @@ export default function EquipmentPage() {
     </Tabs>
   );
 }
+
+    
 
     
