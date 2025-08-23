@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building2, Network, FileText, Gauge, FileWarning, TrendingUp } from "lucide-react";
+import { Building2, Network, FileText, Gauge, FileWarning, TrendingUp, Calculator } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EnergyConsumptionChart } from "@/components/energy-consumption-chart";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
@@ -11,6 +11,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
 
 export default function DashboardPage() {
   const { equipment } = useEquipmentStore();
@@ -27,6 +28,18 @@ export default function DashboardPage() {
   const totalUnpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
   const totalConsumption = bills.reduce((acc, bill) => acc + bill.consumptionKWh, 0);
 
+  const averageMonthlyCost = useMemo(() => {
+    const annualBills = bills
+      .filter(b => b.nombreMois && b.nombreMois >= 12)
+      .sort((a, b) => b.id.localeCompare(a.id)); // Assuming newer bills have higher IDs
+
+    if (annualBills.length > 0) {
+      const latestAnnualBill = annualBills[0];
+      return latestAnnualBill.amount / latestAnnualBill.nombreMois;
+    }
+    return null;
+  }, [bills]);
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
   }
@@ -39,7 +52,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -101,6 +114,20 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">{formatKWh(totalConsumption)}</div>
             <p className="text-xs text-muted-foreground">
               Basé sur toutes les factures enregistrées
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Coût Mensuel Moyen (Annuel)</CardTitle>
+            <Calculator className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+             <div className="text-2xl font-bold">
+                {averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Basé sur les factures de 12 mois et plus
             </p>
           </CardContent>
         </Card>
