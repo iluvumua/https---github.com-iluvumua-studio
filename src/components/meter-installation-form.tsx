@@ -40,7 +40,9 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId }: Meter
   });
   
   useEffect(() => {
-    if (meterId) {
+    if (meterId && meterId.startsWith('MTR-WIP')) {
+        form.setValue('meterId', '');
+    } else if (meterId) {
         form.setValue('meterId', meterId);
     }
   }, [meterId, form]);
@@ -89,5 +91,3 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId }: Meter
     </Form>
   );
 }
-
-    

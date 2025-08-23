@@ -22,26 +22,16 @@ export default function NewMeterWorkflowPage() {
     const { equipment, updateEquipment } = useEquipmentStore();
     const { meters, addMeter, updateMeter } = useMetersStore();
     
-    // Find the initial equipment item
-    const initialEquipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
-
-    // State to hold the current step and the ID of the meter being created
-    const [currentStep, setCurrentStep] = useState(1);
-    const [meterId, setMeterId] = useState<string | undefined>(initialEquipmentItem?.compteurId);
-    const [tempMeterId, setTempMeterId] = useState<string | undefined>(undefined);
-
-
-    // Re-evaluate equipmentItem and associatedMeter on every render to get the latest data
     const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
-    const associatedMeter = meterId ? meters.find(m => m.id === meterId) : undefined;
-    
+
+    const [currentStep, setCurrentStep] = useState(1);
+    const [wipMeter, setWipMeter] = useState<Meter | undefined>(undefined);
+
     useEffect(() => {
-        // This effect handles the case where you might start the workflow
-        // for an equipment that already has a meter 'En cours'.
         if (equipmentItem?.compteurId) {
             const meter = meters.find(m => m.id === equipmentItem.compteurId);
             if (meter?.status === 'En cours') {
-                setMeterId(meter.id);
+                setWipMeter(meter);
                  if (meter.dateMiseEnService) {
                     setCurrentStep(3);
                 } else if(meter.id) {
@@ -63,9 +53,8 @@ export default function NewMeterWorkflowPage() {
     }
     
     const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: string; coordX?: number; coordY?: number }) => {
-        const newMeterId = `MTR-TEMP-${Date.now()}`;
         const newMeter: Meter = {
-            id: newMeterId,
+            id: `MTR-WIP-${Date.now()}`,
             status: 'En cours',
             typeTension: data.typeTension,
             policeNumber: data.policeNumber,
@@ -76,11 +65,11 @@ export default function NewMeterWorkflowPage() {
             description: `Demande pour équipement ${equipmentItem.name}`
         }
         addMeter(newMeter);
-        setTempMeterId(newMeterId);
+        setWipMeter(newMeter);
 
         updateEquipment({
             ...equipmentItem,
-            compteurId: newMeterId,
+            compteurId: newMeter.id,
             coordX: data.coordX,
             coordY: data.coordY,
             lastUpdate: new Date().toISOString().split('T')[0],
@@ -90,31 +79,31 @@ export default function NewMeterWorkflowPage() {
     }
     
     const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string }) => {
-        const originalMeterId = tempMeterId || meterId;
-        const meterToUpdate = meters.find(m => m.id === originalMeterId);
-        
-        if (meterToUpdate) {
-            updateMeter({
-                ...meterToUpdate,
-                id: data.meterId, // The new, final ID from the form
+        if (wipMeter) {
+            const updatedWipMeter = {
+                ...wipMeter,
+                id: data.meterId,
                 dateMiseEnService: data.dateMiseEnService,
                 lastUpdate: new Date().toISOString().split('T')[0],
-            });
-            // Update the equipment to point to the new meter ID
-            updateEquipment({
-                ...equipmentItem,
-                compteurId: data.meterId,
-            });
-            setMeterId(data.meterId); // Set the new final meter ID for the next step
+            };
+            
+            updateMeter(updatedWipMeter);
+            setWipMeter(updatedWipMeter);
+
+            if (equipmentItem.compteurId === wipMeter.id) {
+                 updateEquipment({
+                    ...equipmentItem,
+                    compteurId: data.meterId,
+                });
+            }
             setCurrentStep(3);
         }
     }
 
     const handleStep3Finish = (data: { dateMiseEnService: string }) => {
-        const finalMeter = meterId ? meters.find(m => m.id === meterId) : undefined;
-        if(finalMeter) {
+        if(wipMeter) {
             updateMeter({
-                ...finalMeter,
+                ...wipMeter,
                 status: 'En service',
                 lastUpdate: new Date().toISOString().split('T')[0],
             });
@@ -137,9 +126,6 @@ export default function NewMeterWorkflowPage() {
         }
         return <Circle className="h-6 w-6 text-muted-foreground" />;
     }
-    
-    const meterIdForStep2 = tempMeterId || meterId;
-
 
     return (
         <div className="container mx-auto py-8">
@@ -192,7 +178,7 @@ export default function NewMeterWorkflowPage() {
                         <MeterInstallationForm 
                             onFinished={handleStep2Finish}
                             isFinished={currentStep > 2}
-                            meterId={meterIdForStep2}
+                            meterId={wipMeter?.id}
                          />
                     </CardContent>
                 </Card>
@@ -213,7 +199,3 @@ export default function NewMeterWorkflowPage() {
         </div>
     )
 }
-
-    
-
-    
