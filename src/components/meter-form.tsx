@@ -53,9 +53,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface MeterFormProps {
     onFinished?: () => void;
+    equipmentId?: string;
 }
 
-export function MeterForm({ onFinished }: MeterFormProps) {
+export function MeterForm({ onFinished, equipmentId: equipmentIdFromProp }: MeterFormProps) {
   const { addMeter } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment, updateEquipment } = useEquipmentStore();
@@ -69,9 +70,9 @@ export function MeterForm({ onFinished }: MeterFormProps) {
         policeNumber: "",
         typeTension: "Moyenne Tension",
         description: "",
-        associationType: "none",
+        associationType: equipmentIdFromProp ? "equipment" : "none",
         buildingId: "",
-        equipmentId: "",
+        equipmentId: equipmentIdFromProp || "",
         dateMiseEnService: undefined,
         districtSteg: "",
     }
@@ -117,7 +118,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
     if (onFinished) {
         onFinished();
     } else {
-        router.push('/dashboard/meters');
+        router.push(equipmentIdFromProp ? '/dashboard/equipment' : '/dashboard/meters');
     }
   }
   
@@ -125,7 +126,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
     if (onFinished) {
         onFinished();
     } else {
-        router.push('/dashboard/billing');
+        router.push(equipmentIdFromProp ? '/dashboard/equipment' : '/dashboard/billing');
     }
   }
   
@@ -170,7 +171,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
                     <FormField control={form.control} name="associationType" render={({ field }) => (
                         <FormItem className="space-y-3"><FormLabel>Associer à :</FormLabel>
                             <FormControl>
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4" disabled={!!equipmentIdFromProp}>
                                     <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="none" /></FormControl><FormLabel className="font-normal">Aucun</FormLabel></FormItem>
                                     <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="building" /></FormControl><FormLabel className="font-normal">Bâtiment</FormLabel></FormItem>
                                     <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="equipment" /></FormControl><FormLabel className="font-normal">Équipement</FormLabel></FormItem>
@@ -199,7 +200,7 @@ export function MeterForm({ onFinished }: MeterFormProps) {
                      <>
                         <FormField control={form.control} name="equipmentId" render={({ field }) => (
                             <FormItem><FormLabel>Équipement (En cours)</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!equipmentIdFromProp}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un équipement"/></SelectTrigger></FormControl>
                                     <SelectContent>
                                         {availableEquipment.length > 0 ? (

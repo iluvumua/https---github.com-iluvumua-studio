@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText, ChevronDown, ChevronRight } from "lucide-react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -220,6 +220,13 @@ export default function EquipmentPage() {
                             <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-1">
+                                    {item.status === 'En cours' && !item.compteurId && (
+                                        <Button variant="ghost" size="icon" asChild>
+                                            <Link href={`/dashboard/meters/new?equipmentId=${item.id}`}>
+                                                <PlusCircleIcon className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    )}
                                     {item.coordX && item.coordY && (
                                         <Button variant="ghost" size="icon" asChild>
                                             <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
@@ -306,7 +313,3 @@ export default function EquipmentPage() {
     </Tabs>
   );
 }
-
-    
-
-    

@@ -102,14 +102,6 @@ function MetersPageComponent() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-             <Button size="sm" className="h-8 gap-1" asChild>
-                <Link href="/dashboard/meters/new">
-                    <PlusCircle className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Ajouter Compteur
-                    </span>
-                </Link>
-            </Button>
           </div>
       </div>
       <TabsContent value={activeTab}>
@@ -130,8 +122,8 @@ function MetersPageComponent() {
                     </p>
                     <div className="mt-6 w-full max-w-sm">
                         <Button className="w-full" asChild>
-                            <Link href="/dashboard/meters/new">
-                                <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Compteur
+                            <Link href="/dashboard/equipment/new">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Équipement
                             </Link>
                         </Button>
                     </div>
