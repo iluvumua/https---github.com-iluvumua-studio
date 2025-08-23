@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -35,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { Separator } from "@/components/ui/separator";
+import { useBillingStore } from "@/hooks/use-billing-store";
 
 function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
     const { user } = useUser();
@@ -68,6 +69,7 @@ function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
 export default function EquipmentPage() {
     const { equipment } = useEquipmentStore();
     const { meters } = useMetersStore();
+    const { bills } = useBillingStore();
     const [activeTab, setActiveTab] = useState("all");
     const { toast } = useToast();
     const { user } = useUser();
@@ -78,6 +80,23 @@ export default function EquipmentPage() {
         if (!dateString) return "N/A";
         return format(new Date(dateString), "dd/MM/yyyy");
     }
+    
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
+    }
+    
+    const averageMonthlyCost = useMemo(() => {
+        const annualBills = bills
+          .filter(b => b.nombreMois && b.nombreMois >= 12)
+          .sort((a, b) => b.id.localeCompare(a.id)); // Assuming newer bills have higher IDs
+
+        if (annualBills.length > 0) {
+          const latestAnnualBill = annualBills[0];
+          return latestAnnualBill.amount / latestAnnualBill.nombreMois;
+        }
+        return null;
+    }, [bills]);
+
 
     const filteredEquipment = equipment.filter(item => {
         const query = searchTerm.toLowerCase();
@@ -114,7 +133,53 @@ export default function EquipmentPage() {
         XLSX.writeFile(workbook, `equipements_${activeTab}.xlsx`);
     };
 
+    const equipmentStatusCounts = useMemo(() => {
+        return equipment.reduce((acc, eq) => {
+            acc[eq.status] = (acc[eq.status] || 0) + 1;
+            return acc;
+        }, {} as Record<Equipment['status'], number>);
+    }, [equipment]);
+
   return (
+    <div className="flex flex-col gap-4 md:gap-8">
+    <Card>
+        <CardHeader>
+            <CardTitle>Informations Générales sur les Équipements</CardTitle>
+            <CardDescription>Aperçu rapide des équipements et des coûts.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+             <div className="flex items-center gap-4 rounded-lg border p-4">
+                <Network className="h-8 w-8 text-muted-foreground" />
+                <div>
+                    <p className="text-2xl font-bold">{equipment.length}</p>
+                    <p className="text-sm text-muted-foreground">Équipements Totaux</p>
+                </div>
+            </div>
+             <div className="flex items-center gap-4 rounded-lg border p-4">
+                 <div className="flex flex-col gap-2 w-full">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="text-green-500">En service:</span>
+                        <span className="font-semibold">{equipmentStatusCounts['En service'] || 0}</span>
+                    </div>
+                     <div className="flex justify-between items-center text-sm">
+                        <span className="text-blue-500">En cours:</span>
+                        <span className="font-semibold">{equipmentStatusCounts['En cours'] || 0}</span>
+                    </div>
+                     <div className="flex justify-between items-center text-sm">
+                        <span className="text-red-500">Résilié:</span>
+                        <span className="font-semibold">{equipmentStatusCounts['Résilié'] || 0}</span>
+                    </div>
+                 </div>
+            </div>
+             <div className="flex items-center gap-4 rounded-lg border p-4">
+                <Calculator className="h-8 w-8 text-muted-foreground" />
+                <div>
+                    <p className="text-2xl font-bold">{averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}</p>
+                    <p className="text-sm text-muted-foreground">Coût Mensuel Moyen</p>
+                </div>
+            </div>
+        </CardContent>
+    </Card>
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center">
         <TabsList>
@@ -311,5 +376,6 @@ export default function EquipmentPage() {
         </Card>
       </TabsContent>
     </Tabs>
+    </div>
   );
 }
