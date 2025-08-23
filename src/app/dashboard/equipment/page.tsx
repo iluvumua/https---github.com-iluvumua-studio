@@ -211,6 +211,7 @@ export default function EquipmentPage() {
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
+              <TableBody>
                 {filteredEquipment.map((item) => {
                   const associatedMeter = meters.find(m => m.id === item.compteurId);
                   const isExpanded = openRow === item.id;
@@ -231,7 +232,7 @@ export default function EquipmentPage() {
                   }, [associatedMeter, bills]);
 
                   return (
-                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tbody" className="border-b">
+                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tr" className="border-b">
                         <>
                           <TableRow>
                             <TableCell>
@@ -286,8 +287,8 @@ export default function EquipmentPage() {
                                 </div>
                             </TableCell>
                           </TableRow>
+                          <TableRow>
                           <CollapsibleContent asChild>
-                             <TableRow>
                               <TableCell colSpan={7} className="p-0">
                                 {isExpanded ? (
                                 <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -331,11 +332,12 @@ export default function EquipmentPage() {
                                 </div>
                                 ) : null}
                               </TableCell>
-                             </TableRow>
                           </CollapsibleContent>
+                          </TableRow>
                         </>
                     </Collapsible>
                   )})}
+              </TableBody>
             </Table>
             )}
           </CardContent>
@@ -349,3 +351,4 @@ export default function EquipmentPage() {
     
 
     
+
