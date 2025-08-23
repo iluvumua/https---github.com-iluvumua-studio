@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText, ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -196,63 +196,61 @@ export default function EquipmentPage() {
                   const isExpanded = openRow === item.id;
                   return (
                   <React.Fragment key={item.id}>
-                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
-                      <TableRow>
-                        <TableCell>
-                          <CollapsibleTrigger asChild>
-                            <Button variant="ghost" size="icon" disabled={!associatedMeter}>
-                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                            </Button>
-                          </CollapsibleTrigger>
-                        </TableCell>
-                        <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={cn(
-                            "whitespace-nowrap",
-                            item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                            item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
-                            item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                          )}>{item.status}</Badge>
-                        </TableCell>
-                        <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
-                        <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
-                        <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
-                        <TableCell>
-                            <div className="flex items-center gap-1">
-                                {item.coordX && item.coordY && (
+                    <TableRow>
+                      <TableCell>
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="icon" disabled={!associatedMeter} onClick={() => setOpenRow(isExpanded ? null : item.id)}>
+                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                      </TableCell>
+                      <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={cn(
+                          "whitespace-nowrap",
+                          item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                          item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                          item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                        )}>{item.status}</Badge>
+                      </TableCell>
+                      <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
+                      <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
+                      <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
+                      <TableCell>
+                          <div className="flex items-center gap-1">
+                              {item.coordX && item.coordY && (
+                                  <Button variant="ghost" size="icon" asChild>
+                                      <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
+                                          <MapPin className="h-4 w-4" />
+                                      </Link>
+                                  </Button>
+                              )}
+                              {item.compteurId && (
+                                <>
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
-                                            <MapPin className="h-4 w-4" />
+                                        <Link href={`/dashboard/meters?search=${item.compteurId}`}>
+                                            <Gauge className="h-4 w-4" />
                                         </Link>
                                     </Button>
-                                )}
-                                {item.compteurId && (
-                                  <>
-                                      <Button variant="ghost" size="icon" asChild>
-                                          <Link href={`/dashboard/meters?search=${item.compteurId}`}>
-                                              <Gauge className="h-4 w-4" />
-                                          </Link>
-                                      </Button>
-                                      <Button variant="ghost" size="icon" asChild>
-                                          <Link href={`/dashboard/billing/${item.compteurId}`}>
-                                              <FileText className="h-4 w-4" />
-                                          </Link>
-                                      </Button>
-                                  </>
-                                )}
-                                <Button variant="ghost" size="icon" asChild>
-                                    <Link href={`/dashboard/equipment/${item.id}/edit`}>
-                                        <Pencil className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </div>
-                        </TableCell>
-                      </TableRow>
-                    </Collapsible>
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/dashboard/billing/${item.compteurId}`}>
+                                            <FileText className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </>
+                              )}
+                              <Button variant="ghost" size="icon" asChild>
+                                  <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                      <Pencil className="h-4 w-4" />
+                                  </Link>
+                              </Button>
+                          </div>
+                      </TableCell>
+                    </TableRow>
                     <CollapsibleContent asChild>
                        <TableRow>
                         <TableCell colSpan={7} className="p-0">
-                          {associatedMeter ? (
+                          {isExpanded && associatedMeter ? (
                            <div className="p-4 bg-muted/50">
                              <h4 className="font-semibold text-sm mb-2">Informations Générales (Compteur Associé)</h4>
                              <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-2 text-xs">
@@ -271,11 +269,11 @@ export default function EquipmentPage() {
                                 </div>
                              </div>
                            </div>
-                          ) : (
+                          ) : isExpanded ? (
                             <div className="p-4 text-center text-muted-foreground text-sm">
                                 Aucun compteur n'est associé à cet équipement.
                             </div>
-                          )}
+                          ) : null}
                         </TableCell>
                        </TableRow>
                     </CollapsibleContent>
@@ -290,5 +288,6 @@ export default function EquipmentPage() {
     </Tabs>
   );
 }
+
 
 
