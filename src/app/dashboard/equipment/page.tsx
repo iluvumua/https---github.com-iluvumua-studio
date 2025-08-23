@@ -276,11 +276,6 @@ export default function EquipmentPage() {
                                                   <Gauge className="h-4 w-4" />
                                               </Link>
                                           </Button>
-                                          <Button variant="ghost" size="icon" asChild>
-                                              <Link href={`/dashboard/billing/${item.compteurId}`}>
-                                                  <FileText className="h-4 w-4" />
-                                              </Link>
-                                          </Button>
                                       </>
                                     )}
                                     <Button variant="ghost" size="icon" asChild>
