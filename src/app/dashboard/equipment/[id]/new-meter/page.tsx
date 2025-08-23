@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEquipmentStore } from '@/hooks/use-equipment-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MeterRequestForm } from '@/components/meter-request-form';
 import type { Meter } from '@/lib/types';
 import { useMetersStore } from '@/hooks/use-meters-store';
@@ -22,9 +22,35 @@ export default function NewMeterWorkflowPage() {
     const { equipment, updateEquipment } = useEquipmentStore();
     const { meters, addMeter, updateMeter } = useMetersStore();
     
-    const [currentStep, setCurrentStep] = useState(1);
+    // Find the initial equipment item
+    const initialEquipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
 
+    // State to hold the current step and the ID of the meter being created
+    const [currentStep, setCurrentStep] = useState(1);
+    const [meterId, setMeterId] = useState<string | undefined>(initialEquipmentItem?.compteurId);
+
+    // Re-evaluate equipmentItem and associatedMeter on every render to get the latest data
     const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
+    const associatedMeter = meterId ? meters.find(m => m.id === meterId) : undefined;
+    
+    useEffect(() => {
+        // This effect handles the case where you might start the workflow
+        // for an equipment that already has a meter 'En cours'.
+        if (equipmentItem?.compteurId) {
+            const meter = meters.find(m => m.id === equipmentItem.compteurId);
+            if (meter?.status === 'En cours') {
+                setMeterId(meter.id);
+                if (meter.dateMiseEnService) {
+                    setCurrentStep(3);
+                } else if(meter.id) {
+                     setCurrentStep(2);
+                } else {
+                    setCurrentStep(1);
+                }
+            }
+        }
+    }, [equipmentItem, meters]);
+
 
     if (!equipmentItem) {
         return (
@@ -36,11 +62,10 @@ export default function NewMeterWorkflowPage() {
         )
     }
     
-    const associatedMeter = meters.find(m => m.id === equipmentItem.compteurId);
-
-    const handleStep1Finish = (data: { policeNumber: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: string; coordX?: number; coordY?: number }) => {
+    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: string; coordX?: number; coordY?: number }) => {
+        const newMeterId = `MTR-${Date.now()}`;
         const newMeter: Meter = {
-            id: `MTR-${Date.now()}`,
+            id: newMeterId,
             status: 'En cours',
             typeTension: data.typeTension,
             policeNumber: data.policeNumber,
@@ -51,10 +76,11 @@ export default function NewMeterWorkflowPage() {
             description: `Demande pour équipement ${equipmentItem.name}`
         }
         addMeter(newMeter);
+        setMeterId(newMeterId);
 
         updateEquipment({
             ...equipmentItem,
-            compteurId: newMeter.id,
+            compteurId: newMeterId,
             coordX: data.coordX,
             coordY: data.coordY,
             lastUpdate: new Date().toISOString().split('T')[0],
@@ -67,13 +93,9 @@ export default function NewMeterWorkflowPage() {
         if (associatedMeter) {
             updateMeter({
                 ...associatedMeter,
-                id: data.meterId,
+                id: data.meterId, // Keep the original ID, just update other fields
                 dateMiseEnService: data.dateMiseEnService,
                 lastUpdate: new Date().toISOString().split('T')[0],
-            });
-            updateEquipment({
-                ...equipmentItem,
-                compteurId: data.meterId,
             });
             setCurrentStep(3);
         }
@@ -134,7 +156,7 @@ export default function NewMeterWorkflowPage() {
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                 <Card className={cn(currentStep < 1 && "opacity-50 pointer-events-none")}>
+                 <Card className={cn(currentStep !== 1 && "opacity-50 pointer-events-none")}>
                     <CardHeader>
                         <CardTitle>Étape 1: Demande de Compteur</CardTitle>
                         <CardDescription>Informations pour la demande initiale.</CardDescription>
@@ -148,7 +170,7 @@ export default function NewMeterWorkflowPage() {
                     </CardContent>
                 </Card>
 
-                 <Card className={cn(currentStep < 2 && "opacity-50 pointer-events-none")}>
+                 <Card className={cn(currentStep !== 2 && "opacity-50 pointer-events-none")}>
                     <CardHeader>
                         <CardTitle>Étape 2: Installation du Compteur</CardTitle>
                         <CardDescription>Saisir les informations du compteur physique.</CardDescription>
@@ -157,11 +179,12 @@ export default function NewMeterWorkflowPage() {
                         <MeterInstallationForm 
                             onFinished={handleStep2Finish}
                             isFinished={currentStep > 2}
+                            meterId={meterId}
                          />
                     </CardContent>
                 </Card>
                 
-                 <Card className={cn(currentStep < 3 && "opacity-50 pointer-events-none")}>
+                 <Card className={cn(currentStep !== 3 && "opacity-50 pointer-events-none")}>
                     <CardHeader>
                         <CardTitle>Étape 3: Mise en Service</CardTitle>
                         <CardDescription>Finaliser la mise en service de l'équipement.</CardDescription>

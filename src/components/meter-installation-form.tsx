@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,9 +25,10 @@ type FormValues = z.infer<typeof formSchema>;
 interface MeterInstallationFormProps {
     onFinished: (data: FormValues) => void;
     isFinished?: boolean;
+    meterId?: string;
 }
 
-export function MeterInstallationForm({ onFinished, isFinished }: MeterInstallationFormProps) {
+export function MeterInstallationForm({ onFinished, isFinished, meterId }: MeterInstallationFormProps) {
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -37,6 +38,13 @@ export function MeterInstallationForm({ onFinished, isFinished }: MeterInstallat
         dateMiseEnService: undefined,
     }
   });
+  
+  useEffect(() => {
+    if (meterId) {
+        form.setValue('meterId', meterId);
+    }
+  }, [meterId, form]);
+
 
   const onSubmit = (values: FormValues) => {
     onFinished({
@@ -49,7 +57,7 @@ export function MeterInstallationForm({ onFinished, isFinished }: MeterInstallat
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField control={form.control} name="meterId" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: 552200" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+            <FormField control={form.control} name="meterId" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: MTR-123456" {...field} readOnly disabled /></FormControl><FormMessage /></FormItem> )} />
            
             <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
                 <FormItem className="flex flex-col"><FormLabel>Date de Mise en Service du Compteur</FormLabel>
