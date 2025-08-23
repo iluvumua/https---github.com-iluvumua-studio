@@ -260,6 +260,22 @@ export default function EquipmentPage() {
                 {filteredEquipment.map((item) => {
                   const associatedMeter = meters.find(m => m.id === item.compteurId);
                   const isExpanded = openRow === item.id;
+                  
+                  const equipmentAverageCost = useMemo(() => {
+                    if (!associatedMeter) return null;
+                    
+                    const meterBills = bills.filter(b => b.meterId === associatedMeter.id);
+                    const annualBills = meterBills
+                      .filter(b => b.nombreMois && b.nombreMois >= 12)
+                      .sort((a, b) => b.id.localeCompare(a.id));
+
+                    if (annualBills.length > 0) {
+                      const latestAnnualBill = annualBills[0];
+                      return latestAnnualBill.amount / latestAnnualBill.nombreMois;
+                    }
+                    return null;
+                  }, [associatedMeter, bills]);
+
                   return (
                     <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tbody" className="border-b">
                         <>
@@ -345,7 +361,8 @@ export default function EquipmentPage() {
                                                 <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                                                 <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                                                 <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
+                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(item.lastUpdate)}</div>
+                                                <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
                                                 <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                                                 <div className="col-span-full mt-2">
                                                     <Button variant="link" size="sm" className="p-0 h-auto" asChild>
