@@ -21,17 +21,33 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Separator } from "./ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, getYear, getMonth, parse } from "date-fns";
 import { fr } from 'date-fns/locale';
 import { Calendar } from "./ui/calendar";
+
+const monthNames = [
+  { value: "0", label: "Janvier" }, { value: "1", label: "Février" }, { value: "2", label: "Mars" },
+  { value: "3", label: "Avril" }, { value: "4", label: "Mai" }, { value: "5", label: "Juin" },
+  { value: "6", label: "Juillet" }, { value: "7", label: "Août" }, { value: "8", label: "Septembre" },
+  { value: "9", label: "Octobre" }, { value: "10", label: "Novembre" }, { value: "11", label: "Décembre" }
+];
+
+const generateYearOptions = () => {
+    const currentYear = getYear(new Date());
+    const years = [];
+    for (let i = currentYear + 1; i >= 2015; i--) {
+        years.push({ value: i.toString(), label: i.toString() });
+    }
+    return years;
+}
+const yearOptions = generateYearOptions();
 
 
 const formSchema = z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
-  month: z.date({
-    required_error: "Le mois de la facture est requis.",
-  }),
+  billMonth: z.string({ required_error: "Le mois de la facture est requis." }),
+  billYear: z.string({ required_error: "L'année de la facture est requise." }),
   nombreMois: z.coerce.number().optional(),
   consumptionKWh: z.coerce.number().optional(),
   amount: z.coerce.number().optional(),
@@ -247,76 +263,92 @@ export function BillForm({ meterId, bill }: BillFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   
+  const getDefaultValues = () => {
+    const now = new Date();
+    let defaultMonth = getMonth(now).toString();
+    let defaultYear = getYear(now).toString();
+
+    if (isEditMode && bill?.month) {
+        try {
+            const parsedDate = parse(bill.month, "LLLL yyyy", new Date(), { locale: fr });
+            if (!isNaN(parsedDate.getTime())) {
+                defaultMonth = getMonth(parsedDate).toString();
+                defaultYear = getYear(parsedDate).toString();
+            }
+        } catch(e) {
+            console.error("Error parsing date:", e);
+        }
+    }
+     return {
+        ...bill,
+        reference: bill?.reference || "",
+        meterId: bill?.meterId || meterId || "",
+        billMonth: defaultMonth,
+        billYear: defaultYear,
+        nombreMois: bill?.nombreMois || 1,
+        typeTension: bill?.typeTension || "Basse Tension",
+        convenableSTEG: bill?.convenableSTEG ?? true,
+        consumptionKWh: bill?.consumptionKWh ?? 0,
+        amount: bill?.amount ?? 0,
+        montantSTEG: bill?.montantSTEG ?? 0,
+        // BT
+        ancienIndex: bill?.ancienIndex ?? 0,
+        nouveauIndex: bill?.nouveauIndex ?? 0,
+        prix_unitaire_bt: bill?.prix_unitaire_bt ?? 0.250,
+        redevance_fixe_bt: bill?.redevance_fixe_bt ?? 28.000,
+        tva_bt: bill?.tva_bt ?? 5.320,
+        ertt_bt: bill?.ertt_bt ?? 0.000,
+        // MT Horaire
+        ancien_index_jour: bill?.ancien_index_jour ?? 0,
+        nouveau_index_jour: bill?.nouveau_index_jour ?? 0,
+        ancien_index_pointe: bill?.ancien_index_pointe ?? 0,
+        nouveau_index_pointe: bill?.nouveau_index_pointe ?? 0,
+        ancien_index_soir: bill?.ancien_index_soir ?? 0,
+        nouveau_index_soir: bill?.nouveau_index_soir ?? 0,
+        ancien_index_nuit: bill?.ancien_index_nuit ?? 0,
+        nouveau_index_nuit: bill?.nouveau_index_nuit ?? 0,
+        coefficient_jour: bill?.coefficient_jour ?? 1,
+        coefficient_pointe: bill?.coefficient_pointe ?? 1,
+        coefficient_soir: bill?.coefficient_soir ?? 1,
+        coefficient_nuit: bill?.coefficient_nuit ?? 1,
+        prix_unitaire_jour: bill?.prix_unitaire_jour ?? 0.290,
+        prix_unitaire_pointe: bill?.prix_unitaire_pointe ?? 0.417,
+        prix_unitaire_soir: bill?.prix_unitaire_soir ?? 0.290,
+        prix_unitaire_nuit: bill?.prix_unitaire_nuit ?? 0.222,
+        consommation_jour: bill?.consommation_jour ?? 0,
+        consommation_pointe: bill?.consommation_pointe ?? 0,
+        consommation_soir: bill?.consommation_soir ?? 0,
+        consommation_nuit: bill?.consommation_nuit ?? 0,
+        prime_puissance_mth: bill?.prime_puissance_mth ?? 0,
+        depassement_puissance: bill?.depassement_puissance ?? 0,
+        location_materiel: bill?.location_materiel ?? 0,
+        frais_intervention: bill?.frais_intervention ?? 0,
+        frais_relance: bill?.frais_relance ?? 0,
+        frais_retard: bill?.frais_retard ?? 0,
+        tva_consommation: bill?.tva_consommation ?? 0,
+        tva_redevance: bill?.tva_redevance ?? 0,
+        contribution_rtt_mth: bill?.contribution_rtt_mth ?? 0,
+        surtaxe_municipale_mth: bill?.surtaxe_municipale_mth ?? 0,
+        // MT Forfait
+        mtf_ancien_index: bill?.mtf_ancien_index ?? 1483440,
+        mtf_nouveau_index: bill?.mtf_nouveau_index ?? 1489924,
+        coefficient_multiplicateur: bill?.coefficient_multiplicateur ?? 1.0,
+        perte_en_charge: bill?.perte_en_charge ?? 130,
+        perte_a_vide: bill?.perte_a_vide ?? 260,
+        pu_consommation: bill?.pu_consommation ?? 0.291,
+        prime_puissance: bill?.prime_puissance ?? 250.000,
+        tva_consommation_percent: bill?.tva_consommation_percent ?? 19,
+        tva_redevance_percent: bill?.tva_redevance_percent ?? 19,
+        contribution_rtt: bill?.contribution_rtt ?? 3.500,
+        surtaxe_municipale: bill?.surtaxe_municipale ?? 68.740,
+        avance_consommation: bill?.avance_consommation ?? 31.134,
+        bonification: bill?.bonification ?? 100.017,
+     }
+  }
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: isEditMode ? {
-        ...bill,
-        meterId: bill.meterId,
-        month: bill.month ? new Date(bill.month.replace(/(\w+)\s(\d+)/, '$2-$1-01')) : new Date(),
-        nombreMois: bill.nombreMois || 1,
-    } : {
-        reference: "",
-        meterId: meterId || "",
-        month: new Date(),
-        nombreMois: 1,
-        typeTension: "Basse Tension",
-        convenableSTEG: true,
-        consumptionKWh: 0,
-        amount: 0,
-        montantSTEG: 0,
-        // BT
-        ancienIndex: 0,
-        nouveauIndex: 0,
-        prix_unitaire_bt: 0.250,
-        redevance_fixe_bt: 28.000,
-        tva_bt: 5.320,
-        ertt_bt: 0.000,
-        // MT Horaire
-        ancien_index_jour: 0,
-        nouveau_index_jour: 0,
-        ancien_index_pointe: 0,
-        nouveau_index_pointe: 0,
-        ancien_index_soir: 0,
-        nouveau_index_soir: 0,
-        ancien_index_nuit: 0,
-        nouveau_index_nuit: 0,
-        coefficient_jour: 1,
-        coefficient_pointe: 1,
-        coefficient_soir: 1,
-        coefficient_nuit: 1,
-        prix_unitaire_jour: 0.290,
-        prix_unitaire_pointe: 0.417,
-        prix_unitaire_soir: 0.290,
-        prix_unitaire_nuit: 0.222,
-        consommation_jour: 0,
-        consommation_pointe: 0,
-        consommation_soir: 0,
-        consommation_nuit: 0,
-        prime_puissance_mth: 0,
-        depassement_puissance: 0,
-        location_materiel: 0,
-        frais_intervention: 0,
-        frais_relance: 0,
-        frais_retard: 0,
-        tva_consommation: 0,
-        tva_redevance: 0,
-        contribution_rtt_mth: 0,
-        surtaxe_municipale_mth: 0,
-        // MT Forfait
-        mtf_ancien_index: 1483440,
-        mtf_nouveau_index: 1489924,
-        coefficient_multiplicateur: 1.0,
-        perte_en_charge: 130,
-        perte_a_vide: 260,
-        pu_consommation: 0.291,
-        prime_puissance: 250.000,
-        tva_consommation_percent: 19,
-        tva_redevance_percent: 19,
-        contribution_rtt: 3.500,
-        surtaxe_municipale: 68.740,
-        avance_consommation: 31.134,
-        bonification: 100.017,
-    }
+    defaultValues: getDefaultValues()
   });
 
   const watchedValues = form.watch();
@@ -395,11 +427,14 @@ export function BillForm({ meterId, bill }: BillFormProps) {
 
 
   const onSubmit = (values: FormValues) => {
+    const selectedDate = new Date(parseInt(values.billYear), parseInt(values.billMonth));
+    const formattedMonth = format(selectedDate, "LLLL yyyy", { locale: fr });
+    
     const billData: Bill = {
         id: isEditMode ? bill.id : `BILL-${Date.now()}`,
         reference: values.reference,
         meterId: values.meterId,
-        month: format(values.month, "LLLL yyyy", { locale: fr }),
+        month: formattedMonth,
         nombreMois: values.nombreMois,
         typeTension: values.typeTension,
         consumptionKWh: values.consumptionKWh ?? 0,
@@ -693,45 +728,33 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                 </FormItem>
             )} />
 
-            <FormField control={form.control} name="month" render={({ field }) => (
-                <FormItem className="flex flex-col"><FormLabel>Mois Facture</FormLabel>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                >
-                                {field.value ? (
-                                    format(field.value, "LLLL yyyy", { locale: fr })
-                                ) : (
-                                    <span>Choisir un mois</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(day, selectedDay, activeModifiers, e) => {
-                                    if (day) {
-                                      field.onChange(day);
-                                      (e.currentTarget as HTMLElement).closest('[data-radix-popper-content-wrapper]')?.previousSibling?.dispatchEvent(new Event('click'));
-                                    }
-                                }}
-                                captionLayout="dropdown-buttons"
-                                fromYear={2015}
-                                toYear={new Date().getFullYear() + 1}
-                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                </FormItem>
-            )} />
+            <div className="md:col-span-2">
+                <FormLabel>Mois Facture</FormLabel>
+                <div className="flex gap-2">
+                    <FormField control={form.control} name="billMonth" render={({ field }) => (
+                        <FormItem className="flex-1">
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Mois" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {monthNames.map(month => <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="billYear" render={({ field }) => (
+                         <FormItem className="flex-1">
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Année" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    {yearOptions.map(year => <SelectItem key={year.value} value={year.value}>{year.label}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
+            </div>
 
             <FormField control={form.control} name="nombreMois" render={({ field }) => (
                 <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} /></FormControl><FormMessage /></FormItem>

@@ -16,7 +16,6 @@ export default function EditBillPage() {
     const billToEdit = Array.isArray(billId) ? undefined : bills.find(b => b.id === billId);
 
     if (!billToEdit) {
-        // Option 1: Show a loading state
         return (
              <Card>
                 <CardHeader>
