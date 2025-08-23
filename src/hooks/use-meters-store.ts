@@ -6,7 +6,7 @@ import type { Meter } from '@/lib/types';
 interface MeterState {
   meters: Meter[];
   addMeter: (meter: Meter) => void;
-  updateMeter: (updatedMeter: Meter) => void;
+  updateMeter: (updatedMeter: Meter, oldId?: string) => void;
 }
 
 export const useMetersStore = create<MeterState>((set) => ({
@@ -15,10 +15,10 @@ export const useMetersStore = create<MeterState>((set) => ({
     set((state) => ({
       meters: [newMeter, ...state.meters],
     })),
-  updateMeter: (updatedMeter) =>
+  updateMeter: (updatedMeter, oldId) =>
     set((state) => ({
         meters: state.meters.map((item) =>
-            item.id === updatedMeter.id ? updatedMeter : item
+            item.id === (oldId || updatedMeter.id) ? { ...item, ...updatedMeter } : item
         ),
     })),
 }));

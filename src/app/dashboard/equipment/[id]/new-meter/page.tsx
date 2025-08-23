@@ -32,9 +32,9 @@ export default function NewMeterWorkflowPage() {
             const meter = meters.find(m => m.id === equipmentItem.compteurId);
             if (meter?.status === 'En cours') {
                 setWipMeter(meter);
-                 if (meter.dateMiseEnService) {
+                 if (meter.dateMiseEnService) { // Date on meter means step 2 is done
                     setCurrentStep(3);
-                } else if(meter.id) {
+                } else { // Meter exists but no date means step 1 is done
                      setCurrentStep(2);
                 }
             }
@@ -65,8 +65,7 @@ export default function NewMeterWorkflowPage() {
             description: `Demande pour équipement ${equipmentItem.name}`
         }
         addMeter(newMeter);
-        setWipMeter(newMeter);
-
+        
         updateEquipment({
             ...equipmentItem,
             compteurId: newMeter.id,
@@ -75,28 +74,30 @@ export default function NewMeterWorkflowPage() {
             lastUpdate: new Date().toISOString().split('T')[0],
         });
         
-        setCurrentStep(2);
+        router.push('/dashboard/equipment');
     }
     
     const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string }) => {
         if (wipMeter) {
-            const updatedWipMeter = {
+            const tempId = wipMeter.id;
+            const updatedWipMeter: Meter = {
                 ...wipMeter,
                 id: data.meterId,
                 dateMiseEnService: data.dateMiseEnService,
                 lastUpdate: new Date().toISOString().split('T')[0],
+                status: 'En cours', // Remain 'En cours'
             };
             
-            updateMeter(updatedWipMeter);
-            setWipMeter(updatedWipMeter);
+            updateMeter(updatedWipMeter, tempId);
 
-            if (equipmentItem.compteurId === wipMeter.id) {
+            if (equipmentItem.compteurId === tempId) {
                  updateEquipment({
                     ...equipmentItem,
                     compteurId: data.meterId,
+                    status: 'En cours', // Remain 'En cours'
                 });
             }
-            setCurrentStep(3);
+            router.push('/dashboard/equipment');
         }
     }
 
@@ -106,7 +107,8 @@ export default function NewMeterWorkflowPage() {
                 ...wipMeter,
                 status: 'En service',
                 lastUpdate: new Date().toISOString().split('T')[0],
-            });
+            }, wipMeter.id);
+
             updateEquipment({
                 ...equipmentItem,
                 status: 'En service',
