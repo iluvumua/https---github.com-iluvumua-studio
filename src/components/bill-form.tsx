@@ -7,7 +7,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Loader2, Save, X } from "lucide-react";
+import { AlertCircle, CalendarIcon, Loader2, Save, X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useMetersStore } from "@/hooks/use-meters-store";
@@ -19,11 +19,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Switch } from "./ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Separator } from "./ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { fr } from 'date-fns/locale';
+import { Calendar } from "./ui/calendar";
+
 
 const formSchema = z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
-  month: z.string().min(1, "Le mois est requis."),
+  month: z.date({
+    required_error: "Le mois de la facture est requis.",
+  }),
   nombreMois: z.coerce.number().optional(),
   consumptionKWh: z.coerce.number().optional(),
   amount: z.coerce.number().optional(),
@@ -241,11 +249,12 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     defaultValues: isEditMode ? {
         ...bill,
         meterId: bill.meterId,
+        month: new Date(bill.month), // convert string back to Date
         nombreMois: bill.nombreMois || 1,
     } : {
         reference: "",
         meterId: meterId || "",
-        month: "",
+        month: new Date(),
         nombreMois: 1,
         typeTension: "Basse Tension",
         convenableSTEG: true,
@@ -384,7 +393,7 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         id: isEditMode ? bill.id : `BILL-${Date.now()}`,
         reference: values.reference,
         meterId: values.meterId,
-        month: values.month,
+        month: format(values.month, "MMMM yyyy", { locale: fr }),
         nombreMois: values.nombreMois,
         typeTension: values.typeTension,
         consumptionKWh: values.consumptionKWh ?? 0,
@@ -675,10 +684,41 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                 </FormItem>
             )} />
 
-             <FormField control={form.control} name="month" render={({ field }) => (
-                <FormItem><FormLabel>Mois Facture</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormField control={form.control} name="month" render={({ field }) => (
+                <FormItem className="flex flex-col"><FormLabel>Mois Facture</FormLabel>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                >
+                                {field.value ? (
+                                    format(field.value, "LLLL yyyy", { locale: fr })
+                                ) : (
+                                    <span>Choisir un mois</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                captionLayout="dropdown-buttons"
+                                fromYear={2015}
+                                toYear={new Date().getFullYear() + 1}
+                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                </FormItem>
             )} />
-            
+
             <FormField control={form.control} name="nombreMois" render={({ field }) => (
                 <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
