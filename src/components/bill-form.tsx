@@ -36,7 +36,6 @@ const formSchema = z.object({
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
   prix_unitaire_bt: z.coerce.number().optional(),
-  redevance_fixe_bt: z.coerce.number().optional(),
   tva_bt: z.coerce.number().optional(),
   ertt_bt: z.coerce.number().optional(),
 
@@ -109,7 +108,6 @@ const calculateBasseTension = (
     nouveauIndex: number = 0, 
     prixUnitaire: number = 0, 
     nombreMois: number = 1,
-    redevanceFixe: number = 0,
     tva: number = 0,
     ertt: number = 0
 ) => {
@@ -132,7 +130,7 @@ const calculateBasseTension = (
     
     const montant = consommation * Number(prixUnitaire);
     
-    const total_consommation = montant + (redevanceFixe * numNombreMois);
+    const total_consommation = montant;
     const total_taxes = (ertt + tva) * numNombreMois;
     const montant_a_payer = total_consommation + total_taxes;
     
@@ -254,7 +252,6 @@ export function BillForm({ meterId }: BillFormProps) {
         ancienIndex: 0,
         nouveauIndex: 0,
         prix_unitaire_bt: 0.250,
-        redevance_fixe_bt: 28.000,
         tva_bt: 5.320,
         ertt_bt: 0.000,
         // MT Horaire
@@ -314,7 +311,6 @@ export function BillForm({ meterId }: BillFormProps) {
             watchedValues.nouveauIndex, 
             watchedValues.prix_unitaire_bt,
             watchedValues.nombreMois,
-            watchedValues.redevance_fixe_bt,
             watchedValues.tva_bt,
             watchedValues.ertt_bt
         );
@@ -350,7 +346,6 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.nouveauIndex,
     watchedValues.prix_unitaire_bt,
     watchedValues.nombreMois,
-    watchedValues.redevance_fixe_bt,
     watchedValues.tva_bt,
     watchedValues.ertt_bt,
     // MT Horaire
@@ -400,7 +395,6 @@ export function BillForm({ meterId }: BillFormProps) {
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         prix_unitaire_bt: values.typeTension === "Basse Tension" ? values.prix_unitaire_bt : undefined,
-        redevance_fixe_bt: values.typeTension === "Basse Tension" ? values.redevance_fixe_bt : undefined,
         tva_bt: values.typeTension === "Basse Tension" ? values.tva_bt : undefined,
         ertt_bt: values.typeTension === "Basse Tension" ? values.ertt_bt : undefined,
         
@@ -544,10 +538,7 @@ export function BillForm({ meterId }: BillFormProps) {
                     )} />
                     <Separator />
                     <h4 className="font-medium text-sm">Taxes et Redevances</h4>
-                     <div className="grid grid-cols-3 gap-4">
-                        <FormField control={form.control} name="redevance_fixe_bt" render={({ field }) => (
-                            <FormItem><FormLabel>Redevance Fixe</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                        )} />
+                     <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="tva_bt" render={({ field }) => (
                             <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
@@ -755,3 +746,6 @@ export function BillForm({ meterId }: BillFormProps) {
 }
 
     
+
+
+      

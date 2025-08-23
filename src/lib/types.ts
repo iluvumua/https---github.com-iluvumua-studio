@@ -47,7 +47,6 @@ export type Bill = {
   ancienIndex?: number;
   nouveauIndex?: number;
   prix_unitaire_bt?: number;
-  redevance_fixe_bt?: number;
   tva_bt?: number;
   ertt_bt?: number;
 
@@ -115,3 +114,5 @@ export type Meter = {
     replacedBy?: string; // ID of the meter that replaced this one
     districtSteg?: string;
 }
+
+      
