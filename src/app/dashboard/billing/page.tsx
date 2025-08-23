@@ -86,7 +86,6 @@ export default function BillingPage() {
       item.id.toLowerCase().includes(query) ||
       item.associationName.toLowerCase().includes(query) ||
       (item.referenceFacteur && item.referenceFacteur.toLowerCase().includes(query)) ||
-      (item.policeNumber && item.policeNumber.toLowerCase().includes(query)) ||
       (item.districtSteg && item.districtSteg.toLowerCase().includes(query)) ||
       (item.description && item.description.toLowerCase().includes(query))
     );
@@ -96,7 +95,6 @@ export default function BillingPage() {
     const dataToExport = filteredData.map(item => ({
         "Réf. Facteur": item.referenceFacteur,
         "N° Compteur": item.id,
-        "N° Police": item.policeNumber,
         "District STEG": item.districtSteg,
         "Associé à": item.associationName,
         "Factures Impayées (Nombre)": item.unpaidCount,
@@ -174,7 +172,6 @@ export default function BillingPage() {
             <TableRow>
               <TableHead>Réf. Facteur</TableHead>
               <TableHead>N° Compteur</TableHead>
-              <TableHead>N° Police</TableHead>
               <TableHead>District STEG</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead className="text-center">Factures Impayées</TableHead>
@@ -186,7 +183,6 @@ export default function BillingPage() {
               <TableRow key={item.id}>
                 <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-mono">{item.id}</TableCell>
-                <TableCell className="font-mono">{item.policeNumber}</TableCell>
                 <TableCell>{item.districtSteg}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell className="text-center">
