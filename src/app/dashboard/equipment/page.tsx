@@ -257,7 +257,7 @@ export default function EquipmentPage() {
                                 <div className="flex items-center gap-1">
                                     {item.status === 'En cours' && !item.compteurId && (
                                         <Button variant="ghost" size="icon" asChild>
-                                            <Link href={`/dashboard/meters/new?equipmentId=${item.id}`}>
+                                            <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
                                                 <PlusCircleIcon className="h-4 w-4" />
                                             </Link>
                                         </Button>
