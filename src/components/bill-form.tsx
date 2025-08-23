@@ -36,6 +36,10 @@ const formSchema = z.object({
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
   prix_unitaire_bt: z.coerce.number().optional(),
+  redevance_fixe_bt: z.coerce.number().optional(),
+  tva_bt: z.coerce.number().optional(),
+  ertt_bt: z.coerce.number().optional(),
+
   
   // Moyen Tension Horaire
   ancien_index_jour: z.coerce.number().optional(),
@@ -100,12 +104,15 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Calculation constants
-const bt_redevances_fixes = 28.000;
-const bt_tva = 5.320;
-const bt_contr_ertt = 0.000;
-
-const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0, prixUnitaire: number = 0, nombreMois: number = 1) => {
+const calculateBasseTension = (
+    ancienIndex: number = 0, 
+    nouveauIndex: number = 0, 
+    prixUnitaire: number = 0, 
+    nombreMois: number = 1,
+    redevanceFixe: number = 0,
+    tva: number = 0,
+    ertt: number = 0
+) => {
     let consommation = 0;
     const numAncienIndex = Number(ancienIndex) || 0;
     const numNouveauIndex = Number(nouveauIndex) || 0;
@@ -125,8 +132,8 @@ const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0
     
     const montant = consommation * Number(prixUnitaire);
     
-    const total_consommation = montant + (bt_redevances_fixes * numNombreMois);
-    const total_taxes = (bt_contr_ertt + bt_tva) * numNombreMois;
+    const total_consommation = montant + (redevanceFixe * numNombreMois);
+    const total_taxes = (ertt + tva) * numNombreMois;
     const montant_a_payer = total_consommation + total_taxes;
     
     return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
@@ -247,6 +254,9 @@ export function BillForm({ meterId }: BillFormProps) {
         ancienIndex: 0,
         nouveauIndex: 0,
         prix_unitaire_bt: 0.250,
+        redevance_fixe_bt: 28.000,
+        tva_bt: 5.320,
+        ertt_bt: 0.000,
         // MT Horaire
         ancien_index_jour: 0,
         nouveau_index_jour: 0,
@@ -303,7 +313,10 @@ export function BillForm({ meterId }: BillFormProps) {
             watchedValues.ancienIndex, 
             watchedValues.nouveauIndex, 
             watchedValues.prix_unitaire_bt,
-            watchedValues.nombreMois
+            watchedValues.nombreMois,
+            watchedValues.redevance_fixe_bt,
+            watchedValues.tva_bt,
+            watchedValues.ertt_bt
         );
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
@@ -337,6 +350,9 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.nouveauIndex,
     watchedValues.prix_unitaire_bt,
     watchedValues.nombreMois,
+    watchedValues.redevance_fixe_bt,
+    watchedValues.tva_bt,
+    watchedValues.ertt_bt,
     // MT Horaire
     watchedValues.ancien_index_jour, watchedValues.nouveau_index_jour,
     watchedValues.ancien_index_pointe, watchedValues.nouveau_index_pointe,
@@ -384,6 +400,9 @@ export function BillForm({ meterId }: BillFormProps) {
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         prix_unitaire_bt: values.typeTension === "Basse Tension" ? values.prix_unitaire_bt : undefined,
+        redevance_fixe_bt: values.typeTension === "Basse Tension" ? values.redevance_fixe_bt : undefined,
+        tva_bt: values.typeTension === "Basse Tension" ? values.tva_bt : undefined,
+        ertt_bt: values.typeTension === "Basse Tension" ? values.ertt_bt : undefined,
         
         // MT Horaire
         ancien_index_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_jour : undefined,
@@ -511,16 +530,31 @@ export function BillForm({ meterId }: BillFormProps) {
             )} />
 
             {watchedValues.typeTension === 'Basse Tension' && (
-                <div className="grid grid-cols-2 gap-4 rounded-md border p-4 md:col-span-2">
-                    <FormField control={form.control} name="ancienIndex" render={({ field }) => (
-                        <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
-                        <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
+                <div className="space-y-4 rounded-md border p-4 md:col-span-2">
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField control={form.control} name="ancienIndex" render={({ field }) => (
+                            <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
+                            <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </div>
+                     <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
                         <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )} />
+                    <Separator />
+                    <h4 className="font-medium text-sm">Taxes et Redevances</h4>
+                     <div className="grid grid-cols-3 gap-4">
+                        <FormField control={form.control} name="redevance_fixe_bt" render={({ field }) => (
+                            <FormItem><FormLabel>Redevance Fixe</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="tva_bt" render={({ field }) => (
+                            <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                         <FormField control={form.control} name="ertt_bt" render={({ field }) => (
+                            <FormItem><FormLabel>Contr. ERTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    </div>
                 </div>
             )}
 
