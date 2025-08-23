@@ -256,7 +256,7 @@ export default function EquipmentPage() {
                           <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
                           <TableCell>
                               <div className="flex items-center gap-1">
-                                  {item.status === 'En cours' && !item.compteurId && (
+                                  {item.status === 'En cours' && (
                                       <Button variant="ghost" size="icon" asChild>
                                           <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
                                               <PlusCircleIcon className="h-4 w-4" />
@@ -349,6 +349,7 @@ export default function EquipmentPage() {
     
 
     
+
 
 
 
