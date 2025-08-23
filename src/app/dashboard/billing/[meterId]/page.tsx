@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Calculator, File, FileText, PlusCircle, Search, History } from "lucide-react";
+import { Calculator, File, FileText, PlusCircle, Search, History, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -24,7 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { EditBillForm } from "@/components/edit-bill-form";
 import type { Bill } from "@/lib/types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUser } from "@/hooks/use-user";
@@ -279,7 +278,20 @@ export default function MeterBillingPage() {
                         <p>Calculer la facture</p>
                       </TooltipContent>
                     </Tooltip>
-                    <EditBillForm bill={bill} />
+                     {user.role === "Financier" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/dashboard/billing/edit/${bill.id}`}>
+                                    <Pencil className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Modifier la facture</p>
+                          </TooltipContent>
+                        </Tooltip>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

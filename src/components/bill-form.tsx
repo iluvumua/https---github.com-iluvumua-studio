@@ -36,6 +36,7 @@ const formSchema = z.object({
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
   prix_unitaire_bt: z.coerce.number().optional(),
+  redevance_fixe_bt: z.coerce.number().optional(),
   tva_bt: z.coerce.number().optional(),
   ertt_bt: z.coerce.number().optional(),
 
@@ -107,14 +108,13 @@ const calculateBasseTension = (
     ancienIndex: number = 0, 
     nouveauIndex: number = 0, 
     prixUnitaire: number = 0, 
-    nombreMois: number = 1,
+    redevanceFixe: number = 0,
     tva: number = 0,
     ertt: number = 0
 ) => {
     let consommation = 0;
     const numAncienIndex = Number(ancienIndex) || 0;
     const numNouveauIndex = Number(nouveauIndex) || 0;
-    const numNombreMois = Number(nombreMois) || 1;
 
     if (numNouveauIndex >= numAncienIndex) {
         consommation = numNouveauIndex - numAncienIndex;
@@ -130,8 +130,8 @@ const calculateBasseTension = (
     
     const montant = consommation * Number(prixUnitaire);
     
-    const total_consommation = montant;
-    const total_taxes = (ertt + tva) * numNombreMois;
+    const total_consommation = montant + Number(redevanceFixe);
+    const total_taxes = ertt + tva;
     const montant_a_payer = total_consommation + total_taxes;
     
     return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
@@ -227,17 +227,23 @@ const calculateMoyenTensionForfait = (values: FormValues) => {
 
 interface BillFormProps {
     meterId?: string;
+    bill?: Bill;
 }
 
-export function BillForm({ meterId }: BillFormProps) {
+export function BillForm({ meterId, bill }: BillFormProps) {
+  const isEditMode = !!bill;
   const { meters } = useMetersStore();
-  const { addBill } = useBillingStore();
+  const { addBill, updateBill } = useBillingStore();
   const router = useRouter();
   const { toast } = useToast();
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: isEditMode ? {
+        ...bill,
+        meterId: bill.meterId,
+        nombreMois: bill.nombreMois || 1,
+    } : {
         reference: "",
         meterId: meterId || "",
         month: "",
@@ -252,6 +258,7 @@ export function BillForm({ meterId }: BillFormProps) {
         ancienIndex: 0,
         nouveauIndex: 0,
         prix_unitaire_bt: 0.250,
+        redevance_fixe_bt: 28.000,
         tva_bt: 5.320,
         ertt_bt: 0.000,
         // MT Horaire
@@ -310,7 +317,7 @@ export function BillForm({ meterId }: BillFormProps) {
             watchedValues.ancienIndex, 
             watchedValues.nouveauIndex, 
             watchedValues.prix_unitaire_bt,
-            watchedValues.nombreMois,
+            watchedValues.redevance_fixe_bt,
             watchedValues.tva_bt,
             watchedValues.ertt_bt
         );
@@ -345,7 +352,7 @@ export function BillForm({ meterId }: BillFormProps) {
     watchedValues.ancienIndex,
     watchedValues.nouveauIndex,
     watchedValues.prix_unitaire_bt,
-    watchedValues.nombreMois,
+    watchedValues.redevance_fixe_bt,
     watchedValues.tva_bt,
     watchedValues.ertt_bt,
     // MT Horaire
@@ -378,8 +385,8 @@ export function BillForm({ meterId }: BillFormProps) {
 
 
   const onSubmit = (values: FormValues) => {
-    const newBill: Bill = {
-        id: `BILL-${Date.now()}`,
+    const billData: Bill = {
+        id: isEditMode ? bill.id : `BILL-${Date.now()}`,
         reference: values.reference,
         meterId: values.meterId,
         month: values.month,
@@ -395,6 +402,7 @@ export function BillForm({ meterId }: BillFormProps) {
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         prix_unitaire_bt: values.typeTension === "Basse Tension" ? values.prix_unitaire_bt : undefined,
+        redevance_fixe_bt: values.typeTension === "Basse Tension" ? values.redevance_fixe_bt : undefined,
         tva_bt: values.typeTension === "Basse Tension" ? values.tva_bt : undefined,
         ertt_bt: values.typeTension === "Basse Tension" ? values.ertt_bt : undefined,
         
@@ -446,13 +454,19 @@ export function BillForm({ meterId }: BillFormProps) {
         avance_consommation: values.typeTension === "Moyen Tension Forfaitaire" ? values.avance_consommation : undefined,
         bonification: values.typeTension === "Moyen Tension Forfaitaire" ? values.bonification : undefined,
     };
-    addBill(newBill);
-    toast({ title: "Facture ajoutée", description: "La nouvelle facture a été enregistrée avec succès." });
+
+    if (isEditMode) {
+        updateBill(billData);
+        toast({ title: "Facture modifiée", description: "La facture a été mise à jour avec succès." });
+    } else {
+        addBill(billData);
+        toast({ title: "Facture ajoutée", description: "La nouvelle facture a été enregistrée avec succès." });
+    }
     router.push(`/dashboard/billing/${values.meterId}`);
   }
   
   const isCalculated = watchedValues.typeTension === 'Basse Tension' || watchedValues.typeTension === 'Moyen Tension Tranche Horaire' || watchedValues.typeTension === 'Moyen Tension Forfaitaire';
-  const cancelHref = meterId ? `/dashboard/billing/${meterId}` : '/dashboard/billing';
+  const cancelHref = isEditMode ? `/dashboard/billing/${bill.meterId}` : (meterId ? `/dashboard/billing/${meterId}` : '/dashboard/billing');
   
   const difference = (Number(watchedValues.montantSTEG) || 0) - (Number(watchedValues.amount) || 0);
   
@@ -494,7 +508,7 @@ export function BillForm({ meterId }: BillFormProps) {
             
             <FormField control={form.control} name="meterId" render={({ field }) => (
                 <FormItem><FormLabel>N° Compteur</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterId}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterId || isEditMode}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
                         <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>))}</SelectContent>
                     </Select>
@@ -539,6 +553,9 @@ export function BillForm({ meterId }: BillFormProps) {
                     <Separator />
                     <h4 className="font-medium text-sm">Taxes et Redevances</h4>
                      <div className="grid grid-cols-2 gap-4">
+                         <FormField control={form.control} name="redevance_fixe_bt" render={({ field }) => (
+                            <FormItem><FormLabel>Redevance Fixe</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        )} />
                         <FormField control={form.control} name="tva_bt" render={({ field }) => (
                             <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
