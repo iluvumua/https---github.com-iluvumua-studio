@@ -34,6 +34,7 @@ import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useMetersStore } from "@/hooks/use-meters-store";
+import { Separator } from "@/components/ui/separator";
 
 function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
     const { user } = useUser();
@@ -195,12 +196,12 @@ export default function EquipmentPage() {
                   const associatedMeter = meters.find(m => m.id === item.compteurId);
                   const isExpanded = openRow === item.id;
                   return (
-                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tbody">
+                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tbody" className="border-b">
                         <React.Fragment>
                           <TableRow>
                             <TableCell>
                                <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="icon" disabled={!associatedMeter}>
+                                <Button variant="ghost" size="icon">
                                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </Button>
                                </CollapsibleTrigger>
@@ -251,29 +252,44 @@ export default function EquipmentPage() {
                           <CollapsibleContent asChild>
                              <TableRow>
                               <TableCell colSpan={7} className="p-0">
-                                {isExpanded && associatedMeter ? (
-                                 <div className="p-4 bg-muted/50">
-                                   <h4 className="font-semibold text-sm mb-2">Informations Générales (Compteur Associé)</h4>
-                                   <div className="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-2 text-xs">
-                                      <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
-                                      <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
-                                      <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
-                                      <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
-                                      <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                                      <div className="col-span-2 md:col-span-3"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
-                                      <div className="col-span-full mt-2">
-                                         <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                                            <Link href={`/dashboard/billing/${associatedMeter.id}`}>
-                                              Voir toutes les factures de ce compteur
-                                            </Link>
-                                         </Button>
-                                      </div>
-                                   </div>
-                                 </div>
-                                ) : isExpanded ? (
-                                  <div className="p-4 text-center text-muted-foreground text-sm">
-                                      Aucun compteur n'est associé à cet équipement.
-                                  </div>
+                                {isExpanded ? (
+                                <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                     <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
+                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                          <div><span className="font-medium text-muted-foreground">Localisation:</span> {item.location}</div>
+                                          <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(item.lastUpdate)}</div>
+                                          <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
+                                          {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
+                                          {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
+                                          <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
+                                        </div>
+                                     </div>
+                                     <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
+                                        {associatedMeter ? (
+                                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                                <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
+                                                <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
+                                                <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
+                                                <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
+                                                <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
+                                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
+                                                <div className="col-span-full mt-2">
+                                                    <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                                                        <Link href={`/dashboard/billing/${associatedMeter.id}`}>
+                                                        Voir toutes les factures de ce compteur
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                             </div>
+                                        ) : (
+                                            <div className="text-center text-muted-foreground text-sm py-4">
+                                                Aucun compteur n'est associé à cet équipement.
+                                            </div>
+                                        )}
+                                     </div>
+                                </div>
                                 ) : null}
                               </TableCell>
                              </TableRow>
@@ -290,3 +306,5 @@ export default function EquipmentPage() {
     </Tabs>
   );
 }
+
+    
