@@ -297,7 +297,7 @@ export default function EquipmentPage() {
                                           {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
                                           {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
                                           <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
-                                          <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(item.lastUpdate)}</div>
+                                          <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
                                         </div>
                                      </div>
                                      <div className="space-y-3">
@@ -309,6 +309,7 @@ export default function EquipmentPage() {
                                                 <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                                                 <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                                                 <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
+                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
                                                 <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
                                                 <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                                                 <div className="col-span-full mt-2">
@@ -342,5 +343,7 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
+    
 
     
