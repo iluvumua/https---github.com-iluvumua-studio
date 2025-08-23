@@ -90,11 +90,13 @@ export default function NewMeterWorkflowPage() {
     }
     
     const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string }) => {
-        const meterToUpdate = meters.find(m => m.id === tempMeterId);
+        const originalMeterId = tempMeterId || meterId;
+        const meterToUpdate = meters.find(m => m.id === originalMeterId);
+        
         if (meterToUpdate) {
             updateMeter({
                 ...meterToUpdate,
-                id: data.meterId,
+                id: data.meterId, // The new, final ID from the form
                 dateMiseEnService: data.dateMiseEnService,
                 lastUpdate: new Date().toISOString().split('T')[0],
             });
@@ -103,15 +105,16 @@ export default function NewMeterWorkflowPage() {
                 ...equipmentItem,
                 compteurId: data.meterId,
             });
-            setMeterId(data.meterId); // Set the new final meter ID
+            setMeterId(data.meterId); // Set the new final meter ID for the next step
             setCurrentStep(3);
         }
     }
 
     const handleStep3Finish = (data: { dateMiseEnService: string }) => {
-        if(associatedMeter) {
+        const finalMeter = meterId ? meters.find(m => m.id === meterId) : undefined;
+        if(finalMeter) {
             updateMeter({
-                ...associatedMeter,
+                ...finalMeter,
                 status: 'En service',
                 lastUpdate: new Date().toISOString().split('T')[0],
             });
@@ -210,5 +213,7 @@ export default function NewMeterWorkflowPage() {
         </div>
     )
 }
+
+    
 
     
