@@ -46,7 +46,6 @@ export type Bill = {
   ancienIndex?: number;
   nouveauIndex?: number;
   prix_unitaire_bt?: number;
-  redevance_fixe_bt?: number;
   tva_bt?: number;
   ertt_bt?: number;
 

@@ -26,28 +26,15 @@ import { fr } from 'date-fns/locale';
 import { Calendar } from "./ui/calendar";
 
 const monthNames = [
-  { value: "0", label: "Janvier" }, { value: "1", label: "Février" }, { value: "2", label: "Mars" },
-  { value: "3", label: "Avril" }, { value: "4", label: "Mai" }, { value: "5", label: "Juin" },
-  { value: "6", label: "Juillet" }, { value: "7", label: "Août" }, { value: "8", label: "Septembre" },
-  { value: "9", label: "Octobre" }, { value: "10", label: "Novembre" }, { value: "11", label: "Décembre" }
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
-
-const generateYearOptions = () => {
-    const currentYear = getYear(new Date());
-    const years = [];
-    for (let i = currentYear + 1; i >= 2015; i--) {
-        years.push({ value: i.toString(), label: i.toString() });
-    }
-    return years;
-}
-const yearOptions = generateYearOptions();
-
 
 const formSchema = z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
-  billMonth: z.string({ required_error: "Le mois de la facture est requis." }),
-  billYear: z.string({ required_error: "L'année de la facture est requise." }),
+  billMonth: z.coerce.number().min(1, "Le mois doit être entre 1 et 12.").max(12, "Le mois doit être entre 1 et 12."),
+  billYear: z.coerce.number().refine(year => year.toString().length === 4, "L'année doit comporter 4 chiffres."),
   nombreMois: z.coerce.number().optional(),
   consumptionKWh: z.coerce.number().optional(),
   amount: z.coerce.number().optional(),
@@ -59,7 +46,6 @@ const formSchema = z.object({
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
   prix_unitaire_bt: z.coerce.number().optional(),
-  redevance_fixe_bt: z.coerce.number().optional(),
   tva_bt: z.coerce.number().optional(),
   ertt_bt: z.coerce.number().optional(),
 
@@ -131,14 +117,12 @@ const calculateBasseTension = (
     ancienIndex?: number, 
     nouveauIndex?: number, 
     prixUnitaire?: number,
-    redevanceFixe?: number,
     tva?: number,
     ertt?: number
 ) => {
     const numAncienIndex = Number(ancienIndex) || 0;
     const numNouveauIndex = Number(nouveauIndex) || 0;
     const numPrixUnitaire = Number(prixUnitaire) || 0;
-    const numRedevanceFixe = Number(redevanceFixe) || 0;
     const numTva = Number(tva) || 0;
     const numErtt = Number(ertt) || 0;
 
@@ -157,7 +141,7 @@ const calculateBasseTension = (
     
     const montant_consommation = consommation * numPrixUnitaire;
     const total_taxes = numErtt + numTva;
-    const total_consommation = montant_consommation + numRedevanceFixe;
+    const total_consommation = montant_consommation;
     const montant_a_payer = total_consommation + total_taxes;
     
     return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
@@ -265,15 +249,15 @@ export function BillForm({ meterId, bill }: BillFormProps) {
   
   const getDefaultValues = () => {
     const now = new Date();
-    let defaultMonth = getMonth(now).toString();
-    let defaultYear = getYear(now).toString();
+    let defaultMonth = getMonth(now) + 1;
+    let defaultYear = getYear(now);
 
     if (isEditMode && bill?.month) {
         try {
             const parsedDate = parse(bill.month, "LLLL yyyy", new Date(), { locale: fr });
             if (!isNaN(parsedDate.getTime())) {
-                defaultMonth = getMonth(parsedDate).toString();
-                defaultYear = getYear(parsedDate).toString();
+                defaultMonth = getMonth(parsedDate) + 1;
+                defaultYear = getYear(parsedDate);
             }
         } catch(e) {
             console.error("Error parsing date:", e);
@@ -295,7 +279,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         ancienIndex: bill?.ancienIndex ?? 0,
         nouveauIndex: bill?.nouveauIndex ?? 0,
         prix_unitaire_bt: bill?.prix_unitaire_bt ?? 0.250,
-        redevance_fixe_bt: bill?.redevance_fixe_bt ?? 28.000,
         tva_bt: bill?.tva_bt ?? 5.320,
         ertt_bt: bill?.ertt_bt ?? 0.000,
         // MT Horaire
@@ -359,7 +342,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
             watchedValues.ancienIndex, 
             watchedValues.nouveauIndex, 
             watchedValues.prix_unitaire_bt,
-            watchedValues.redevance_fixe_bt,
             watchedValues.tva_bt,
             watchedValues.ertt_bt
         );
@@ -394,7 +376,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     watchedValues.ancienIndex,
     watchedValues.nouveauIndex,
     watchedValues.prix_unitaire_bt,
-    watchedValues.redevance_fixe_bt,
     watchedValues.tva_bt,
     watchedValues.ertt_bt,
     // MT Horaire
@@ -427,8 +408,8 @@ export function BillForm({ meterId, bill }: BillFormProps) {
 
 
   const onSubmit = (values: FormValues) => {
-    const selectedDate = new Date(parseInt(values.billYear), parseInt(values.billMonth));
-    const formattedMonth = format(selectedDate, "LLLL yyyy", { locale: fr });
+    const monthName = monthNames[values.billMonth - 1] || 'Unknown';
+    const formattedMonth = `${monthName} ${values.billYear}`;
     
     const billData: Bill = {
         id: isEditMode ? bill.id : `BILL-${Date.now()}`,
@@ -446,7 +427,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         prix_unitaire_bt: values.typeTension === "Basse Tension" ? values.prix_unitaire_bt : undefined,
-        redevance_fixe_bt: values.typeTension === "Basse Tension" ? values.redevance_fixe_bt : undefined,
         tva_bt: values.typeTension === "Basse Tension" ? values.tva_bt : undefined,
         ertt_bt: values.typeTension === "Basse Tension" ? values.ertt_bt : undefined,
         
@@ -597,9 +577,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                     <Separator />
                     <h4 className="font-medium text-sm">Taxes et Redevances</h4>
                      <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="redevance_fixe_bt" render={({ field }) => (
-                           <FormItem><FormLabel>Redevance Fixe</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                        )} />
                         <FormField control={form.control} name="tva_bt" render={({ field }) => (
                             <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
@@ -733,23 +710,19 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                 <div className="flex gap-2">
                     <FormField control={form.control} name="billMonth" render={({ field }) => (
                         <FormItem className="flex-1">
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Mois" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {monthNames.map(month => <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                            <FormLabel>Mois</FormLabel>
+                            <FormControl>
+                                <Input type="number" min="1" max="12" placeholder="ex: 8" {...field} />
+                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
                     <FormField control={form.control} name="billYear" render={({ field }) => (
                          <FormItem className="flex-1">
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Année" /></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    {yearOptions.map(year => <SelectItem key={year.value} value={year.value}>{year.label}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
+                            <FormLabel>Année</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="ex: 2023" {...field} />
+                            </FormControl>
                             <FormMessage />
                         </FormItem>
                     )} />
@@ -816,3 +789,4 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     </Form>
   );
 }
+
