@@ -84,19 +84,6 @@ export default function EquipmentPage() {
     const formatCurrency = (amount: number) => {
       return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
     }
-    
-    const averageMonthlyCost = useMemo(() => {
-        const annualBills = bills
-          .filter(b => b.nombreMois && b.nombreMois >= 12)
-          .sort((a, b) => b.id.localeCompare(a.id)); // Assuming newer bills have higher IDs
-
-        if (annualBills.length > 0) {
-          const latestAnnualBill = annualBills[0];
-          return latestAnnualBill.amount / latestAnnualBill.nombreMois;
-        }
-        return null;
-    }, [bills]);
-
 
     const filteredEquipment = equipment.filter(item => {
         const query = searchTerm.toLowerCase();
@@ -124,7 +111,6 @@ export default function EquipmentPage() {
             "Type": item.type,
             "Fournisseur": item.fournisseur,
             "Date Mise en Service": item.dateMiseEnService ? formatShortDate(item.dateMiseEnService) : 'N/A',
-            "Dernière MAJ": formatShortDate(item.lastUpdate),
             "ID Compteur": item.compteurId || 'N/A',
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -218,7 +204,6 @@ export default function EquipmentPage() {
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
                 {filteredEquipment.map((item) => {
                   const associatedMeter = meters.find(m => m.id === item.compteurId);
                   const isExpanded = openRow === item.id;
@@ -239,7 +224,8 @@ export default function EquipmentPage() {
                   }, [associatedMeter, bills]);
 
                   return (
-                    <Collapsible key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} as="tbody" className="border-b">
+                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tbody" className="border-b">
+                        <>
                           <TableRow>
                             <TableCell>
                                <CollapsibleTrigger asChild>
@@ -311,6 +297,7 @@ export default function EquipmentPage() {
                                           {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
                                           {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
                                           <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
+                                          <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(item.lastUpdate)}</div>
                                         </div>
                                      </div>
                                      <div className="space-y-3">
@@ -322,7 +309,6 @@ export default function EquipmentPage() {
                                                 <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                                                 <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                                                 <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
                                                 <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
                                                 <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                                                 <div className="col-span-full mt-2">
@@ -344,9 +330,9 @@ export default function EquipmentPage() {
                               </TableCell>
                              </TableRow>
                           </CollapsibleContent>
+                        </>
                     </Collapsible>
                   )})}
-              </TableBody>
             </Table>
             )}
           </CardContent>
@@ -356,3 +342,5 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
+    
