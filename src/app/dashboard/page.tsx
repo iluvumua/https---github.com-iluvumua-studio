@@ -21,11 +21,8 @@ export default function DashboardPage() {
 
   const activeEquipmentCount = equipment.filter(e => e.status === 'Active').length;
   const buildingsCount = buildings.length;
-  const unpaidBills = bills.filter(b => b.status === 'Impayée');
-  const unpaidBillsCount = unpaidBills.length;
   const metersCount = meters.length;
 
-  const totalUnpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
   const totalConsumption = bills.reduce((acc, bill) => acc + bill.consumptionKWh, 0);
 
   const averageMonthlyCost = useMemo(() => {
@@ -93,18 +90,6 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Factures Impayées</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{unpaidBillsCount}</div>
-             <p className="text-xs text-muted-foreground">
-              Total de {formatCurrency(totalUnpaidAmount)}
-            </p>
-          </CardContent>
-        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Consommation Totale</CardTitle>
@@ -160,7 +145,6 @@ export default function DashboardPage() {
                                 <TableHead>N° Facture</TableHead>
                                 <TableHead>Mois</TableHead>
                                 <TableHead className="text-right">Montant</TableHead>
-                                <TableHead className="text-center">Statut</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -169,16 +153,6 @@ export default function DashboardPage() {
                                     <TableCell className="font-mono text-xs">{bill.reference}</TableCell>
                                     <TableCell className="text-xs">{bill.month}</TableCell>
                                     <TableCell className="text-right font-medium text-xs">{formatCurrency(bill.amount)}</TableCell>
-                                    <TableCell className="text-center">
-                                         <Badge
-                                            variant="outline"
-                                            className={cn("text-xs",
-                                            bill.status === 'Payée' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
-                                            )}
-                                        >
-                                            {bill.status}
-                                        </Badge>
-                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

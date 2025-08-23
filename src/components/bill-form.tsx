@@ -28,7 +28,6 @@ const formSchema = z.object({
   consumptionKWh: z.coerce.number().optional(),
   amount: z.coerce.number().optional(),
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
-  status: z.enum(["Payée", "Impayée"]),
   convenableSTEG: z.boolean().default(false),
   montantSTEG: z.coerce.number().optional(),
   
@@ -249,7 +248,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         month: "",
         nombreMois: 1,
         typeTension: "Basse Tension",
-        status: "Impayée",
         convenableSTEG: true,
         consumptionKWh: 0,
         amount: 0,
@@ -388,7 +386,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         meterId: values.meterId,
         month: values.month,
         nombreMois: values.nombreMois,
-        status: values.status,
         typeTension: values.typeTension,
         consumptionKWh: values.consumptionKWh ?? 0,
         amount: values.amount ?? 0,
@@ -678,19 +675,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                 </FormItem>
             )} />
 
-            <FormField control={form.control} name="status" render={({ field }) => (
-                <FormItem><FormLabel>Statut</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                           <SelectItem value="Impayée">Impayée</SelectItem>
-                           <SelectItem value="Payée">Payée</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-            )} />
-
              <FormField control={form.control} name="month" render={({ field }) => (
                 <FormItem><FormLabel>Mois Facture</FormLabel><FormControl><Input placeholder="ex: Août 2023" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
@@ -755,11 +739,3 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     </Form>
   );
 }
-
-    
-
-
-      
-
-
-    

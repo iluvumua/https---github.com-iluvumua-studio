@@ -77,10 +77,6 @@ export default function MeterBillingPage() {
    const formatKWh = (amount: number) => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' kWh';
   }
-  const statusTranslations: { [key: string]: string } = {
-    "Payée": "Payée",
-    "Impayée": "Impayée",
-  };
 
   const getCalculHref = (bill: Bill) => {
     let type = 'basse-tension';
@@ -96,8 +92,7 @@ export default function MeterBillingPage() {
     const query = searchTerm.toLowerCase();
     const matchesSearch = (
       bill.reference.toLowerCase().includes(query) ||
-      bill.typeTension.toLowerCase().includes(query) ||
-      bill.status.toLowerCase().includes(query)
+      bill.typeTension.toLowerCase().includes(query)
     );
 
     const matchesConvenable = convenableFilter === 'all' || 
@@ -111,7 +106,6 @@ export default function MeterBillingPage() {
     const dataToExport = filteredBills.map(bill => ({
         "N° Facture": bill.reference,
         "Type": bill.typeTension,
-        "Statut": bill.status,
         "Consommation (kWh)": bill.consumptionKWh,
         "Montant": bill.amount,
         "Convenable STEG": bill.convenableSTEG ? 'Oui' : 'Non',
@@ -216,7 +210,6 @@ export default function MeterBillingPage() {
             <TableRow>
               <TableHead>Facture Number</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Statut</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
               <TableHead className="text-right">Montant</TableHead>
               <TableHead>Actions</TableHead>
@@ -236,16 +229,6 @@ export default function MeterBillingPage() {
                     })}
                   >
                     {bill.typeTension}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      bill.status === 'Payée' ? 'text-green-500 border-green-500/50 bg-green-500/10' : 'text-red-500 border-red-500/50 bg-red-500/10'
-                    )}
-                  >
-                    {statusTranslations[bill.status] || bill.status}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>

@@ -49,10 +49,6 @@ export default function BillingPage() {
 
   const unreadAnomalies = anomalies.filter(a => !a.isRead);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
-  }
-
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
     if (!meter) return "N/A";
@@ -71,16 +67,10 @@ export default function BillingPage() {
   const meterBillingData = meters
     .filter(meter => meter.status !== 'Substitué' && meter.referenceFacteur)
     .map(meter => {
-        const meterBills = bills.filter(b => b.meterId === meter.id);
-        const unpaidBills = meterBills.filter(b => b.status === 'Impayée');
-        const unpaidAmount = unpaidBills.reduce((acc, bill) => acc + bill.amount, 0);
-
         return {
             ...meter,
             associationName: getAssociationName(meter.id),
             districtSteg: meter.districtSteg || "N/A",
-            unpaidAmount,
-            unpaidCount: unpaidBills.length,
         }
     });
 
@@ -101,8 +91,6 @@ export default function BillingPage() {
         "N° Compteur": item.id,
         "District STEG": item.districtSteg,
         "Associé à": item.associationName,
-        "Factures Impayées (Nombre)": item.unpaidCount,
-        "Factures Impayées (Montant)": item.unpaidAmount,
         "Description": item.description,
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -198,7 +186,6 @@ export default function BillingPage() {
               <TableHead>N° Compteur</TableHead>
               <TableHead>District STEG</TableHead>
               <TableHead>Associé à</TableHead>
-              <TableHead className="text-center">Factures Impayées</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -209,15 +196,6 @@ export default function BillingPage() {
                 <TableCell className="font-mono">{item.id}</TableCell>
                 <TableCell>{item.districtSteg}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
-                <TableCell className="text-center">
-                    {item.unpaidCount > 0 ? (
-                        <span className="text-red-500 font-medium">
-                            {item.unpaidCount} ({formatCurrency(item.unpaidAmount)})
-                        </span>
-                    ) : (
-                        <span>0</span>
-                    )}
-                </TableCell>
                 <TableCell>
                     <div className="flex items-center gap-1">
                         {item.description && (

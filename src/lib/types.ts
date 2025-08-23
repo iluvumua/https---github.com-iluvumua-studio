@@ -37,7 +37,6 @@ export type Bill = {
   month: string;
   amount: number;
   consumptionKWh: number;
-  status: 'Payée' | 'Impayée';
   typeTension: 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire';
   convenableSTEG?: boolean;
   montantSTEG?: number;
