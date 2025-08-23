@@ -57,7 +57,7 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId }: Meter
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField control={form.control} name="meterId" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: MTR-123456" {...field} readOnly disabled /></FormControl><FormMessage /></FormItem> )} />
+            <FormField control={form.control} name="meterId" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: 552200" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
            
             <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
                 <FormItem className="flex flex-col"><FormLabel>Date de Mise en Service du Compteur</FormLabel>
@@ -89,3 +89,5 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId }: Meter
     </Form>
   );
 }
+
+    
