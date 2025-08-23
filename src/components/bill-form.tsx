@@ -43,7 +43,6 @@ const formSchema = z.object({
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
   prix_unitaire_bt: z.coerce.number().optional(),
-  redevance_fixe_bt: z.coerce.number().optional(),
   tva_bt: z.coerce.number().optional(),
   ertt_bt: z.coerce.number().optional(),
 
@@ -139,7 +138,8 @@ const calculateBasseTension = (
     
     const montant_consommation = consommation * numPrixUnitaire;
     const total_taxes = numErtt + numTva;
-    const montant_a_payer = montant_consommation + total_taxes;
+    const total_consommation = montant_consommation;
+    const montant_a_payer = total_consommation + total_taxes;
     
     return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
 }
@@ -249,7 +249,7 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     defaultValues: isEditMode ? {
         ...bill,
         meterId: bill.meterId,
-        month: new Date(bill.month), // convert string back to Date
+        month: bill.month ? new Date(bill.month.replace(/(\w+)\s(\d+)/, '$2-$1-01')) : new Date(),
         nombreMois: bill.nombreMois || 1,
     } : {
         reference: "",
@@ -405,7 +405,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
         prix_unitaire_bt: values.typeTension === "Basse Tension" ? values.prix_unitaire_bt : undefined,
-        redevance_fixe_bt: values.typeTension === "Basse Tension" ? values.redevance_fixe_bt : undefined,
         tva_bt: values.typeTension === "Basse Tension" ? values.tva_bt : undefined,
         ertt_bt: values.typeTension === "Basse Tension" ? values.ertt_bt : undefined,
         
@@ -779,3 +778,5 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     </Form>
   );
 }
+
+    
