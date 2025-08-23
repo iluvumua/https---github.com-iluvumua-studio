@@ -23,7 +23,7 @@ const calculateOverallAverage = (bills: Bill[]): number | null => {
 }
 
 export const useBillingStore = create<BillingState>((set, get) => ({
-  bills: billingData.map(b => ({ ...b, convenableSTEG: true, nombreMois: 12 })), // Default existing to true and 12 months
+  bills: billingData,
   addBill: (newBill) => {
     const allBills = [newBill, ...get().bills];
     const overallAverage = calculateOverallAverage(allBills);
