@@ -36,6 +36,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { Separator } from "@/components/ui/separator";
 import { useBillingStore } from "@/hooks/use-billing-store";
+import { locationsData } from "@/lib/locations";
 
 function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
     const { user } = useUser();
@@ -83,6 +84,12 @@ export default function EquipmentPage() {
     
     const formatCurrency = (amount: number) => {
       return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
+    }
+    
+    const getLocationLabel = (abbreviation?: string) => {
+        if (!abbreviation) return "N/A";
+        const location = locationsData.find(l => l.abbreviation === abbreviation);
+        return location?.localite || abbreviation;
     }
 
     const filteredEquipment = equipment.filter(item => {
@@ -292,7 +299,7 @@ export default function EquipmentPage() {
                                      <div className="space-y-3">
                                         <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
                                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                          <div><span className="font-medium text-muted-foreground">Localisation:</span> {item.location}</div>
+                                          <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
                                           <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
                                           {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
                                           {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
