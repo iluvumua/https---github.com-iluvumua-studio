@@ -197,7 +197,7 @@ export default function EquipmentPage() {
                   const isExpanded = openRow === item.id;
                   return (
                     <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tbody" className="border-b">
-                        <React.Fragment>
+                        <>
                           <TableRow>
                             <TableCell>
                                <CollapsibleTrigger asChild>
@@ -301,7 +301,7 @@ export default function EquipmentPage() {
                               </TableCell>
                              </TableRow>
                           </CollapsibleContent>
-                          </React.Fragment>
+                          </>
                     </Collapsible>
                   )})}
               </TableBody>
