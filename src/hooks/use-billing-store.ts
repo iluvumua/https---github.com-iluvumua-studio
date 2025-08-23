@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { billingData } from '@/lib/data';
 import type { Bill } from '@/lib/types';
+import { useAnomaliesStore } from './use-anomalies-store';
 
 interface BillingState {
   bills: Bill[];
@@ -9,12 +10,41 @@ interface BillingState {
   updateBill: (updatedBill: Bill) => void;
 }
 
-export const useBillingStore = create<BillingState>((set) => ({
+const calculateOverallAverage = (bills: Bill[]): number | null => {
+    const annualBills = bills
+      .filter(b => b.nombreMois && b.nombreMois >= 12)
+      .sort((a, b) => b.id.localeCompare(a.id));
+
+    if (annualBills.length > 0) {
+      const latestAnnualBill = annualBills[0];
+      return latestAnnualBill.amount / latestAnnualBill.nombreMois;
+    }
+    return null;
+}
+
+export const useBillingStore = create<BillingState>((set, get) => ({
   bills: billingData.map(b => ({ ...b, convenableSTEG: true, nombreMois: 12 })), // Default existing to true and 12 months
-  addBill: (newBill) =>
-    set((state) => ({
-      bills: [newBill, ...state.bills],
-    })),
+  addBill: (newBill) => {
+    const allBills = [newBill, ...get().bills];
+    const overallAverage = calculateOverallAverage(allBills);
+    
+    if (newBill.nombreMois && newBill.nombreMois > 0 && overallAverage) {
+        const newBillAverage = newBill.amount / newBill.nombreMois;
+        if (newBillAverage > (overallAverage * 1.30)) {
+            const { addAnomaly } = useAnomaliesStore.getState();
+            const anomalyMessage = `La facture ${newBill.reference} (${(newBillAverage).toFixed(3)} TND/mois) dépasse la moyenne de 30% (${(overallAverage).toFixed(3)} TND/mois).`;
+            addAnomaly({
+                id: `ANOM-${Date.now()}`,
+                billId: newBill.id,
+                meterId: newBill.meterId,
+                message: anomalyMessage,
+                date: new Date().toISOString().split('T')[0],
+            });
+        }
+    }
+
+    set({ bills: allBills });
+  },
   updateBill: (updatedBill) =>
     set((state) => ({
         bills: state.bills.map((item) =>

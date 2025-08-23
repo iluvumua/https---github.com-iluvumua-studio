@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace } from "lucide-react";
+import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace, Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -35,7 +35,8 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ReplaceMeterForm } from "@/components/replace-meter-form";
-import { locationsData } from "@/lib/locations";
+import { useAnomaliesStore } from "@/hooks/use-anomalies-store";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -44,6 +45,9 @@ export default function BillingPage() {
   const { equipment } = useEquipmentStore();
   const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
+  const { anomalies, markAsRead } = useAnomaliesStore();
+
+  const unreadAnomalies = anomalies.filter(a => !a.isRead);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
@@ -109,6 +113,26 @@ export default function BillingPage() {
 
   return (
     <TooltipProvider>
+    <div className="flex flex-col gap-4">
+    {unreadAnomalies.length > 0 && (
+        <Alert variant="destructive">
+            <Bell className="h-4 w-4" />
+            <AlertTitle>Anomalies de Facturation Détectées!</AlertTitle>
+            <AlertDescription>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                {unreadAnomalies.map(anomaly => (
+                    <li key={anomaly.id} className="flex justify-between items-center">
+                        <span>
+                            {anomaly.message}
+                            <Link href={`/dashboard/billing/${anomaly.meterId}`} className="ml-2 text-xs font-semibold underline">Voir Compteur</Link>
+                        </span>
+                        <Button variant="ghost" size="sm" onClick={() => markAsRead(anomaly.id)}><Check className="mr-2 h-4 w-4" /> Marquer comme lu</Button>
+                    </li>
+                ))}
+                </ul>
+            </AlertDescription>
+        </Alert>
+    )}
     <Card>
       <CardHeader>
          <div className="flex items-center justify-between">
@@ -225,6 +249,7 @@ export default function BillingPage() {
         )}
       </CardContent>
     </Card>
+    </div>
     </TooltipProvider>
   );
 }
