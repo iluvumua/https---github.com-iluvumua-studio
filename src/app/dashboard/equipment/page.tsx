@@ -195,59 +195,60 @@ export default function EquipmentPage() {
                   const associatedMeter = meters.find(m => m.id === item.compteurId);
                   const isExpanded = openRow === item.id;
                   return (
-                  <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
-                    <>
-                    <TableRow>
-                      <TableCell>
-                         <CollapsibleTrigger asChild>
-                           <Button variant="ghost" size="icon" disabled={!associatedMeter}>
-                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                           </Button>
-                         </CollapsibleTrigger>
-                      </TableCell>
-                      <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={cn(
-                          "whitespace-nowrap",
-                          item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                          item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
-                          item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                        )}>{item.status}</Badge>
-                      </TableCell>
-                      <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
-                      <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
-                      <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
-                      <TableCell>
-                          <div className="flex items-center gap-1">
-                              {item.coordX && item.coordY && (
-                                  <Button variant="ghost" size="icon" asChild>
-                                      <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
-                                          <MapPin className="h-4 w-4" />
-                                      </Link>
-                                  </Button>
-                              )}
-                              {item.compteurId && (
-                                <>
+                  <React.Fragment key={item.id}>
+                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
+                      <TableRow>
+                        <TableCell>
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="icon" disabled={!associatedMeter}>
+                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </Button>
+                          </CollapsibleTrigger>
+                        </TableCell>
+                        <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={cn(
+                            "whitespace-nowrap",
+                            item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                            item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                            item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                          )}>{item.status}</Badge>
+                        </TableCell>
+                        <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
+                        <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
+                        <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
+                        <TableCell>
+                            <div className="flex items-center gap-1">
+                                {item.coordX && item.coordY && (
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/dashboard/meters?search=${item.compteurId}`}>
-                                            <Gauge className="h-4 w-4" />
+                                        <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
+                                            <MapPin className="h-4 w-4" />
                                         </Link>
                                     </Button>
-                                    <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/dashboard/billing/${item.compteurId}`}>
-                                            <FileText className="h-4 w-4" />
-                                        </Link>
-                                    </Button>
-                                </>
-                              )}
-                              <Button variant="ghost" size="icon" asChild>
-                                  <Link href={`/dashboard/equipment/${item.id}/edit`}>
-                                      <Pencil className="h-4 w-4" />
-                                  </Link>
-                              </Button>
-                          </div>
-                      </TableCell>
-                    </TableRow>
+                                )}
+                                {item.compteurId && (
+                                  <>
+                                      <Button variant="ghost" size="icon" asChild>
+                                          <Link href={`/dashboard/meters?search=${item.compteurId}`}>
+                                              <Gauge className="h-4 w-4" />
+                                          </Link>
+                                      </Button>
+                                      <Button variant="ghost" size="icon" asChild>
+                                          <Link href={`/dashboard/billing/${item.compteurId}`}>
+                                              <FileText className="h-4 w-4" />
+                                          </Link>
+                                      </Button>
+                                  </>
+                                )}
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                        <Pencil className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            </div>
+                        </TableCell>
+                      </TableRow>
+                    </Collapsible>
                     <CollapsibleContent asChild>
                        <TableRow>
                         <TableCell colSpan={7} className="p-0">
@@ -278,9 +279,8 @@ export default function EquipmentPage() {
                         </TableCell>
                        </TableRow>
                     </CollapsibleContent>
-                    </>
-                  </Collapsible>
-                )})}
+                    </React.Fragment>
+                  )})}
               </TableBody>
             </Table>
             )}
@@ -290,4 +290,5 @@ export default function EquipmentPage() {
     </Tabs>
   );
 }
+
 
