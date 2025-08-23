@@ -31,6 +31,7 @@ import { fr } from "date-fns/locale";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Meter } from "@/lib/types";
 import { useSearchParams } from "next/navigation";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 function MetersPageComponent() {
   const { meters } = useMetersStore();
@@ -171,6 +172,18 @@ function MetersPageComponent() {
                         <TableCell className="text-xs text-muted-foreground">{formatShortDate(meter.lastUpdate)}</TableCell>
                         <TableCell>
                         <div className="flex items-center gap-2">
+                           {meter.description && (
+                                 <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <Info className="h-4 w-4" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <p className="text-sm">{meter.description}</p>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
                             <Button variant="ghost" size="icon" asChild>
                                 <Link href={`/dashboard/meters/${meter.id}/edit`}>
                                     <Pencil className="h-4 w-4" />
