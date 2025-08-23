@@ -33,8 +33,7 @@ const monthNames = [
 const formSchema = z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
-  billMonth: z.coerce.number().min(1, "Le mois doit être entre 1 et 12.").max(12, "Le mois doit être entre 1 et 12."),
-  billYear: z.coerce.number().refine(year => year.toString().length === 4, "L'année doit comporter 4 chiffres."),
+  billDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Le format doit être MM/AAAA."),
   nombreMois: z.coerce.number().optional(),
   consumptionKWh: z.coerce.number().optional(),
   amount: z.coerce.number().optional(),
@@ -248,27 +247,29 @@ export function BillForm({ meterId, bill }: BillFormProps) {
   const { toast } = useToast();
   
   const getDefaultValues = () => {
-    const now = new Date();
-    let defaultMonth = getMonth(now) + 1;
-    let defaultYear = getYear(now);
-
+    let billDate = "";
     if (isEditMode && bill?.month) {
         try {
             const parsedDate = parse(bill.month, "LLLL yyyy", new Date(), { locale: fr });
             if (!isNaN(parsedDate.getTime())) {
-                defaultMonth = getMonth(parsedDate) + 1;
-                defaultYear = getYear(parsedDate);
+                const month = getMonth(parsedDate) + 1;
+                const year = getYear(parsedDate);
+                billDate = `${month.toString().padStart(2, '0')}/${year}`;
             }
         } catch(e) {
             console.error("Error parsing date:", e);
         }
+    } else {
+        const now = new Date();
+        const month = getMonth(now) + 1;
+        const year = getYear(now);
+        billDate = `${month.toString().padStart(2, '0')}/${year}`;
     }
      return {
         ...bill,
         reference: bill?.reference || "",
         meterId: bill?.meterId || meterId || "",
-        billMonth: defaultMonth,
-        billYear: defaultYear,
+        billDate,
         nombreMois: bill?.nombreMois || 1,
         typeTension: bill?.typeTension || "Basse Tension",
         convenableSTEG: bill?.convenableSTEG ?? true,
@@ -408,8 +409,10 @@ export function BillForm({ meterId, bill }: BillFormProps) {
 
 
   const onSubmit = (values: FormValues) => {
-    const monthName = monthNames[values.billMonth - 1] || 'Unknown';
-    const formattedMonth = `${monthName} ${values.billYear}`;
+    const [month, year] = values.billDate.split('/');
+    const monthIndex = parseInt(month, 10) - 1;
+    const monthName = monthNames[monthIndex] || 'Unknown';
+    const formattedMonth = `${monthName} ${year}`;
     
     const billData: Bill = {
         id: isEditMode ? bill.id : `BILL-${Date.now()}`,
@@ -705,29 +708,15 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                 </FormItem>
             )} />
 
-            <div className="md:col-span-2">
-                <FormLabel>Mois Facture</FormLabel>
-                <div className="flex gap-2">
-                    <FormField control={form.control} name="billMonth" render={({ field }) => (
-                        <FormItem className="flex-1">
-                            <FormLabel>Mois</FormLabel>
-                            <FormControl>
-                                <Input type="number" min="1" max="12" placeholder="ex: 8" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="billYear" render={({ field }) => (
-                         <FormItem className="flex-1">
-                            <FormLabel>Année</FormLabel>
-                            <FormControl>
-                                <Input type="number" placeholder="ex: 2023" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                </div>
-            </div>
+            <FormField control={form.control} name="billDate" render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                    <FormLabel>Mois Facture (MM/AAAA)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="ex: 12/2024" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            )} />
 
             <FormField control={form.control} name="nombreMois" render={({ field }) => (
                 <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} /></FormControl><FormMessage /></FormItem>
