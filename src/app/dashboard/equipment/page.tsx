@@ -142,44 +142,6 @@ export default function EquipmentPage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-    <Card>
-        <CardHeader>
-            <CardTitle>Informations Générales sur les Équipements</CardTitle>
-            <CardDescription>Aperçu rapide des équipements et des coûts.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-             <div className="flex items-center gap-4 rounded-lg border p-4">
-                <Network className="h-8 w-8 text-muted-foreground" />
-                <div>
-                    <p className="text-2xl font-bold">{equipment.length}</p>
-                    <p className="text-sm text-muted-foreground">Équipements Totaux</p>
-                </div>
-            </div>
-             <div className="flex items-center gap-4 rounded-lg border p-4">
-                 <div className="flex flex-col gap-2 w-full">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-green-500">En service:</span>
-                        <span className="font-semibold">{equipmentStatusCounts['En service'] || 0}</span>
-                    </div>
-                     <div className="flex justify-between items-center text-sm">
-                        <span className="text-blue-500">En cours:</span>
-                        <span className="font-semibold">{equipmentStatusCounts['En cours'] || 0}</span>
-                    </div>
-                     <div className="flex justify-between items-center text-sm">
-                        <span className="text-red-500">Résilié:</span>
-                        <span className="font-semibold">{equipmentStatusCounts['Résilié'] || 0}</span>
-                    </div>
-                 </div>
-            </div>
-             <div className="flex items-center gap-4 rounded-lg border p-4">
-                <Calculator className="h-8 w-8 text-muted-foreground" />
-                <div>
-                    <p className="text-2xl font-bold">{averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}</p>
-                    <p className="text-sm text-muted-foreground">Coût Mensuel Moyen</p>
-                </div>
-            </div>
-        </CardContent>
-    </Card>
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center">
         <TabsList>
@@ -277,8 +239,7 @@ export default function EquipmentPage() {
                   }, [associatedMeter, bills]);
 
                   return (
-                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} tagName="tbody" className="border-b">
-                        <>
+                    <Collapsible key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)} as="tbody" className="border-b">
                           <TableRow>
                             <TableCell>
                                <CollapsibleTrigger asChild>
@@ -361,7 +322,7 @@ export default function EquipmentPage() {
                                                 <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                                                 <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                                                 <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(item.lastUpdate)}</div>
+                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
                                                 <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
                                                 <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                                                 <div className="col-span-full mt-2">
@@ -383,7 +344,6 @@ export default function EquipmentPage() {
                               </TableCell>
                              </TableRow>
                           </CollapsibleContent>
-                          </>
                     </Collapsible>
                   )})}
               </TableBody>
