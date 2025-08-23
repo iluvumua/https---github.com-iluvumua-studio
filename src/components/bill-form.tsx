@@ -107,8 +107,8 @@ const bt_contr_ertt = 0.000;
 
 const calculateBasseTension = (ancienIndex: number = 0, nouveauIndex: number = 0, prixUnitaire: number = 0, nombreMois: number = 1) => {
     let consommation = 0;
-    const numAncienIndex = Number(ancienIndex);
-    const numNouveauIndex = Number(nouveauIndex);
+    const numAncienIndex = Number(ancienIndex) || 0;
+    const numNouveauIndex = Number(nouveauIndex) || 0;
     const numNombreMois = Number(nombreMois) || 1;
 
     if (numNouveauIndex >= numAncienIndex) {
@@ -520,9 +520,6 @@ export function BillForm({ meterId }: BillFormProps) {
                     )} />
                     <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
                         <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="nombreMois" render={({ field }) => (
-                        <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
             )}
