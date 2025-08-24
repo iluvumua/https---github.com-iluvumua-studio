@@ -232,108 +232,110 @@ export default function EquipmentPage() {
                   }, [associatedMeter, bills]);
 
                   return (
-                    <Collapsible asChild key={item.id} tagName="tbody" open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
-                      <>
-                        <TableRow>
-                          <TableCell>
-                            <CollapsibleTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                              </Button>
-                            </CollapsibleTrigger>
-                          </TableCell>
-                          <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
-                          <TableCell>
-                              <Badge variant="outline" className={cn(
-                              "whitespace-nowrap",
-                              item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                              item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
-                              item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                              )}>{item.status}</Badge>
-                          </TableCell>
-                          <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
-                          <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
-                          <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
-                          <TableCell>
-                              <div className="flex items-center gap-1">
-                                  {item.status === 'En cours' && (
-                                      <Button variant="ghost" size="icon" asChild>
-                                          <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
-                                              <PlusCircleIcon className="h-4 w-4" />
-                                          </Link>
-                                      </Button>
-                                  )}
-                                  {item.coordX && item.coordY && (
-                                      <Button variant="ghost" size="icon" asChild>
-                                          <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
-                                              <MapPin className="h-4 w-4" />
-                                          </Link>
-                                      </Button>
-                                  )}
-                                  {item.compteurId && (
-                                      <>
-                                          <Button variant="ghost" size="icon" asChild>
-                                              <Link href={`/dashboard/meters?search=${item.compteurId}`}>
-                                                  <Gauge className="h-4 w-4" />
-                                              </Link>
-                                          </Button>
-                                      </>
-                                  )}
-                                  <Button variant="ghost" size="icon" asChild>
-                                      <Link href={`/dashboard/equipment/${item.id}/edit`}>
-                                          <Pencil className="h-4 w-4" />
-                                      </Link>
-                                  </Button>
-                              </div>
-                          </TableCell>
-                        </TableRow>
-                        <CollapsibleContent asChild>
-                          <TableRow>
-                              <TableCell colSpan={7} className="p-0">
-                              <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="space-y-3">
-                                      <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
-                                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                      <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
-                                      <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
-                                      {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
-                                      {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
-                                      <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
-                                      <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
-                                      </div>
-                                  </div>
-                                  <div className="space-y-3">
-                                      <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
-                                      {associatedMeter ? (
-                                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                              <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
-                                              <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
-                                              <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
-                                              <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
-                                              <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                                              <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
-                                              <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
-                                              <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
-                                              <div className="col-span-full mt-2">
-                                                  <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                                                      <Link href={`/dashboard/billing/${associatedMeter.id}`}>
-                                                      Voir toutes les factures de ce compteur
-                                                      </Link>
-                                                  </Button>
-                                              </div>
-                                          </div>
-                                      ) : (
-                                          <div className="text-center text-muted-foreground text-sm py-4">
-                                              Aucun compteur n'est associé à cet équipement.
-                                          </div>
-                                      )}
-                                  </div>
-                              </div>
-                              </TableCell>
-                          </TableRow>
-                        </CollapsibleContent>
-                      </>
-                    </Collapsible>
+                    <React.Fragment key={item.id}>
+                        <Collapsible asChild key={item.id} tagName="tr" open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
+                            <>
+                            <TableRow>
+                            <TableCell>
+                                <CollapsibleTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                </Button>
+                                </CollapsibleTrigger>
+                            </TableCell>
+                            <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
+                            <TableCell>
+                                <Badge variant="outline" className={cn(
+                                "whitespace-nowrap",
+                                item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                                item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                                item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                                )}>{item.status}</Badge>
+                            </TableCell>
+                            <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
+                            <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
+                            <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-1">
+                                    {item.status === 'En cours' && (
+                                        <Button variant="ghost" size="icon" asChild>
+                                            <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
+                                                <PlusCircleIcon className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    )}
+                                    {item.coordX && item.coordY && (
+                                        <Button variant="ghost" size="icon" asChild>
+                                            <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
+                                                <MapPin className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    )}
+                                    {item.compteurId && (
+                                        <>
+                                            <Button variant="ghost" size="icon" asChild>
+                                                <Link href={`/dashboard/meters?search=${item.compteurId}`}>
+                                                    <Gauge className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                        </>
+                                    )}
+                                    <Button variant="ghost" size="icon" asChild>
+                                        <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </TableCell>
+                            </TableRow>
+                            <CollapsibleContent asChild>
+                            <TableRow>
+                                <TableCell colSpan={7} className="p-0">
+                                <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
+                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                        <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
+                                        <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
+                                        {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
+                                        {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
+                                        <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
+                                        <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
+                                        {associatedMeter ? (
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                                <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
+                                                <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
+                                                <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
+                                                <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
+                                                <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
+                                                <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
+                                                <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
+                                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
+                                                <div className="col-span-full mt-2">
+                                                    <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                                                        <Link href={`/dashboard/billing/${associatedMeter.id}`}>
+                                                        Voir toutes les factures de ce compteur
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center text-muted-foreground text-sm py-4">
+                                                Aucun compteur n'est associé à cet équipement.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                </TableCell>
+                            </TableRow>
+                            </CollapsibleContent>
+                            </>
+                        </Collapsible>
+                    </React.Fragment>
                   )})}
               </TableBody>
             </Table>
