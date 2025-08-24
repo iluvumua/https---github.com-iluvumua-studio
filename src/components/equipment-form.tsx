@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,14 +41,17 @@ const localisations = locationsData.map(loc => ({
     abbreviation: loc.abbreviation,
 }));
 
-const equipmentTypes = [
-    { value: 'BTS', label: 'Site GSM' },
-    { value: 'MSN', label: 'MSAN Outdoor' },
+const indoorEquipmentTypes = [
     { value: 'MSI', label: 'MSAN Indoor' },
     { value: 'EXC', label: 'Central Téléphonique' },
     { value: 'OLT', label: 'OLT' },
+];
+
+const outdoorEquipmentTypes = [
+    { value: 'BTS', label: 'Site GSM' },
+    { value: 'MSN', label: 'MSAN Outdoor' },
     { value: 'FDT', label: 'SRO & FDT' },
-]
+];
 
 const formSchema = z.object({
   name: z.string().optional(),
@@ -84,6 +87,9 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const buildingId = searchParams.get('buildingId');
   const building = buildings.find(b => b.id === buildingId);
 
+  const equipmentTypes = useMemo(() => {
+    return buildingId ? indoorEquipmentTypes : outdoorEquipmentTypes;
+  }, [buildingId]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

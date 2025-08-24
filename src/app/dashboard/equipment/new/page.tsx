@@ -3,10 +3,11 @@
 
 import { EquipmentForm } from "@/components/equipment-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Suspense } from "react";
 
-export default function NewEquipmentPage() {
+function NewEquipment() {
     return (
-        <Card>
+         <Card>
             <CardHeader>
                 <CardTitle>Ajouter un nouvel équipement</CardTitle>
                 <CardDescription>
@@ -17,5 +18,14 @@ export default function NewEquipmentPage() {
                 <EquipmentForm />
             </CardContent>
         </Card>
+    )
+}
+
+
+export default function NewEquipmentPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <NewEquipment />
+        </Suspense>
     );
 }
