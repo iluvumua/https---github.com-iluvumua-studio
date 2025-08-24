@@ -78,16 +78,6 @@ export default function MeterBillingPage() {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' kWh';
   }
 
-  const getCalculHref = (bill: Bill) => {
-    let type = 'basse-tension';
-    if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
-        type = 'moyen-tension-horaire';
-    } else if (bill.typeTension === 'Moyen Tension Forfaitaire') {
-        type = 'moyen-tension-forfait';
-    }
-    return `/dashboard/billing/calcul?type=${type}`;
-  }
-
   const filteredBills = meterBills.filter(bill => {
     const query = searchTerm.toLowerCase();
     const matchesSearch = (
@@ -249,18 +239,6 @@ export default function MeterBillingPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                         <Button variant="ghost" size="icon" asChild>
-                            <Link href={getCalculHref(bill)}>
-                                <Calculator className="h-4 w-4" />
-                            </Link>
-                         </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Calculer la facture</p>
-                      </TooltipContent>
-                    </Tooltip>
                      {user.role === "Financier" && (
                         <Tooltip>
                           <TooltipTrigger asChild>
