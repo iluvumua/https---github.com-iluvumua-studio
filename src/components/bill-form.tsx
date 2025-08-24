@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { format, getYear, getMonth, parse } from "date-fns";
 import { fr } from 'date-fns/locale';
 import { Calendar } from "./ui/calendar";
+import { useBillingSettingsStore } from "@/hooks/use-billing-settings-store";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -243,6 +244,7 @@ export function BillForm({ meterId, bill }: BillFormProps) {
   const isEditMode = !!bill;
   const { meters } = useMetersStore();
   const { addBill, updateBill } = useBillingStore();
+  const { settings } = useBillingSettingsStore();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -279,9 +281,9 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         // BT
         ancienIndex: bill?.ancienIndex ?? 0,
         nouveauIndex: bill?.nouveauIndex ?? 0,
-        prix_unitaire_bt: bill?.prix_unitaire_bt ?? 0.250,
-        tva_bt: bill?.tva_bt ?? 5.320,
-        ertt_bt: bill?.ertt_bt ?? 0.000,
+        prix_unitaire_bt: bill?.prix_unitaire_bt ?? settings.basseTension.prix_unitaire_bt,
+        tva_bt: bill?.tva_bt ?? settings.basseTension.tva_bt,
+        ertt_bt: bill?.ertt_bt ?? settings.basseTension.ertt_bt,
         // MT Horaire
         ancien_index_jour: bill?.ancien_index_jour ?? 0,
         nouveau_index_jour: bill?.nouveau_index_jour ?? 0,
@@ -291,14 +293,14 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         nouveau_index_soir: bill?.nouveau_index_soir ?? 0,
         ancien_index_nuit: bill?.ancien_index_nuit ?? 0,
         nouveau_index_nuit: bill?.nouveau_index_nuit ?? 0,
-        coefficient_jour: bill?.coefficient_jour ?? 1,
-        coefficient_pointe: bill?.coefficient_pointe ?? 1,
-        coefficient_soir: bill?.coefficient_soir ?? 1,
-        coefficient_nuit: bill?.coefficient_nuit ?? 1,
-        prix_unitaire_jour: bill?.prix_unitaire_jour ?? 0.290,
-        prix_unitaire_pointe: bill?.prix_unitaire_pointe ?? 0.417,
-        prix_unitaire_soir: bill?.prix_unitaire_soir ?? 0.290,
-        prix_unitaire_nuit: bill?.prix_unitaire_nuit ?? 0.222,
+        coefficient_jour: bill?.coefficient_jour ?? settings.moyenTensionHoraire.coefficient_jour,
+        coefficient_pointe: bill?.coefficient_pointe ?? settings.moyenTensionHoraire.coefficient_pointe,
+        coefficient_soir: bill?.coefficient_soir ?? settings.moyenTensionHoraire.coefficient_soir,
+        coefficient_nuit: bill?.coefficient_nuit ?? settings.moyenTensionHoraire.coefficient_nuit,
+        prix_unitaire_jour: bill?.prix_unitaire_jour ?? settings.moyenTensionHoraire.prix_unitaire_jour,
+        prix_unitaire_pointe: bill?.prix_unitaire_pointe ?? settings.moyenTensionHoraire.prix_unitaire_pointe,
+        prix_unitaire_soir: bill?.prix_unitaire_soir ?? settings.moyenTensionHoraire.prix_unitaire_soir,
+        prix_unitaire_nuit: bill?.prix_unitaire_nuit ?? settings.moyenTensionHoraire.prix_unitaire_nuit,
         consommation_jour: bill?.consommation_jour ?? 0,
         consommation_pointe: bill?.consommation_pointe ?? 0,
         consommation_soir: bill?.consommation_soir ?? 0,
@@ -316,13 +318,13 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         // MT Forfait
         mtf_ancien_index: bill?.mtf_ancien_index ?? 1483440,
         mtf_nouveau_index: bill?.mtf_nouveau_index ?? 1489924,
-        coefficient_multiplicateur: bill?.coefficient_multiplicateur ?? 1.0,
+        coefficient_multiplicateur: bill?.coefficient_multiplicateur ?? settings.moyenTensionForfait.coefficient_multiplicateur,
         perte_en_charge: bill?.perte_en_charge ?? 130,
         perte_a_vide: bill?.perte_a_vide ?? 260,
-        pu_consommation: bill?.pu_consommation ?? 0.291,
+        pu_consommation: bill?.pu_consommation ?? settings.moyenTensionForfait.pu_consommation,
         prime_puissance: bill?.prime_puissance ?? 250.000,
-        tva_consommation_percent: bill?.tva_consommation_percent ?? 19,
-        tva_redevance_percent: bill?.tva_redevance_percent ?? 19,
+        tva_consommation_percent: bill?.tva_consommation_percent ?? settings.moyenTensionForfait.tva_consommation_percent,
+        tva_redevance_percent: bill?.tva_redevance_percent ?? settings.moyenTensionForfait.tva_redevance_percent,
         contribution_rtt: bill?.contribution_rtt ?? 3.500,
         surtaxe_municipale: bill?.surtaxe_municipale ?? 68.740,
         avance_consommation: bill?.avance_consommation ?? 31.134,
@@ -594,16 +596,16 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                         )} />
                     </div>
                      <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
-                        <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
                     )} />
                     <Separator />
                     <h4 className="font-medium text-sm">Taxes et Redevances</h4>
                      <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="tva_bt" render={({ field }) => (
-                            <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
                         )} />
                          <FormField control={form.control} name="ertt_bt" render={({ field }) => (
-                            <FormItem><FormLabel>Contr. ERTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Contr. ERTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
                 </div>
@@ -620,29 +622,29 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                     <div className="grid grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Pointe */}
                      <div className="grid grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Soir */}
                      <div className="grid grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Nuit */}
                     <div className="grid grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     <Separator />
                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
@@ -690,10 +692,10 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                      <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} readOnly /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} readOnly /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="bonification" render={({ field }) => ( <FormItem><FormLabel>Bonification</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
@@ -702,8 +704,8 @@ export function BillForm({ meterId, bill }: BillFormProps) {
                      </div>
                      <Separator />
                      <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="tva_consommation_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="tva_redevance_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="tva_consommation_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation (%)</FormLabel><FormControl><Input type="number" {...field} readOnly /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="tva_redevance_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance (%)</FormLabel><FormControl><Input type="number" {...field} readOnly /></FormControl></FormItem> )} />
                     </div>
                 </div>
             )}
@@ -801,3 +803,4 @@ export function BillForm({ meterId, bill }: BillFormProps) {
 
 
     
+
