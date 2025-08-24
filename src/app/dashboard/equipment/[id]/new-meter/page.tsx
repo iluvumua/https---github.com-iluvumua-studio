@@ -31,17 +31,31 @@ export default function NewMeterWorkflowPage() {
 
     useEffect(() => {
         if (equipmentItem) {
-             const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
-             if (parentBuilding && parentBuilding.meterId) {
-                const buildingMeter = meters.find(m => m.id === parentBuilding.meterId && m.status === 'En service');
+            // Case 1: Indoor equipment in a building that already has a meter
+            const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
+            if (parentBuilding && parentBuilding.meterId) {
+                const buildingMeter = meters.find(m => m.id === parentBuilding.meterId);
                 if (buildingMeter) {
+                    // Pre-fill everything and jump to step 3
                     setWipMeter(buildingMeter);
+                    setCurrentStep(3);
+                    
+                    // Also update the equipment with the meterId if it's not already set
+                    if (equipmentItem.compteurId !== buildingMeter.id) {
+                         updateEquipment({
+                            ...equipmentItem,
+                            compteurId: buildingMeter.id,
+                            coordX: parentBuilding.coordX,
+                            coordY: parentBuilding.coordY,
+                            lastUpdate: new Date().toISOString().split('T')[0],
+                        });
+                    }
+                    return; // Stop further processing
                 }
-             }
-
+            }
 
             // Case 2: Equipment already has a meter associated (in any state)
-            if (equipmentItem.compteurId && !wipMeter) {
+            if (equipmentItem.compteurId) {
                 const meter = meters.find(m => m.id === equipmentItem.compteurId);
                 if (meter) {
                     setWipMeter(meter);
@@ -61,7 +75,7 @@ export default function NewMeterWorkflowPage() {
                 }
             }
         }
-    }, [equipmentItem, meters, buildings, wipMeter]);
+    }, [equipmentItem, meters, buildings, updateEquipment]);
 
 
     if (!equipmentItem) {
@@ -96,6 +110,7 @@ export default function NewMeterWorkflowPage() {
             lastUpdate: new Date().toISOString().split('T')[0],
         });
         
+        setWipMeter(newMeter);
         setCurrentStep(2);
     }
     
