@@ -6,6 +6,9 @@ import { useMetersStore } from '@/hooks/use-meters-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EditMeterForm } from '@/components/edit-meter-form';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function EditMeterPage() {
     const params = useParams();
@@ -18,16 +21,24 @@ export default function EditMeterPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Modifier le compteur</CardTitle>
-                <CardDescription>
-                    Mettez à jour les détails du compteur ci-dessous.
-                </CardDescription>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <CardTitle>Détails du compteur</CardTitle>
+                        <CardDescription>
+                            Consultez l'état et la description du compteur.
+                        </CardDescription>
+                    </div>
+                    <Button variant="outline" asChild>
+                        <Link href="/dashboard/meters">
+                            <ArrowLeft className="mr-2" /> Retour
+                        </Link>
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 {meterToEdit ? (
                     <EditMeterForm 
                         meter={meterToEdit} 
-                        onFinished={() => router.push('/dashboard/meters')}
                     />
                 ) : (
                     <div>
