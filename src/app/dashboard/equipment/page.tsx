@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, FileText, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator } from "lucide-react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -345,12 +345,3 @@ export default function EquipmentPage() {
     </div>
   );
 }
-
-    
-
-    
-
-
-
-
-
