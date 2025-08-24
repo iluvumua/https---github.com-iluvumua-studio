@@ -336,6 +336,22 @@ export function BillForm({ meterId, bill }: BillFormProps) {
   });
 
   const watchedValues = form.watch();
+  const watchedMeterId = form.watch("meterId");
+
+  useEffect(() => {
+    const selectedMeter = meters.find(m => m.id === watchedMeterId);
+    if (selectedMeter) {
+        if (selectedMeter.typeTension === 'Basse Tension') {
+            form.setValue('typeTension', 'Basse Tension');
+        } else if (selectedMeter.typeTension === 'Moyenne Tension') {
+            // If the current value is not one of the MT options, reset it.
+            if (form.getValues('typeTension') === 'Basse Tension') {
+                 form.setValue('typeTension', 'Moyen Tension Tranche Horaire');
+            }
+        }
+    }
+  }, [watchedMeterId, meters, form]);
+
 
   useEffect(() => {
     if (watchedValues.typeTension === "Basse Tension") {
@@ -498,6 +514,7 @@ export function BillForm({ meterId, bill }: BillFormProps) {
   const difference = (Number(watchedValues.montantSTEG) || 0) - (Number(watchedValues.amount) || 0);
   
   const availableMeters = meters.filter(m => m.status === 'En service');
+  const selectedMeter = meters.find(m => m.id === watchedMeterId);
 
   const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
   const formatDT = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
@@ -545,19 +562,21 @@ export function BillForm({ meterId, bill }: BillFormProps) {
 
             <FormField control={form.control} name="typeTension" render={({ field }) => (
                 <FormItem><FormLabel>Type Tension</FormLabel>
-                    <Select onValueChange={(value) => {
-                        form.reset({
-                            ...form.getValues(),
-                            typeTension: value as any,
-                            consumptionKWh: 0,
-                            amount: 0,
-                        });
-                    }} defaultValue={field.value}>
+                    <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                        disabled={selectedMeter?.typeTension === 'Basse Tension'}
+                    >
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
-                            <SelectItem value="Basse Tension">Basse Tension</SelectItem>
-                            <SelectItem value="Moyen Tension Forfaitaire">Moyen Tension Forfaitaire</SelectItem>
-                            <SelectItem value="Moyen Tension Tranche Horaire">Moyen Tension Tranche Horaire</SelectItem>
+                            {selectedMeter?.typeTension === 'Basse Tension' ? (
+                                <SelectItem value="Basse Tension">Basse Tension</SelectItem>
+                            ) : (
+                                <>
+                                    <SelectItem value="Moyen Tension Forfaitaire">Moyen Tension Forfaitaire</SelectItem>
+                                    <SelectItem value="Moyen Tension Tranche Horaire">Moyen Tension Tranche Horaire</SelectItem>
+                                </>
+                            )}
                         </SelectContent>
                     </Select>
                     <FormMessage />
@@ -779,3 +798,6 @@ export function BillForm({ meterId, bill }: BillFormProps) {
   );
 }
 
+
+
+    
