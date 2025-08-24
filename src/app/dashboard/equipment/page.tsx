@@ -230,15 +230,12 @@ export default function EquipmentPage() {
                   }, [associatedMeter, bills]);
 
                   return (
-                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
-                      <>
+                    <React.Fragment key={item.id}>
                         <TableRow>
                           <TableCell>
-                             <CollapsibleTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" onClick={() => setOpenRow(isExpanded ? null : item.id)}>
                                  {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                </Button>
-                             </CollapsibleTrigger>
                           </TableCell>
                           <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
                           <TableCell>
@@ -285,7 +282,7 @@ export default function EquipmentPage() {
                             </div>
                           </TableCell>
                         </TableRow>
-                        <CollapsibleContent asChild>
+                        {isExpanded && (
                           <TableRow>
                             <TableCell colSpan={7} className="p-0">
                               <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -329,9 +326,8 @@ export default function EquipmentPage() {
                               </div>
                             </TableCell>
                           </TableRow>
-                        </CollapsibleContent>
-                        </>
-                    </Collapsible>
+                        )}
+                        </React.Fragment>
                   )
                 })}
               </TableBody>
@@ -344,3 +340,5 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
+    
