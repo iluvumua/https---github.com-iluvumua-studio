@@ -230,8 +230,8 @@ export default function EquipmentPage() {
                   }, [associatedMeter, bills]);
 
                   return (
-                    <React.Fragment key={item.id}>
-                      <Collapsible asChild open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
+                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
+                      <>
                         <TableRow>
                           <TableCell>
                              <CollapsibleTrigger asChild>
@@ -285,8 +285,7 @@ export default function EquipmentPage() {
                             </div>
                           </TableCell>
                         </TableRow>
-                      </Collapsible>
-                      <CollapsibleContent asChild>
+                        <CollapsibleContent asChild>
                           <TableRow>
                             <TableCell colSpan={7} className="p-0">
                               <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -330,8 +329,9 @@ export default function EquipmentPage() {
                               </div>
                             </TableCell>
                           </TableRow>
-                      </CollapsibleContent>
-                    </React.Fragment>
+                        </CollapsibleContent>
+                      </>
+                    </Collapsible>
                   )
                 })}
               </TableBody>
@@ -344,3 +344,4 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
