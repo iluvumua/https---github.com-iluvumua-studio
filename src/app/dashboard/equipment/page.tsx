@@ -31,44 +31,19 @@ import type { Equipment } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { locationsData } from "@/lib/locations";
+import { useBuildingsStore } from "@/hooks/use-buildings-store";
+import { Separator } from "@/components/ui/separator";
 
-function VerifyEquipmentButton({ equipment }: { equipment: Equipment }) {
-    const { user } = useUser();
-    const { updateEquipment } = useEquipmentStore();
-    const { toast } = useToast();
-
-    if (equipment.status !== 'En cours') {
-        return null;
-    }
-
-    const handleVerify = () => {
-        updateEquipment({ 
-            ...equipment, 
-            status: 'En cours', // Stays 'En cours' but now verified conceptually
-            verifiedBy: user.name,
-            lastUpdate: new Date().toISOString().split('T')[0]
-        });
-        toast({
-            title: "Équipement Vérifié",
-            description: `${equipment.name} a été vérifié et est prêt pour l'installation.`
-        })
-    }
-    return (
-         <Button variant="outline" size="icon" onClick={handleVerify} disabled={!!equipment.verifiedBy}>
-            <CheckSquare className="h-4 w-4" />
-         </Button>
-    )
-}
-
+const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
 export default function EquipmentPage() {
     const { equipment } = useEquipmentStore();
     const { meters } = useMetersStore();
     const { bills } = useBillingStore();
+    const { buildings } = useBuildingsStore();
     const [activeTab, setActiveTab] = useState("all");
     const { toast } = useToast();
     const { user } = useUser();
@@ -213,6 +188,8 @@ export default function EquipmentPage() {
                 {filteredEquipment.map((item) => {
                   const associatedMeter = meters.find(m => m.id === item.compteurId);
                   const isExpanded = openRow === item.id;
+                  const isIndoor = item.buildingId && indoorEquipmentTypes.includes(item.type);
+                  const associatedBuilding = buildings.find(b => b.id === item.buildingId);
                   
                   const equipmentAverageCost = useMemo(() => {
                     if (!associatedMeter) return null;
@@ -289,13 +266,27 @@ export default function EquipmentPage() {
                                 <div className="space-y-3">
                                   <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
                                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                    <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
-                                    {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
-                                    {item.coordX && item.coordY && <div className="col-span-2"><span className="font-medium text-muted-foreground">Coordonnées:</span> {item.coordY}, {item.coordX}</div>}
+                                    <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
                                     <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
                                     <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
-                                    <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
+                                    {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
                                   </div>
+                                  {isIndoor && associatedBuilding && (
+                                      <>
+                                        <Separator className="my-2" />
+                                        <h5 className="font-semibold text-sm">Informations sur le Bâtiment</h5>
+                                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Nom:</span> {associatedBuilding.name} ({associatedBuilding.code})</div>
+                                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Adresse:</span> {associatedBuilding.address}</div>
+                                         </div>
+                                      </>
+                                  )}
+                                   <Separator className="my-2" />
+                                   <h5 className="font-semibold text-sm">Coordonnées & Localisation</h5>
+                                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                     <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
+                                      {item.coordX && item.coordY && <div><span className="font-medium text-muted-foreground">Coords:</span> {item.coordY}, {item.coordX}</div>}
+                                   </div>
                                 </div>
                                 <div className="space-y-3">
                                   <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
@@ -340,7 +331,3 @@ export default function EquipmentPage() {
     </div>
   );
 }
-
-    
-
-    
