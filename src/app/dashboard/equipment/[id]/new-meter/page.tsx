@@ -31,29 +31,17 @@ export default function NewMeterWorkflowPage() {
 
     useEffect(() => {
         if (equipmentItem) {
-            // Case 1: Equipment is in a building that has an 'En service' meter
-            const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
-            if (parentBuilding && parentBuilding.meterId) {
+             const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
+             if (parentBuilding && parentBuilding.meterId) {
                 const buildingMeter = meters.find(m => m.id === parentBuilding.meterId && m.status === 'En service');
-                // INFINITE LOOP FIX: Only update if the equipment isn't already associated with the building's meter
-                if (buildingMeter && equipmentItem.compteurId !== buildingMeter.id) {
-                    // Automatically associate the meter and skip to step 3
-                    const updatedEquipment = {
-                        ...equipmentItem,
-                        compteurId: buildingMeter.id,
-                        coordX: equipmentItem.coordX || parentBuilding.coordX,
-                        coordY: equipmentItem.coordY || parentBuilding.coordY,
-                        lastUpdate: new Date().toISOString().split('T')[0],
-                    };
-                    updateEquipment(updatedEquipment);
+                if (buildingMeter) {
                     setWipMeter(buildingMeter);
-                    setCurrentStep(3); // Skip to commissioning
-                    return;
                 }
-            }
+             }
+
 
             // Case 2: Equipment already has a meter associated (in any state)
-            if (equipmentItem.compteurId) {
+            if (equipmentItem.compteurId && !wipMeter) {
                 const meter = meters.find(m => m.id === equipmentItem.compteurId);
                 if (meter) {
                     setWipMeter(meter);
@@ -73,7 +61,7 @@ export default function NewMeterWorkflowPage() {
                 }
             }
         }
-    }, [equipmentItem, meters, buildings, updateEquipment]);
+    }, [equipmentItem, meters, buildings, wipMeter]);
 
 
     if (!equipmentItem) {
@@ -108,7 +96,7 @@ export default function NewMeterWorkflowPage() {
             lastUpdate: new Date().toISOString().split('T')[0],
         });
         
-        router.push('/dashboard/equipment');
+        setCurrentStep(2);
     }
     
     const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string }) => {
@@ -139,8 +127,9 @@ export default function NewMeterWorkflowPage() {
                     // Update building store if needed, assuming a function exists
                 }
             }
-
-            router.push('/dashboard/equipment');
+            
+            setWipMeter(updatedWipMeter);
+            setCurrentStep(3);
         }
     }
 
@@ -200,7 +189,7 @@ export default function NewMeterWorkflowPage() {
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                 <Card className={cn(currentStep !== 1 && "opacity-50 pointer-events-none")}>
+                 <Card>
                     <CardHeader>
                         <CardTitle>Étape 1: Demande de Compteur</CardTitle>
                         <CardDescription>Informations pour la demande initiale.</CardDescription>
@@ -210,11 +199,12 @@ export default function NewMeterWorkflowPage() {
                             equipment={equipmentItem} 
                             onFinished={handleStep1Finish}
                             isFinished={currentStep > 1}
+                            initialData={wipMeter}
                         />
                     </CardContent>
                 </Card>
 
-                 <Card className={cn(currentStep !== 2 && "opacity-50 pointer-events-none")}>
+                 <Card>
                     <CardHeader>
                         <CardTitle>Étape 2: Installation du Compteur</CardTitle>
                         <CardDescription>Saisir les informations du compteur physique.</CardDescription>
@@ -224,11 +214,12 @@ export default function NewMeterWorkflowPage() {
                             onFinished={handleStep2Finish}
                             isFinished={currentStep > 2}
                             meterId={wipMeter?.id}
+                            initialData={wipMeter}
                          />
                     </CardContent>
                 </Card>
                 
-                 <Card className={cn(currentStep !== 3 && "opacity-50 pointer-events-none")}>
+                 <Card>
                     <CardHeader>
                         <CardTitle>Étape 3: Mise en Service</CardTitle>
                         <CardDescription>Finaliser la mise en service de l'équipement.</CardDescription>

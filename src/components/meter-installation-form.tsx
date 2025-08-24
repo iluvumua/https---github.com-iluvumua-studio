@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "./ui/calendar";
+import { Meter } from "@/lib/types";
 
 const formSchema = z.object({
   meterId: z.string().min(1, "Le N° de compteur est requis."),
@@ -26,9 +27,10 @@ interface MeterInstallationFormProps {
     onFinished: (data: FormValues) => void;
     isFinished?: boolean;
     meterId?: string;
+    initialData?: Meter;
 }
 
-export function MeterInstallationForm({ onFinished, isFinished, meterId }: MeterInstallationFormProps) {
+export function MeterInstallationForm({ onFinished, isFinished, meterId, initialData }: MeterInstallationFormProps) {
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -40,12 +42,17 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId }: Meter
   });
   
   useEffect(() => {
-    if (meterId && meterId.startsWith('MTR-WIP')) {
+    if (initialData) {
+        form.setValue("meterId", initialData.id.startsWith('MTR-WIP-') ? '' : initialData.id);
+        if (initialData.dateMiseEnService) {
+            form.setValue("dateMiseEnService", new Date(initialData.dateMiseEnService));
+        }
+    } else if (meterId && meterId.startsWith('MTR-WIP')) {
         form.setValue('meterId', '');
     } else if (meterId) {
         form.setValue('meterId', meterId);
     }
-  }, [meterId, form]);
+  }, [meterId, form, initialData]);
 
 
   const onSubmit = (values: FormValues) => {

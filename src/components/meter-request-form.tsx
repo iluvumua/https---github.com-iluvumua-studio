@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,9 +33,10 @@ interface MeterRequestFormProps {
     equipment: Equipment;
     onFinished: (data: FormValues) => void;
     isFinished?: boolean;
+    initialData?: Meter;
 }
 
-export function MeterRequestForm({ equipment, onFinished, isFinished }: MeterRequestFormProps) {
+export function MeterRequestForm({ equipment, onFinished, isFinished, initialData }: MeterRequestFormProps) {
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -49,6 +50,19 @@ export function MeterRequestForm({ equipment, onFinished, isFinished }: MeterReq
         typeTension: "Moyenne Tension",
     }
   });
+
+  useEffect(() => {
+    if (initialData) {
+        form.reset({
+            coordX: equipment.coordX,
+            coordY: equipment.coordY,
+            dateDemandeInstallation: initialData.dateDemandeInstallation ? new Date(initialData.dateDemandeInstallation) : new Date(),
+            policeNumber: initialData.policeNumber || '',
+            districtSteg: initialData.districtSteg || '',
+            typeTension: initialData.typeTension || 'Moyenne Tension',
+        });
+    }
+  }, [initialData, equipment, form]);
 
   const onSubmit = (values: FormValues) => {
     onFinished(values);
