@@ -51,10 +51,7 @@ export function MeterRequestForm({ equipment, onFinished, isFinished }: MeterReq
   });
 
   const onSubmit = (values: FormValues) => {
-    onFinished({
-      ...values,
-      dateDemandeInstallation: values.dateDemandeInstallation.toISOString().split('T')[0],
-    });
+    onFinished(values);
     toast({ title: "Étape 1 Terminée", description: "La demande de compteur a été enregistrée." });
   }
 

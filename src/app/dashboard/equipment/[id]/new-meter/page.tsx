@@ -85,13 +85,13 @@ export default function NewMeterWorkflowPage() {
         )
     }
     
-    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: string; coordX?: number; coordY?: number }) => {
+    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number }) => {
         const newMeter: Meter = {
             id: `MTR-WIP-${Date.now()}`,
             status: 'En cours',
             typeTension: data.typeTension,
             policeNumber: data.policeNumber,
-            dateDemandeInstallation: data.dateDemandeInstallation,
+            dateDemandeInstallation: data.dateDemandeInstallation.toISOString().split('T')[0],
             lastUpdate: new Date().toISOString().split('T')[0],
             equipmentId: equipmentItem.id,
             districtSteg: data.districtSteg,
