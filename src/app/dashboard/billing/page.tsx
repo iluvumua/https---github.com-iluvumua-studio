@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace, Bell, Check } from "lucide-react";
+import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace, Bell, Check, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -148,6 +148,15 @@ export default function BillingPage() {
                     </span>
                 </Button>
                  {user.role === 'Financier' && (
+                    <>
+                    <Button size="sm" variant="outline" className="h-8 gap-1" asChild>
+                         <Link href="/dashboard/billing/settings">
+                            <Settings className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                                Paramètres
+                            </span>
+                        </Link>
+                    </Button>
                     <Button size="sm" className="h-8 gap-1" asChild>
                         <Link href="/dashboard/billing/add-reference">
                             <PlusCircle className="h-3.5 w-3.5" />
@@ -156,6 +165,7 @@ export default function BillingPage() {
                             </span>
                         </Link>
                     </Button>
+                    </>
                 )}
             </div>
         </div>
