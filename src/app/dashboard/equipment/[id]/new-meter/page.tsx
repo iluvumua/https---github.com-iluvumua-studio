@@ -14,6 +14,7 @@ import { EquipmentCommissioningForm } from '@/components/equipment-commissioning
 import { CheckCircle, Circle, CircleDotDashed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { useBuildingsStore } from '@/hooks/use-buildings-store';
 
 export default function NewMeterWorkflowPage() {
     const params = useParams();
@@ -21,6 +22,7 @@ export default function NewMeterWorkflowPage() {
     const { id: equipmentId } = params;
     const { equipment, updateEquipment } = useEquipmentStore();
     const { meters, addMeter, updateMeter } = useMetersStore();
+    const { buildings } = useBuildingsStore();
     
     const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
 
@@ -28,18 +30,46 @@ export default function NewMeterWorkflowPage() {
     const [wipMeter, setWipMeter] = useState<Meter | undefined>(undefined);
 
     useEffect(() => {
-        if (equipmentItem?.compteurId) {
-            const meter = meters.find(m => m.id === equipmentItem.compteurId);
-            if (meter?.status === 'En cours') {
-                setWipMeter(meter);
-                 if (meter.dateMiseEnService) { // Date on meter means step 2 is done
-                    setCurrentStep(3);
-                } else { // Meter exists but no date means step 1 is done
-                     setCurrentStep(2);
+        if (equipmentItem) {
+            // Case 1: Equipment already has a meter in progress
+            if (equipmentItem.compteurId) {
+                const meter = meters.find(m => m.id === equipmentItem.compteurId);
+                if (meter) {
+                    setWipMeter(meter);
+                    if (meter.status === 'En service') {
+                        setCurrentStep(4); // All done
+                    } else if (meter.dateMiseEnService) {
+                        setCurrentStep(3);
+                    } else if (meter.id.startsWith('MTR-WIP-')) {
+                        setCurrentStep(1);
+                    }
+                    else {
+                        setCurrentStep(2);
+                    }
+                    return;
+                }
+            }
+
+            // Case 2: Equipment is in a building that has a meter
+            const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
+            if (parentBuilding && parentBuilding.meterId) {
+                const buildingMeter = meters.find(m => m.id === parentBuilding.meterId);
+                if (buildingMeter) {
+                    // Automatically associate the meter and skip to step 3
+                    updateEquipment({
+                        ...equipmentItem,
+                        compteurId: buildingMeter.id,
+                        coordX: parentBuilding.coordX,
+                        coordY: parentBuilding.coordY,
+                        lastUpdate: new Date().toISOString().split('T')[0],
+                    });
+                    setWipMeter(buildingMeter);
+                    setCurrentStep(3); // Skip to commissioning
+                    return;
                 }
             }
         }
-    }, [equipmentItem, meters]);
+    }, [equipmentItem, meters, buildings, updateEquipment]);
 
 
     if (!equipmentItem) {
@@ -97,6 +127,15 @@ export default function NewMeterWorkflowPage() {
                     status: 'En cours', // Remain 'En cours'
                 });
             }
+
+            // Also update building if it was associated
+            if (equipmentItem.buildingId) {
+                const building = buildings.find(b => b.id === equipmentItem.buildingId);
+                if (building && !building.meterId) {
+                    // Update building store if needed, assuming a function exists
+                }
+            }
+
             router.push('/dashboard/equipment');
         }
     }

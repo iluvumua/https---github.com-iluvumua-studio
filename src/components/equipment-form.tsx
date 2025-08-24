@@ -65,6 +65,7 @@ const formSchema = z.object({
   compteurId: z.string().optional(),
   dateMiseEnService: z.date().optional(),
   status: z.string().optional(),
+  buildingId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -84,12 +85,12 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const { buildings } = useBuildingsStore();
   const isEditMode = !!initialEquipment;
   
-  const buildingId = searchParams.get('buildingId');
-  const building = buildings.find(b => b.id === buildingId);
+  const buildingIdParam = searchParams.get('buildingId');
+  const building = buildings.find(b => b.id === buildingIdParam);
 
   const equipmentTypes = useMemo(() => {
-    return buildingId ? indoorEquipmentTypes : outdoorEquipmentTypes;
-  }, [buildingId]);
+    return buildingIdParam ? indoorEquipmentTypes : outdoorEquipmentTypes;
+  }, [buildingIdParam]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -104,6 +105,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       compteurId: initialEquipment?.compteurId || building?.meterId || "",
       dateMiseEnService: initialEquipment?.dateMiseEnService ? new Date(initialEquipment.dateMiseEnService) : undefined,
       status: initialEquipment?.status,
+      buildingId: initialEquipment?.buildingId || buildingIdParam || undefined,
     },
   });
 
@@ -176,6 +178,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             coordY: values.coordY,
             compteurId: values.compteurId,
             dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
+            buildingId: values.buildingId,
         }
         updateEquipment(updated);
         toast({ title: "Équipement Modifié", description: "Les modifications ont été enregistrées avec succès." });
@@ -193,6 +196,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             coordX: values.coordX,
             coordY: values.coordY,
             compteurId: values.compteurId,
+            buildingId: values.buildingId,
         }
         addEquipment(newEquipment);
         toast({ title: "Équipement Ajouté", description: "Le nouvel équipement a été créé et est en attente de vérification." });
@@ -241,6 +245,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       options={localisations.map(l => ({ value: l.value, label: l.label }))}
                       value={field.value}
                       onChange={field.onChange}
+                      disabled={!!building}
                     />
                     <FormMessage />
                   </FormItem>
@@ -288,7 +293,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Désignation (Optionnel)</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} />
+                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} readOnly={!!building} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -301,8 +306,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )}/>
-                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
               

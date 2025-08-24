@@ -14,6 +14,7 @@ export type Equipment = {
   compteurId?: string;
   dateMiseEnService?: string;
   verifiedBy?: string;
+  buildingId?: string;
 };
 
 export type Building = {
