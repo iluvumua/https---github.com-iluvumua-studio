@@ -220,7 +220,7 @@ export default function EquipmentPage() {
                     const meterBills = bills.filter(b => b.meterId === associatedMeter.id);
                     const annualBills = meterBills
                       .filter(b => b.nombreMois && b.nombreMois >= 12)
-                      .sort((a, b) => b.id.localeCompare(a.id));
+                      .sort((a, b) => b.id.localeCompare(a, b));
 
                     if (annualBills.length > 0) {
                       const latestAnnualBill = annualBills[0];
@@ -230,8 +230,8 @@ export default function EquipmentPage() {
                   }, [associatedMeter, bills]);
 
                   return (
-                    <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
-                      <React.Fragment>
+                    <React.Fragment key={item.id}>
+                      <Collapsible asChild open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
                         <TableRow>
                           <TableCell>
                              <CollapsibleTrigger asChild>
@@ -285,7 +285,8 @@ export default function EquipmentPage() {
                             </div>
                           </TableCell>
                         </TableRow>
-                        <CollapsibleContent asChild>
+                      </Collapsible>
+                      <CollapsibleContent asChild>
                           <TableRow>
                             <TableCell colSpan={7} className="p-0">
                               <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -329,9 +330,8 @@ export default function EquipmentPage() {
                               </div>
                             </TableCell>
                           </TableRow>
-                        </CollapsibleContent>
-                      </React.Fragment>
-                    </Collapsible>
+                      </CollapsibleContent>
+                    </React.Fragment>
                   )
                 })}
               </TableBody>
