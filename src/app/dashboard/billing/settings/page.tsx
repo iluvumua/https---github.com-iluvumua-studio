@@ -20,12 +20,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/hooks/use-user";
 
 export default function BillingSettingsPage() {
   const { settings, setSettings } = useBillingSettingsStore();
+  const { user } = useUser();
 
-  // For now, the forms will be disabled. In a future step, we can enable them.
-  const isDisabled = true;
+  const isFinancier = user.role === 'Financier';
+  const isDisabled = !isFinancier;
+
+  // A real implementation would use a form library like react-hook-form
+  // For this step, we'll just enable the fields and the save button for the financier.
+  // The actual saving logic can be added in a future step.
 
   return (
     <Tabs defaultValue="basse-tension" className="w-full">
@@ -49,15 +55,15 @@ export default function BillingSettingsPage() {
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label htmlFor="bt_prix_unitaire">Prix Unitaire (kWh)</Label>
-                    <Input id="bt_prix_unitaire" type="number" value={settings.basseTension.prix_unitaire_bt} disabled={isDisabled} />
+                    <Input id="bt_prix_unitaire" type="number" defaultValue={settings.basseTension.prix_unitaire_bt} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="bt_tva">TVA</Label>
-                    <Input id="bt_tva" type="number" value={settings.basseTension.tva_bt} disabled={isDisabled} />
+                    <Input id="bt_tva" type="number" defaultValue={settings.basseTension.tva_bt} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="bt_ertt">Contribution ERTT</Label>
-                    <Input id="bt_ertt" type="number" value={settings.basseTension.ertt_bt} disabled={isDisabled} />
+                    <Input id="bt_ertt" type="number" defaultValue={settings.basseTension.ertt_bt} disabled={isDisabled} />
                 </div>
             </div>
           </CardContent>
@@ -77,19 +83,19 @@ export default function BillingSettingsPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <Label htmlFor="mth_pu_jour" className="text-xs">Jour</Label>
-                    <Input id="mth_pu_jour" type="number" value={settings.moyenTensionHoraire.prix_unitaire_jour} disabled={isDisabled} />
+                    <Input id="mth_pu_jour" type="number" defaultValue={settings.moyenTensionHoraire.prix_unitaire_jour} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mth_pu_pointe" className="text-xs">Pointe</Label>
-                    <Input id="mth_pu_pointe" type="number" value={settings.moyenTensionHoraire.prix_unitaire_pointe} disabled={isDisabled} />
+                    <Input id="mth_pu_pointe" type="number" defaultValue={settings.moyenTensionHoraire.prix_unitaire_pointe} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mth_pu_soir" className="text-xs">Soir</Label>
-                    <Input id="mth_pu_soir" type="number" value={settings.moyenTensionHoraire.prix_unitaire_soir} disabled={isDisabled} />
+                    <Input id="mth_pu_soir" type="number" defaultValue={settings.moyenTensionHoraire.prix_unitaire_soir} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mth_pu_nuit" className="text-xs">Nuit</Label>
-                    <Input id="mth_pu_nuit" type="number" value={settings.moyenTensionHoraire.prix_unitaire_nuit} disabled={isDisabled} />
+                    <Input id="mth_pu_nuit" type="number" defaultValue={settings.moyenTensionHoraire.prix_unitaire_nuit} disabled={isDisabled} />
                 </div>
             </div>
             <Separator />
@@ -97,19 +103,19 @@ export default function BillingSettingsPage() {
              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <Label htmlFor="mth_coef_jour" className="text-xs">Jour</Label>
-                    <Input id="mth_coef_jour" type="number" value={settings.moyenTensionHoraire.coefficient_jour} disabled={isDisabled} />
+                    <Input id="mth_coef_jour" type="number" defaultValue={settings.moyenTensionHoraire.coefficient_jour} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mth_coef_pointe" className="text-xs">Pointe</Label>
-                    <Input id="mth_coef_pointe" type="number" value={settings.moyenTensionHoraire.coefficient_pointe} disabled={isDisabled} />
+                    <Input id="mth_coef_pointe" type="number" defaultValue={settings.moyenTensionHoraire.coefficient_pointe} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mth_coef_soir" className="text-xs">Soir</Label>
-                    <Input id="mth_coef_soir" type="number" value={settings.moyenTensionHoraire.coefficient_soir} disabled={isDisabled} />
+                    <Input id="mth_coef_soir" type="number" defaultValue={settings.moyenTensionHoraire.coefficient_soir} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mth_coef_nuit" className="text-xs">Nuit</Label>
-                    <Input id="mth_coef_nuit" type="number" value={settings.moyenTensionHoraire.coefficient_nuit} disabled={isDisabled} />
+                    <Input id="mth_coef_nuit" type="number" defaultValue={settings.moyenTensionHoraire.coefficient_nuit} disabled={isDisabled} />
                 </div>
             </div>
 
@@ -129,15 +135,15 @@ export default function BillingSettingsPage() {
              <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label htmlFor="mtf_pu">P.U. Consommation</Label>
-                    <Input id="mtf_pu" type="number" value={settings.moyenTensionForfait.pu_consommation} disabled={isDisabled} />
+                    <Input id="mtf_pu" type="number" defaultValue={settings.moyenTensionForfait.pu_consommation} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mtf_tva_conso">TVA Consommation (%)</Label>
-                    <Input id="mtf_tva_conso" type="number" value={settings.moyenTensionForfait.tva_consommation_percent} disabled={isDisabled} />
+                    <Input id="mtf_tva_conso" type="number" defaultValue={settings.moyenTensionForfait.tva_consommation_percent} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="mtf_tva_redevance">TVA Redevance (%)</Label>
-                    <Input id="mtf_tva_redevance" type="number" value={settings.moyenTensionForfait.tva_redevance_percent} disabled={isDisabled} />
+                    <Input id="mtf_tva_redevance" type="number" defaultValue={settings.moyenTensionForfait.tva_redevance_percent} disabled={isDisabled} />
                 </div>
             </div>
           </CardContent>
