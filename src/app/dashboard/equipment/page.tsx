@@ -231,7 +231,7 @@ export default function EquipmentPage() {
 
                   return (
                     <Collapsible asChild key={item.id} open={isExpanded} onOpenChange={() => setOpenRow(isExpanded ? null : item.id)}>
-                        <>
+                      <>
                         <TableRow>
                           <TableCell>
                              <CollapsibleTrigger asChild>
