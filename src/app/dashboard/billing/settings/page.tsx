@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Save } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/hooks/use-user";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function BillingSettingsPage() {
   const { settings, setSettings } = useBillingSettingsStore();
@@ -32,6 +33,10 @@ export default function BillingSettingsPage() {
   // A real implementation would use a form library like react-hook-form
   // For this step, we'll just enable the fields and the save button for the financier.
   // The actual saving logic can be added in a future step.
+  const btFormula = "Montant Total = (Consommation kWh * Prix Unitaire) + TVA + Contribution ERTT";
+  const mthFormula = "Montant Total = (Σ (Conso Tranche * Coeff * PU)) + Redevances + Taxes";
+  const mtfFormula = "Montant Total = ((Énergie Enregistrée + Pertes) * PU) + Prime Puissance + Taxes - Bonification +/- Avance";
+
 
   return (
     <Tabs defaultValue="basse-tension" className="w-full">
@@ -65,6 +70,11 @@ export default function BillingSettingsPage() {
                     <Label htmlFor="bt_ertt">Contribution ERTT</Label>
                     <Input id="bt_ertt" type="number" defaultValue={settings.basseTension.ertt_bt} disabled={isDisabled} />
                 </div>
+            </div>
+             <Separator />
+            <div>
+                <Label>Formule de Calcul</Label>
+                <Textarea readOnly value={btFormula} className="mt-2 font-mono text-sm bg-muted" />
             </div>
           </CardContent>
         </Card>
@@ -118,7 +128,12 @@ export default function BillingSettingsPage() {
                     <Input id="mth_coef_nuit" type="number" defaultValue={settings.moyenTensionHoraire.coefficient_nuit} disabled={isDisabled} />
                 </div>
             </div>
-
+            <Separator />
+             <div>
+                <Label>Formule de Calcul</Label>
+                <Textarea readOnly value={mthFormula} className="mt-2 font-mono text-sm bg-muted" />
+                <p className="text-xs text-muted-foreground mt-1">Note: Les redevances et taxes (Groupe 1 & 2) sont saisies directement sur la facture.</p>
+            </div>
           </CardContent>
         </Card>
       </TabsContent>
@@ -146,6 +161,12 @@ export default function BillingSettingsPage() {
                     <Input id="mtf_tva_redevance" type="number" defaultValue={settings.moyenTensionForfait.tva_redevance_percent} disabled={isDisabled} />
                 </div>
             </div>
+            <Separator />
+             <div>
+                <Label>Formule de Calcul</Label>
+                <Textarea readOnly value={mtfFormula} className="mt-2 font-mono text-sm bg-muted" />
+                 <p className="text-xs text-muted-foreground mt-1">Note: Les autres frais (pertes, prime, taxes, etc.) sont saisis directement sur la facture.</p>
+            </div>
           </CardContent>
         </Card>
       </TabsContent>
@@ -159,3 +180,5 @@ export default function BillingSettingsPage() {
     </Tabs>
   );
 }
+
+    
