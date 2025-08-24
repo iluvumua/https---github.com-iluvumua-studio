@@ -31,40 +31,43 @@ export default function NewMeterWorkflowPage() {
 
     useEffect(() => {
         if (equipmentItem) {
-            // Case 1: Equipment already has a meter in progress
+            // Case 1: Equipment is in a building that has an 'En service' meter
+            const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
+            if (parentBuilding && parentBuilding.meterId) {
+                const buildingMeter = meters.find(m => m.id === parentBuilding.meterId && m.status === 'En service');
+                if (buildingMeter) {
+                    // Automatically associate the meter and skip to step 3
+                    const updatedEquipment = {
+                        ...equipmentItem,
+                        compteurId: buildingMeter.id,
+                        coordX: equipmentItem.coordX || parentBuilding.coordX,
+                        coordY: equipmentItem.coordY || parentBuilding.coordY,
+                        lastUpdate: new Date().toISOString().split('T')[0],
+                    };
+                    updateEquipment(updatedEquipment);
+                    setWipMeter(buildingMeter);
+                    setCurrentStep(3); // Skip to commissioning
+                    return;
+                }
+            }
+
+            // Case 2: Equipment already has a meter associated (in any state)
             if (equipmentItem.compteurId) {
                 const meter = meters.find(m => m.id === equipmentItem.compteurId);
                 if (meter) {
                     setWipMeter(meter);
                     if (meter.status === 'En service') {
                         setCurrentStep(4); // All done
-                    } else if (meter.dateMiseEnService) {
+                    } else if (meter.dateMiseEnService && !meter.id.startsWith('MTR-WIP-')) {
+                        // This means it's installed but not commissioned
                         setCurrentStep(3);
                     } else if (meter.id.startsWith('MTR-WIP-')) {
+                        // This is a request in progress
                         setCurrentStep(1);
-                    }
-                    else {
+                    } else {
+                        // Meter exists but is not a WIP, likely needs installation details
                         setCurrentStep(2);
                     }
-                    return;
-                }
-            }
-
-            // Case 2: Equipment is in a building that has a meter
-            const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
-            if (parentBuilding && parentBuilding.meterId) {
-                const buildingMeter = meters.find(m => m.id === parentBuilding.meterId);
-                if (buildingMeter) {
-                    // Automatically associate the meter and skip to step 3
-                    updateEquipment({
-                        ...equipmentItem,
-                        compteurId: buildingMeter.id,
-                        coordX: parentBuilding.coordX,
-                        coordY: parentBuilding.coordY,
-                        lastUpdate: new Date().toISOString().split('T')[0],
-                    });
-                    setWipMeter(buildingMeter);
-                    setCurrentStep(3); // Skip to commissioning
                     return;
                 }
             }

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface EquipmentCommissioningFormProps {
     equipment: Equipment;
-    onFinished: (data: FormValues) => void;
+    onFinished: (data: { dateMiseEnService: string }) => void;
     isFinished?: boolean;
 }
 
@@ -33,13 +33,19 @@ export function EquipmentCommissioningForm({ equipment, onFinished, isFinished }
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        dateMiseEnService: equipment.dateMiseEnService ? new Date(equipment.dateMiseEnService) : undefined,
+        dateMiseEnService: undefined,
     }
   });
 
+  useEffect(() => {
+    if (equipment.dateMiseEnService && !form.getValues('dateMiseEnService')) {
+        form.setValue('dateMiseEnService', new Date(equipment.dateMiseEnService));
+    }
+  }, [equipment.dateMiseEnService, form]);
+
+
   const onSubmit = (values: FormValues) => {
     onFinished({
-      ...values,
       dateMiseEnService: values.dateMiseEnService.toISOString().split('T')[0],
     });
     toast({ title: "Étape 3 Terminée", description: "L'équipement a été mis en service." });
