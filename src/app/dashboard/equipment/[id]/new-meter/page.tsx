@@ -233,6 +233,7 @@ export default function NewMeterWorkflowPage() {
                         <EquipmentCommissioningForm 
                             equipment={equipmentItem} 
                             onFinished={handleStep3Finish}
+                            isFinished={currentStep > 3}
                         />
                     </CardContent>
                 </Card>

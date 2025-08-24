@@ -24,9 +24,10 @@ type FormValues = z.infer<typeof formSchema>;
 interface EquipmentCommissioningFormProps {
     equipment: Equipment;
     onFinished: (data: FormValues) => void;
+    isFinished?: boolean;
 }
 
-export function EquipmentCommissioningForm({ equipment, onFinished }: EquipmentCommissioningFormProps) {
+export function EquipmentCommissioningForm({ equipment, onFinished, isFinished }: EquipmentCommissioningFormProps) {
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -51,7 +52,7 @@ export function EquipmentCommissioningForm({ equipment, onFinished }: EquipmentC
                 <FormItem className="flex flex-col"><FormLabel>Date de Mise en Service de l'Équipement</FormLabel>
                     <Popover><PopoverTrigger asChild>
                         <FormControl>
-                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")} disabled={isFinished}>
                             {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -65,12 +66,14 @@ export function EquipmentCommissioningForm({ equipment, onFinished }: EquipmentC
                 </FormItem>
             )} />
            
-            <div className="flex justify-end gap-2 mt-8">
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2 h-4 w-4" /> Terminer et Mettre en Service
-                </Button>
-            </div>
+            {!isFinished && (
+              <div className="flex justify-end gap-2 mt-8">
+                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                      {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      <Save className="mr-2 h-4 w-4" /> Terminer et Mettre en Service
+                  </Button>
+              </div>
+            )}
         </form>
     </Form>
   );
