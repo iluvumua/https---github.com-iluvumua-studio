@@ -17,7 +17,7 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Equipment } from "@/lib/types";
 import { locationsData } from "@/lib/locations";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { CalendarIcon } from "lucide-react";
@@ -25,6 +25,7 @@ import { Calendar } from "./ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useMetersStore } from "@/hooks/use-meters-store";
+import { useBuildingsStore } from "@/hooks/use-buildings-store";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -75,20 +76,26 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const [generatedName, setGeneratedName] = useState(initialEquipment?.name || "");
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { meters } = useMetersStore();
+  const { buildings } = useBuildingsStore();
   const isEditMode = !!initialEquipment;
+  
+  const buildingId = searchParams.get('buildingId');
+  const building = buildings.find(b => b.id === buildingId);
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: initialEquipment?.type || "",
       fournisseur: initialEquipment?.fournisseur || "",
-      localisation: initialEquipment?.location || "",
+      localisation: initialEquipment?.location || building?.code || "",
       typeChassis: initialEquipment?.typeChassis || "",
-      designation: initialEquipment?.designation || "",
-      coordX: initialEquipment?.coordX ?? undefined,
-      coordY: initialEquipment?.coordY ?? undefined,
-      compteurId: initialEquipment?.compteurId || "",
+      designation: initialEquipment?.designation || building?.name || "",
+      coordX: initialEquipment?.coordX ?? building?.coordX ?? undefined,
+      coordY: initialEquipment?.coordY ?? building?.coordY ?? undefined,
+      compteurId: initialEquipment?.compteurId || building?.meterId || "",
       dateMiseEnService: initialEquipment?.dateMiseEnService ? new Date(initialEquipment.dateMiseEnService) : undefined,
       status: initialEquipment?.status,
     },
@@ -179,6 +186,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             designation: values.designation || undefined,
             coordX: values.coordX,
             coordY: values.coordY,
+            compteurId: values.compteurId,
         }
         addEquipment(newEquipment);
         toast({ title: "Équipement Ajouté", description: "Le nouvel équipement a été créé et est en attente de vérification." });
@@ -316,6 +324,22 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                             )}
                         />
                     </div>
+                )}
+                
+                {building?.meterId && (
+                     <FormField
+                        control={form.control}
+                        name="compteurId"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>N° Compteur (Hérité du bâtiment)</FormLabel>
+                             <FormControl>
+                                <Input readOnly {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
                 )}
 
               <div className="md:col-span-2 space-y-2">

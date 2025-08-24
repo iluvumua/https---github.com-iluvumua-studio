@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Building2, PlusCircle } from "lucide-react";
+import { File, Building2, PlusCircle, Network } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +25,12 @@ import type { Building } from "@/lib/types";
 import { EditBuildingForm } from "@/components/edit-building-form";
 import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
@@ -63,6 +69,7 @@ export default function BuildingsPage() {
     };
 
   return (
+    <TooltipProvider>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -138,6 +145,20 @@ export default function BuildingsPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    {user.role === 'Technicien' && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link href={`/dashboard/equipment/new?buildingId=${building.id}`}>
+                                        <Network className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Ajouter un équipement</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
                     <EditBuildingForm building={building} />
                   </div>
                 </TableCell>
@@ -148,5 +169,6 @@ export default function BuildingsPage() {
         )}
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }
