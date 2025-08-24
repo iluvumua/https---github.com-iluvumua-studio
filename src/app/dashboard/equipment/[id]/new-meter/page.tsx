@@ -35,7 +35,8 @@ export default function NewMeterWorkflowPage() {
             const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
             if (parentBuilding && parentBuilding.meterId) {
                 const buildingMeter = meters.find(m => m.id === parentBuilding.meterId && m.status === 'En service');
-                if (buildingMeter) {
+                // INFINITE LOOP FIX: Only update if the equipment isn't already associated with the building's meter
+                if (buildingMeter && equipmentItem.compteurId !== buildingMeter.id) {
                     // Automatically associate the meter and skip to step 3
                     const updatedEquipment = {
                         ...equipmentItem,
