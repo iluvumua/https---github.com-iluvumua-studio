@@ -9,12 +9,14 @@ import { EditMeterForm } from '@/components/edit-meter-form';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { useUser } from '@/hooks/use-user';
 
 export default function EditMeterPage() {
     const params = useParams();
     const router = useRouter();
     const { id } = params;
     const { meters } = useMetersStore();
+    const { user } = useUser();
 
     const meterToEdit = Array.isArray(id) ? undefined : meters.find(e => e.id === id);
 
@@ -23,16 +25,18 @@ export default function EditMeterPage() {
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <div>
-                        <CardTitle>Détails du compteur</CardTitle>
+                        <CardTitle>Détails du compteur <span className="text-primary font-mono">{meterToEdit?.id}</span></CardTitle>
                         <CardDescription>
-                            Consultez l'état et la description du compteur.
+                           {user.role === 'Technicien' ? "Modifiez" : "Consultez"} l'état et la description du compteur.
                         </CardDescription>
                     </div>
-                    <Button variant="outline" asChild>
-                        <Link href="/dashboard/meters">
-                            <ArrowLeft className="mr-2" /> Retour
-                        </Link>
-                    </Button>
+                     {user.role !== 'Technicien' && (
+                        <Button variant="outline" asChild>
+                            <Link href="/dashboard/meters">
+                                <ArrowLeft className="mr-2" /> Retour
+                            </Link>
+                        </Button>
+                    )}
                 </div>
             </CardHeader>
             <CardContent>

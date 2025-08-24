@@ -10,6 +10,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type { Meter } from "@/lib/types";
 import { Textarea } from "./ui/textarea";
+import { useUser } from "@/hooks/use-user";
+import { useMetersStore } from "@/hooks/use-meters-store";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "./ui/button";
+import { Loader2, Save, X } from "lucide-react";
+import Link from "next/link";
 
 const formSchema = z.object({
   status: z.enum(['En cours', 'En service', 'Résilié', 'Substitué']),
@@ -23,6 +30,12 @@ interface EditMeterFormProps {
 }
 
 export function EditMeterForm({ meter }: EditMeterFormProps) {
+  const { user } = useUser();
+  const { updateMeter } = useMetersStore();
+  const router = useRouter();
+  const { toast } = useToast();
+  const isTechnician = user.role === 'Technicien';
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,12 +44,22 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
     }
   });
 
+  const onSubmit = (values: FormValues) => {
+    updateMeter({
+        ...meter,
+        ...values,
+        lastUpdate: new Date().toISOString().split('T')[0],
+    });
+    toast({ title: "Compteur Mis à Jour", description: `Le compteur ${meter.id} a été modifié.` });
+    router.push('/dashboard/meters');
+  }
+
   return (
     <Form {...form}>
-        <form className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="status" render={({ field }) => (
                 <FormItem><FormLabel>État</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isTechnician}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                         <SelectItem value="En cours">En cours</SelectItem>
@@ -53,11 +76,23 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                 <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                        <Textarea placeholder="Aucune description" {...field} disabled />
+                        <Textarea placeholder="Aucune description" {...field} disabled={!isTechnician} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
             )} />
+
+            {isTechnician && (
+                 <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="ghost" asChild>
+                        <Link href="/dashboard/meters"><X className="mr-2" /> Annuler</Link>
+                    </Button>
+                    <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
+                        {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Save className="mr-2" /> Enregistrer
+                    </Button>
+                </div>
+            )}
         </form>
     </Form>
   );
