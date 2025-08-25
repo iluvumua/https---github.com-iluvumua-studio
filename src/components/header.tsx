@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { UserNav } from "@/components/user-nav";
@@ -53,6 +55,9 @@ export function Header() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="sm:max-w-xs">
+          <SheetHeader>
+            <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          </SheetHeader>
           <nav className="grid gap-6 text-lg font-medium">
              <Link
                 href="/dashboard"
