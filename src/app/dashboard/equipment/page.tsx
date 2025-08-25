@@ -39,22 +39,16 @@ import { Separator } from "@/components/ui/separator";
 
 const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
-export default function EquipmentPage() {
-    const { equipment } = useEquipmentStore();
+const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipment[], openRow: string | null, setOpenRow: (id: string | null) => void }) => {
     const { meters } = useMetersStore();
     const { bills } = useBillingStore();
     const { buildings } = useBuildingsStore();
-    const [activeTab, setActiveTab] = useState("all");
-    const { toast } = useToast();
-    const { user } = useUser();
-    const [searchTerm, setSearchTerm] = useState("");
-    const [openRow, setOpenRow] = useState<string | null>(null);
 
     const formatShortDate = (dateString?: string) => {
         if (!dateString) return "N/A";
         return format(new Date(dateString), "dd/MM/yyyy");
     }
-    
+
     const formatCurrency = (amount: number) => {
       return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
     }
@@ -65,33 +59,202 @@ export default function EquipmentPage() {
         return location?.localite || abbreviation;
     }
 
-    const filteredEquipment = equipment.filter(item => {
-        const query = searchTerm.toLowerCase();
-        const matchesSearch = item.name.toLowerCase().includes(query) || item.type.toLowerCase().includes(query);
+    if (equipment.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Network className="h-16 w-16 text-muted-foreground" />
+                <h3 className="mt-6 text-xl font-semibold">Aucun équipement trouvé</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Aucun équipement ne correspond à ce filtre.
+                </p>
+            </div>
+        )
+    }
 
-        if (!matchesSearch) return false;
+    return (
+        <Table>
+            <TableHeader>
+            <TableRow>
+                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-1/4">Nom_MSAN</TableHead>
+                <TableHead>État</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Fournisseur</TableHead>
+                <TableHead>Date Mise en Service Équip.</TableHead>
+                <TableHead className="w-[120px]">Actions</TableHead>
+            </TableRow>
+            </TableHeader>
+            <TableBody>
+            {equipment.map((item) => {
+                const associatedMeter = meters.find(m => m.id === item.compteurId);
+                const isExpanded = openRow === item.id;
+                const isIndoor = item.buildingId && indoorEquipmentTypes.includes(item.type);
+                const associatedBuilding = buildings.find(b => b.id === item.buildingId);
+                
+                const equipmentAverageCost = useMemo(() => {
+                if (!associatedMeter) return null;
+                
+                const meterBills = bills.filter(b => b.meterId === associatedMeter.id);
+                const annualBills = meterBills
+                    .filter(b => b.nombreMois && b.nombreMois >= 12)
+                    .sort((a, b) => b.id.localeCompare(a, b));
 
-        if (activeTab === 'all') return true;
-        
-        // Map status to tab values
-        const statusMap: { [key: string]: Equipment['status'][] } = {
-            'en_cours': ['En cours'],
-            'en_service': ['En service'],
-            'en_cours_resiliation': ['En cours de résiliation'],
-            'resilie': ['Résilié']
-        };
-        const statuses = statusMap[activeTab];
+                if (annualBills.length > 0) {
+                    const latestAnnualBill = annualBills[0];
+                    return latestAnnualBill.amount / latestAnnualBill.nombreMois;
+                }
+                return null;
+                }, [associatedMeter, bills]);
 
-        return statuses ? statuses.includes(item.status) : false;
-    });
+                return (
+                <React.Fragment key={item.id}>
+                    <TableRow>
+                        <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => setOpenRow(isExpanded ? null : item.id)}>
+                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </Button>
+                        </TableCell>
+                        <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
+                        <TableCell>
+                        <Badge variant="outline" className={cn(
+                            "whitespace-nowrap",
+                            item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                            item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                            item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                            item.status === 'En cours de résiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10'
+                        )}>{item.status}</Badge>
+                        </TableCell>
+                        <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
+                        <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
+                        <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
+                        <TableCell>
+                        <div className="flex items-center gap-1">
+                            {item.status === 'En cours' && (
+                            <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
+                                <PlusCircleIcon className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                            )}
+                            {item.coordX && item.coordY && (
+                            <Button variant="ghost" size="icon" asChild>
+                                <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
+                                <MapPin className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                            )}
+                            {item.compteurId && (
+                            <>
+                                <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/dashboard/meters?search=${item.compteurId}`}>
+                                    <Gauge className="h-4 w-4" />
+                                </Link>
+                                </Button>
+                            </>
+                            )}
+                            <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                            </Link>
+                            </Button>
+                        </div>
+                        </TableCell>
+                    </TableRow>
+                    {isExpanded && (
+                        <TableRow>
+                        <TableCell colSpan={7} className="p-0">
+                            <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-3">
+                                <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
+                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
+                                <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
+                                {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
+                                {item.dateResiliationCompteur && <div><span className="font-medium text-muted-foreground">Date Résil. Compteur:</span> {formatShortDate(item.dateResiliationCompteur)}</div>}
+                                {item.dateResiliationEquipement && <div><span className="font-medium text-muted-foreground">Date Résil. Équipement:</span> {formatShortDate(item.dateResiliationEquipement)}</div>}
+                                </div>
+                                {isIndoor && associatedBuilding && (
+                                    <>
+                                    <Separator className="my-2" />
+                                    <h5 className="font-semibold text-sm">Informations sur le Bâtiment</h5>
+                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                            <div className="col-span-2"><span className="font-medium text-muted-foreground">Nom:</span> {associatedBuilding.name} ({associatedBuilding.code})</div>
+                                            <div className="col-span-2"><span className="font-medium text-muted-foreground">Adresse:</span> {associatedBuilding.address}</div>
+                                        </div>
+                                    </>
+                                )}
+                                <Separator className="my-2" />
+                                <h5 className="font-semibold text-sm">Coordonnées & Localisation</h5>
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                    <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
+                                    {item.coordX && item.coordY && <div><span className="font-medium text-muted-foreground">Coords:</span> {item.coordY}, {item.coordX}</div>}
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
+                                {associatedMeter ? (
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                    <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
+                                    <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
+                                    <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
+                                    <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
+                                    <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
+                                    <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
+                                    <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
+                                    <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
+                                    <div className="col-span-full mt-2">
+                                    <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                                        <Link href={`/dashboard/billing/${associatedMeter.id}`}>
+                                        Voir toutes les factures de ce compteur
+                                        </Link>
+                                    </Button>
+                                    </div>
+                                </div>
+                                ) : (
+                                <div className="text-center text-muted-foreground text-sm py-4">
+                                    Aucun compteur n'est associé à cet équipement.
+                                </div>
+                                )}
+                            </div>
+                            </div>
+                        </TableCell>
+                        </TableRow>
+                    )}
+                    </React.Fragment>
+                )
+            })}
+            </TableBody>
+        </Table>
+    )
+}
+
+export default function EquipmentPage() {
+    const { equipment } = useEquipmentStore();
+    const [activeTab, setActiveTab] = useState("all");
+    const { user } = useUser();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [openRow, setOpenRow] = useState<string | null>(null);
+
+    const getFilteredEquipment = (status?: Equipment['status'] | 'all') => {
+        return equipment.filter(item => {
+            const query = searchTerm.toLowerCase();
+            const matchesSearch = item.name.toLowerCase().includes(query) || item.type.toLowerCase().includes(query) || (item.designation && item.designation.toLowerCase().includes(query));
+
+            if (!matchesSearch) return false;
+            if (status === 'all') return true;
+
+            return item.status === status;
+        });
+    }
 
     const handleExport = () => {
-        const dataToExport = filteredEquipment.map(item => ({
+        const dataToExport = getFilteredEquipment(activeTab as any).map(item => ({
             "Nom_MSAN": item.name,
             "État": item.status,
             "Type": item.type,
             "Fournisseur": item.fournisseur,
-            "Date Mise en Service": item.dateMiseEnService ? formatShortDate(item.dateMiseEnService) : 'N/A',
+            "Date Mise en Service": item.dateMiseEnService ? format(new Date(item.dateMiseEnService), "dd/MM/yyyy") : 'N/A',
             "ID Compteur": item.compteurId || 'N/A',
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -100,16 +263,9 @@ export default function EquipmentPage() {
         XLSX.writeFile(workbook, `equipements_${activeTab}.xlsx`);
     };
 
-    const equipmentStatusCounts = useMemo(() => {
-        return equipment.reduce((acc, eq) => {
-            acc[eq.status] = (acc[eq.status] || 0) + 1;
-            return acc;
-        }, {} as Record<Equipment['status'], number>);
-    }, [equipment]);
-
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-    <Tabs defaultValue="all" onValueChange={setActiveTab}>
+    <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
       <div className="flex items-center">
         <TabsList>
           <TabsTrigger value="all">Tous</TabsTrigger>
@@ -147,8 +303,7 @@ export default function EquipmentPage() {
             )}
         </div>
       </div>
-      <TabsContent value={activeTab}>
-        <Card>
+      <Card>
           <CardHeader>
             <CardTitle>Gestion des équipement</CardTitle>
             <CardDescription>
@@ -156,183 +311,26 @@ export default function EquipmentPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {filteredEquipment.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <Network className="h-16 w-16 text-muted-foreground" />
-                    <h3 className="mt-6 text-xl font-semibold">Aucun équipement trouvé</h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        Commencez par importer ou ajouter un nouvel équipement.
-                    </p>
-                     {user.role === 'Technicien' && (
-                        <div className="mt-6 w-full max-w-sm">
-                            <Button className="w-full" asChild>
-                               <Link href="/dashboard/equipment/new">
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Équipement
-                               </Link>
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]"></TableHead>
-                  <TableHead className="w-1/4">Nom_MSAN</TableHead>
-                  <TableHead>État</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Fournisseur</TableHead>
-                  <TableHead>Date Mise en Service Équip.</TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEquipment.map((item) => {
-                  const associatedMeter = meters.find(m => m.id === item.compteurId);
-                  const isExpanded = openRow === item.id;
-                  const isIndoor = item.buildingId && indoorEquipmentTypes.includes(item.type);
-                  const associatedBuilding = buildings.find(b => b.id === item.buildingId);
-                  
-                  const equipmentAverageCost = useMemo(() => {
-                    if (!associatedMeter) return null;
-                    
-                    const meterBills = bills.filter(b => b.meterId === associatedMeter.id);
-                    const annualBills = meterBills
-                      .filter(b => b.nombreMois && b.nombreMois >= 12)
-                      .sort((a, b) => b.id.localeCompare(a, b));
-
-                    if (annualBills.length > 0) {
-                      const latestAnnualBill = annualBills[0];
-                      return latestAnnualBill.amount / latestAnnualBill.nombreMois;
-                    }
-                    return null;
-                  }, [associatedMeter, bills]);
-
-                  return (
-                    <React.Fragment key={item.id}>
-                        <TableRow>
-                          <TableCell>
-                                <Button variant="ghost" size="icon" onClick={() => setOpenRow(isExpanded ? null : item.id)}>
-                                 {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                               </Button>
-                          </TableCell>
-                          <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className={cn(
-                              "whitespace-nowrap",
-                              item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                              item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
-                              item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                              item.status === 'En cours de résiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10'
-                            )}>{item.status}</Badge>
-                          </TableCell>
-                          <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
-                          <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
-                          <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              {item.status === 'En cours' && (
-                                <Button variant="ghost" size="icon" asChild>
-                                  <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
-                                    <PlusCircleIcon className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              )}
-                              {item.coordX && item.coordY && (
-                                <Button variant="ghost" size="icon" asChild>
-                                  <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
-                                    <MapPin className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              )}
-                              {item.compteurId && (
-                                <>
-                                  <Button variant="ghost" size="icon" asChild>
-                                    <Link href={`/dashboard/meters?search=${item.compteurId}`}>
-                                      <Gauge className="h-4 w-4" />
-                                    </Link>
-                                  </Button>
-                                </>
-                              )}
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/equipment/${item.id}/edit`}>
-                                  <Pencil className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                        {isExpanded && (
-                          <TableRow>
-                            <TableCell colSpan={7} className="p-0">
-                              <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-3">
-                                  <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
-                                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                    <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
-                                    <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
-                                    <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
-                                    {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
-                                    {item.dateResiliationCompteur && <div><span className="font-medium text-muted-foreground">Date Résil. Compteur:</span> {formatShortDate(item.dateResiliationCompteur)}</div>}
-                                    {item.dateResiliationEquipement && <div><span className="font-medium text-muted-foreground">Date Résil. Équipement:</span> {formatShortDate(item.dateResiliationEquipement)}</div>}
-                                  </div>
-                                  {isIndoor && associatedBuilding && (
-                                      <>
-                                        <Separator className="my-2" />
-                                        <h5 className="font-semibold text-sm">Informations sur le Bâtiment</h5>
-                                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Nom:</span> {associatedBuilding.name} ({associatedBuilding.code})</div>
-                                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Adresse:</span> {associatedBuilding.address}</div>
-                                         </div>
-                                      </>
-                                  )}
-                                   <Separator className="my-2" />
-                                   <h5 className="font-semibold text-sm">Coordonnées & Localisation</h5>
-                                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                     <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
-                                      {item.coordX && item.coordY && <div><span className="font-medium text-muted-foreground">Coords:</span> {item.coordY}, {item.coordX}</div>}
-                                   </div>
-                                </div>
-                                <div className="space-y-3">
-                                  <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
-                                  {associatedMeter ? (
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                      <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
-                                      <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
-                                      <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
-                                      <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
-                                      <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                                      <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
-                                      <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
-                                      <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
-                                      <div className="col-span-full mt-2">
-                                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                                          <Link href={`/dashboard/billing/${associatedMeter.id}`}>
-                                            Voir toutes les factures de ce compteur
-                                          </Link>
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="text-center text-muted-foreground text-sm py-4">
-                                      Aucun compteur n'est associé à cet équipement.
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                        </React.Fragment>
-                  )
-                })}
-              </TableBody>
-            </Table>
-            )}
+            <TabsContent value="all">
+                <EquipmentTable equipment={getFilteredEquipment('all')} openRow={openRow} setOpenRow={setOpenRow} />
+            </TabsContent>
+            <TabsContent value="en_cours">
+                 <EquipmentTable equipment={getFilteredEquipment('En cours')} openRow={openRow} setOpenRow={setOpenRow} />
+            </TabsContent>
+            <TabsContent value="en_service">
+                 <EquipmentTable equipment={getFilteredEquipment('En service')} openRow={openRow} setOpenRow={setOpenRow} />
+            </TabsContent>
+            <TabsContent value="en_cours_resiliation">
+                 <EquipmentTable equipment={getFilteredEquipment('En cours de résiliation')} openRow={openRow} setOpenRow={setOpenRow} />
+            </TabsContent>
+            <TabsContent value="resilie">
+                 <EquipmentTable equipment={getFilteredEquipment('Résilié')} openRow={openRow} setOpenRow={setOpenRow} />
+            </TabsContent>
           </CardContent>
         </Card>
-      </TabsContent>
     </Tabs>
     </div>
   );
 }
+
+    
