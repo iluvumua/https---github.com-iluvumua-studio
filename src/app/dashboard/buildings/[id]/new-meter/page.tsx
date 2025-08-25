@@ -31,33 +31,21 @@ export default function NewMeterWorkflowPage() {
     const [wipMeter, setWipMeter] = useState<Meter | undefined>(undefined);
 
     useEffect(() => {
-        if (buildingItem?.meterId) {
-            const meter = meters.find(m => m.id === buildingItem.meterId);
-            if (meter) {
+        if (buildingItem) {
+            if (buildingItem.meterId) {
+                const meter = meters.find(m => m.id === buildingItem.meterId);
                 setWipMeter(meter);
-                if (meter.status === 'En service') {
-                    setCurrentStep(4); // All done
-                } else if (meter.dateMiseEnService && !meter.id.startsWith('MTR-WIP-')) {
-                     // This means it's installed but not commissioned
+                if (meter?.status === 'En service') {
+                    setCurrentStep(4);
+                } else if (meter?.dateMiseEnService && !meter.id.startsWith('MTR-WIP-')) {
                     setCurrentStep(3);
-                } else if (meter.id.startsWith('MTR-WIP-')) {
-                    // This is a request in progress, installation is next
-                    setCurrentStep(2);
-                } else if (meter) {
-                    // A meter is assigned, but not a WIP and not in service.
-                    // This likely means it needs installation details.
+                } else if (meter?.id?.startsWith('MTR-WIP-')) {
                     setCurrentStep(2);
                 }
             } else {
-                 // Building has a meterId, but we can't find that meter.
-                 // Treat as a new request.
-                setCurrentStep(1);
-                setWipMeter(undefined);
+                 setCurrentStep(1);
+                 setWipMeter(undefined);
             }
-        } else {
-            // No meterId on building, definitely a new request.
-            setCurrentStep(1);
-            setWipMeter(undefined);
         }
     }, [buildingItem, meters]);
 

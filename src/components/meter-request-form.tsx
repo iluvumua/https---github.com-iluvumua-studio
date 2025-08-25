@@ -45,8 +45,8 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        coordX: parentCoords.x,
-        coordY: parentCoords.y,
+        coordX: parentCoords.x ?? 0,
+        coordY: parentCoords.y ?? 0,
         dateDemandeInstallation: undefined,
         policeNumber: "",
         districtSteg: "",
@@ -57,8 +57,8 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
   useEffect(() => {
     if (initialData) {
         form.reset({
-            coordX: parentCoords.x,
-            coordY: parentCoords.y,
+            coordX: parentCoords.x ?? 0,
+            coordY: parentCoords.y ?? 0,
             dateDemandeInstallation: initialData.dateDemandeInstallation ? new Date(initialData.dateDemandeInstallation) : new Date(),
             policeNumber: initialData.policeNumber || '',
             districtSteg: initialData.districtSteg || '',
@@ -102,8 +102,8 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
                     <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate} disabled={isFinished}><MapPin className="mr-2 h-4 w-4" /> Actuelle</Button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+                    <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
                 </div>
             </div>
 
@@ -125,7 +125,7 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
                 </FormItem>
             )} />
 
-             <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+             <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} value={field.value ?? ''} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
 
             <FormField control={form.control} name="districtSteg" render={({ field }) => (
                 <FormItem><FormLabel>District STEG</FormLabel>

@@ -59,8 +59,8 @@ export function BuildingForm() {
         propriete: '',
         nature: [],
         meterId: '',
-        coordX: undefined,
-        coordY: undefined,
+        coordX: 0,
+        coordY: 0,
     }
   });
 
