@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
+import { Separator } from "./ui/separator";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -66,6 +67,8 @@ const formSchema = z.object({
   dateMiseEnService: z.date().optional(),
   status: z.string().optional(),
   buildingId: z.string().optional(),
+  dateResiliationCompteur: z.date().optional(),
+  dateResiliationEquipement: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -106,6 +109,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       dateMiseEnService: initialEquipment?.dateMiseEnService ? new Date(initialEquipment.dateMiseEnService) : undefined,
       status: initialEquipment?.status,
       buildingId: initialEquipment?.buildingId || buildingIdParam || undefined,
+      dateResiliationCompteur: initialEquipment?.dateResiliationCompteur ? new Date(initialEquipment.dateResiliationCompteur) : undefined,
+      dateResiliationEquipement: initialEquipment?.dateResiliationEquipement ? new Date(initialEquipment.dateResiliationEquipement) : undefined,
     },
   });
 
@@ -146,7 +151,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     } else {
         setGeneratedName("");
     }
-  }, [watchAllFields, allEquipment, isEditMode, initialEquipment]);
+  }, [watchAllFields.fournisseur, watchAllFields.localisation, watchAllFields.type, watchAllFields.typeChassis, watchAllFields.designation, allEquipment, isEditMode, initialEquipment]);
   
   const handleGeolocate = () => {
     if (navigator.geolocation) {
@@ -163,13 +168,22 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }
 
   const onSubmit = (values: FormValues) => {
+    let newStatus: Equipment['status'] = values.status as Equipment['status'] || 'En cours';
+
     if (isEditMode && initialEquipment) {
+        if (initialEquipment.status === 'En service' && (values.dateResiliationCompteur || values.dateResiliationEquipement)) {
+            newStatus = 'En cours de résiliation';
+        }
+        if (initialEquipment.status === 'En cours de résiliation' && values.dateResiliationCompteur && values.dateResiliationEquipement) {
+            newStatus = 'Résilié';
+        }
+
         const updated: Equipment = {
             ...initialEquipment,
             name: generatedName,
             type: values.type,
             location: values.localisation,
-            status: values.status as Equipment['status'],
+            status: newStatus,
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
@@ -179,6 +193,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             compteurId: values.compteurId,
             dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
             buildingId: values.buildingId,
+            dateResiliationCompteur: values.dateResiliationCompteur?.toISOString().split('T')[0],
+            dateResiliationEquipement: values.dateResiliationEquipement?.toISOString().split('T')[0],
         }
         updateEquipment(updated);
         toast({ title: "Équipement Modifié", description: "Les modifications ont été enregistrées avec succès." });
@@ -212,7 +228,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     );
   }
 
-  const isServiceStep = isEditMode && initialEquipment.status === 'En service';
+  const showResiliationFields = isEditMode && (initialEquipment.status === 'En service' || initialEquipment.status === 'En cours de résiliation');
 
   return (
         <Form {...form}>
@@ -311,31 +327,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     </div>
                 </div>
               
-                {isServiceStep && (
-                     <div className="md:col-span-2">
-                         <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Statut</FormLabel>
-                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                        <SelectValue placeholder="Changer le statut" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="En service">En service</SelectItem>
-                                        <SelectItem value="Résilié">Résilié</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                    </div>
-                )}
                 
                 {building?.meterId && (
                      <FormField
@@ -357,6 +348,46 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 <Label>Nom Généré</Label>
                 <Input readOnly value={generatedName} className="font-mono bg-muted" placeholder="..."/>
               </div>
+
+               {showResiliationFields && (
+                <div className="md:col-span-2 space-y-4 rounded-md border p-4">
+                  <h3 className="text-sm font-medium">Informations de Résiliation</h3>
+                   <FormField control={form.control} name="dateResiliationCompteur" render={({ field }) => (
+                      <FormItem className="flex flex-col"><FormLabel>Date Résiliation Compteur</FormLabel>
+                          <Popover><PopoverTrigger asChild>
+                              <FormControl>
+                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                  {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                              </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                          </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                      </FormItem>
+                  )} />
+                   <FormField control={form.control} name="dateResiliationEquipement" render={({ field }) => (
+                      <FormItem className="flex flex-col"><FormLabel>Date Résiliation Équipement</FormLabel>
+                          <Popover><PopoverTrigger asChild>
+                              <FormControl>
+                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                  {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                              </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                          </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                      </FormItem>
+                  )} />
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2 mt-8">
                 <Button type="button" variant="ghost" asChild>

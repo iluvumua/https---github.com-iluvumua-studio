@@ -77,6 +77,7 @@ export default function EquipmentPage() {
         const statusMap: { [key: string]: Equipment['status'][] } = {
             'en_cours': ['En cours'],
             'en_service': ['En service'],
+            'en_cours_resiliation': ['En cours de résiliation'],
             'resilie': ['Résilié']
         };
         const statuses = statusMap[activeTab];
@@ -114,6 +115,7 @@ export default function EquipmentPage() {
           <TabsTrigger value="all">Tous</TabsTrigger>
           <TabsTrigger value="en_cours">En cours</TabsTrigger>
           <TabsTrigger value="en_service">En service</TabsTrigger>
+          <TabsTrigger value="en_cours_resiliation">En cours de résiliation</TabsTrigger>
           <TabsTrigger value="resilie">Résilié</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
@@ -221,6 +223,7 @@ export default function EquipmentPage() {
                               item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
                               item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
                               item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                              item.status === 'En cours de résiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10'
                             )}>{item.status}</Badge>
                           </TableCell>
                           <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
@@ -266,10 +269,12 @@ export default function EquipmentPage() {
                                 <div className="space-y-3">
                                   <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
                                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                    <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
                                     <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
                                     <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
+                                    <div><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
                                     {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
+                                    {item.dateResiliationCompteur && <div><span className="font-medium text-muted-foreground">Date Résil. Compteur:</span> {formatShortDate(item.dateResiliationCompteur)}</div>}
+                                    {item.dateResiliationEquipement && <div><span className="font-medium text-muted-foreground">Date Résil. Équipement:</span> {formatShortDate(item.dateResiliationEquipement)}</div>}
                                   </div>
                                   {isIndoor && associatedBuilding && (
                                       <>

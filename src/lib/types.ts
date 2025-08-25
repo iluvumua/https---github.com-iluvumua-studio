@@ -4,7 +4,7 @@ export type Equipment = {
   name: string; // Nom_MSAN
   type: string;
   location: string; // Code  Abréviation
-  status: 'En cours' | 'En service' | 'Résilié'; // Etat
+  status: 'En cours' | 'En service' | 'En cours de résiliation' | 'Résilié'; // Etat
   lastUpdate: string;
   fournisseur?: string;
   typeChassis?: string;
@@ -13,6 +13,8 @@ export type Equipment = {
   coordY?: number;
   compteurId?: string;
   dateMiseEnService?: string;
+  dateResiliationCompteur?: string;
+  dateResiliationEquipement?: string;
   verifiedBy?: string;
   buildingId?: string;
 };
