@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Building2, PlusCircle, Network } from "lucide-react";
+import { File, Building2, PlusCircle, Network, Pencil } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import {
@@ -159,7 +159,21 @@ export default function BuildingsPage() {
                             </TooltipContent>
                         </Tooltip>
                     )}
-                    <EditBuildingForm building={building} />
+                    {user.role === "Moyen Bâtiment" && (
+                         <EditBuildingForm building={building} />
+                    )}
+                    {user.role !== "Moyen Bâtiment" && (
+                       <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" disabled>
+                                    <Pencil className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Modification réservée</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

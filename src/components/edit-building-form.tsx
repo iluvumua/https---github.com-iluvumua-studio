@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Pencil, Loader2, MapPin } from "lucide-react";
-import { useUser } from "@/hooks/use-user";
 import { Checkbox } from "./ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
@@ -56,7 +55,6 @@ interface EditBuildingFormProps {
 }
 
 export function EditBuildingForm({ building }: EditBuildingFormProps) {
-  const { user } = useUser();
   const { updateBuilding } = useBuildingsStore();
   const { meters } = useMetersStore();
   const [isOpen, setIsOpen] = useState(false);
@@ -78,10 +76,6 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
     }
   });
 
-  if (user.role !== "Moyen Bâtiment") {
-    return null;
-  }
-  
   const handleGeolocate = () => {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
