@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { CalendarIcon, Loader2, MapPin, Save, X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import type { Equipment, Meter } from "@/lib/types";
+import type { Equipment, Meter, Building } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { cn } from "@/lib/utils";
@@ -30,20 +30,23 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface MeterRequestFormProps {
-    equipment: Equipment;
+    equipment?: Equipment;
+    building?: Building;
     onFinished: (data: FormValues) => void;
     isFinished?: boolean;
     initialData?: Meter;
 }
 
-export function MeterRequestForm({ equipment, onFinished, isFinished, initialData }: MeterRequestFormProps) {
+export function MeterRequestForm({ equipment, building, onFinished, isFinished, initialData }: MeterRequestFormProps) {
   const { toast } = useToast();
+  
+  const parentCoords = equipment ? { x: equipment.coordX, y: equipment.coordY } : { x: building?.coordX, y: building?.coordY };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        coordX: equipment.coordX,
-        coordY: equipment.coordY,
+        coordX: parentCoords.x,
+        coordY: parentCoords.y,
         dateDemandeInstallation: undefined,
         policeNumber: "",
         districtSteg: "",
@@ -54,15 +57,15 @@ export function MeterRequestForm({ equipment, onFinished, isFinished, initialDat
   useEffect(() => {
     if (initialData) {
         form.reset({
-            coordX: equipment.coordX,
-            coordY: equipment.coordY,
+            coordX: parentCoords.x,
+            coordY: parentCoords.y,
             dateDemandeInstallation: initialData.dateDemandeInstallation ? new Date(initialData.dateDemandeInstallation) : new Date(),
             policeNumber: initialData.policeNumber || '',
             districtSteg: initialData.districtSteg || '',
             typeTension: initialData.typeTension || 'Moyenne Tension',
         });
     }
-  }, [initialData, equipment, form]);
+  }, [initialData, parentCoords, form]);
 
   const onSubmit = (values: FormValues) => {
     onFinished(values);
@@ -87,15 +90,15 @@ export function MeterRequestForm({ equipment, onFinished, isFinished, initialDat
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-                <Label>Coordonnées Anciennes</Label>
+                <Label>Coordonnées Parent</Label>
                 <div className="grid grid-cols-2 gap-4">
-                    <Input value={equipment.coordX || 'N/A'} readOnly disabled />
-                    <Input value={equipment.coordY || 'N/A'} readOnly disabled />
+                    <Input value={parentCoords.x || 'N/A'} readOnly disabled />
+                    <Input value={parentCoords.y || 'N/A'} readOnly disabled />
                 </div>
             </div>
              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                    <FormLabel>Coordonnées Nouvelles</FormLabel>
+                    <FormLabel>Coordonnées Compteur</FormLabel>
                     <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate} disabled={isFinished}><MapPin className="mr-2 h-4 w-4" /> Actuelle</Button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Building2, PlusCircle, Network, Pencil } from "lucide-react";
+import { File, Building2, PlusCircle, Network, Pencil, Gauge } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import {
@@ -146,6 +146,7 @@ export default function BuildingsPage() {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     {user.role === 'Technicien' && (
+                        <>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" asChild>
@@ -158,6 +159,19 @@ export default function BuildingsPage() {
                                 <p>Ajouter un équipement</p>
                             </TooltipContent>
                         </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link href={`/dashboard/buildings/${building.id}/new-meter`}>
+                                        <Gauge className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Gérer le compteur</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </>
                     )}
                     {user.role === "Moyen Bâtiment" && (
                          <EditBuildingForm building={building} />
@@ -186,3 +200,4 @@ export default function BuildingsPage() {
     </TooltipProvider>
   );
 }
+
