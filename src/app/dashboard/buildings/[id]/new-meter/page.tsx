@@ -38,16 +38,26 @@ export default function NewMeterWorkflowPage() {
                 if (meter.status === 'En service') {
                     setCurrentStep(4); // All done
                 } else if (meter.dateMiseEnService && !meter.id.startsWith('MTR-WIP-')) {
-                    // This means it's installed but not commissioned
+                     // This means it's installed but not commissioned
                     setCurrentStep(3);
                 } else if (meter.id.startsWith('MTR-WIP-')) {
-                    // This is a request in progress
+                    // This is a request in progress, installation is next
                     setCurrentStep(2);
-                } else {
-                    // Meter exists but is not a WIP, likely needs installation details
+                } else if (meter) {
+                    // A meter is assigned, but not a WIP and not in service.
+                    // This likely means it needs installation details.
                     setCurrentStep(2);
                 }
+            } else {
+                 // Building has a meterId, but we can't find that meter.
+                 // Treat as a new request.
+                setCurrentStep(1);
+                setWipMeter(undefined);
             }
+        } else {
+            // No meterId on building, definitely a new request.
+            setCurrentStep(1);
+            setWipMeter(undefined);
         }
     }, [buildingItem, meters]);
 
