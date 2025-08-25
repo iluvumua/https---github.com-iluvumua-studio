@@ -29,6 +29,26 @@ export default function NewMeterWorkflowPage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [wipMeter, setWipMeter] = useState<Meter | undefined>(undefined);
 
+     // This effect runs only once on mount to handle pre-filling from a parent building.
+    useEffect(() => {
+        const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
+        if (equipmentItem) {
+            const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
+            if (parentBuilding && parentBuilding.meterId) {
+                if (equipmentItem.compteurId !== parentBuilding.meterId) {
+                    updateEquipment({
+                        ...equipmentItem,
+                        compteurId: parentBuilding.meterId,
+                        coordX: parentBuilding.coordX,
+                        coordY: parentBuilding.coordY,
+                        lastUpdate: new Date().toISOString().split('T')[0],
+                    });
+                }
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [equipmentId]); // Run only when equipmentId changes
+
     useEffect(() => {
         if (equipmentItem) {
             // Case 1: Indoor equipment in a building that already has a meter
@@ -39,17 +59,6 @@ export default function NewMeterWorkflowPage() {
                     // Pre-fill everything and jump to step 3
                     setWipMeter(buildingMeter);
                     setCurrentStep(3);
-                    
-                    // Also update the equipment with the meterId if it's not already set
-                    if (equipmentItem.compteurId !== buildingMeter.id) {
-                         updateEquipment({
-                            ...equipmentItem,
-                            compteurId: buildingMeter.id,
-                            coordX: parentBuilding.coordX,
-                            coordY: parentBuilding.coordY,
-                            lastUpdate: new Date().toISOString().split('T')[0],
-                        });
-                    }
                     return; // Stop further processing
                 }
             }
@@ -75,7 +84,7 @@ export default function NewMeterWorkflowPage() {
                 }
             }
         }
-    }, [equipmentItem, meters, buildings, updateEquipment]);
+    }, [equipmentItem, meters, buildings]);
 
 
     if (!equipmentItem) {
