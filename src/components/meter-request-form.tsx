@@ -65,7 +65,7 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
             typeTension: initialData.typeTension || 'Moyenne Tension',
         });
     }
-  }, [initialData, parentCoords, form]);
+  }, [initialData, parentCoords, form.reset]);
 
   const onSubmit = (values: FormValues) => {
     onFinished(values);
