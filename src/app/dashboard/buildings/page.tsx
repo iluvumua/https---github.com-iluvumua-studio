@@ -144,7 +144,7 @@ export default function BuildingsPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     {user.role === 'Technicien' && (
                         <>
                         <Tooltip>
@@ -159,6 +159,9 @@ export default function BuildingsPage() {
                                 <p>Ajouter un équipement</p>
                             </TooltipContent>
                         </Tooltip>
+                        </>
+                    )}
+                    {user.role === "Moyen Bâtiment" && (
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" asChild>
@@ -171,7 +174,6 @@ export default function BuildingsPage() {
                                 <p>Gérer le compteur</p>
                             </TooltipContent>
                         </Tooltip>
-                        </>
                     )}
                     {user.role === "Moyen Bâtiment" && (
                          <EditBuildingForm building={building} />
@@ -200,4 +202,3 @@ export default function BuildingsPage() {
     </TooltipProvider>
   );
 }
-

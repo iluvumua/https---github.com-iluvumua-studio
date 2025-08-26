@@ -198,7 +198,7 @@ export default function MeterBillingPage() {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                      {user.role === "Financier" && (
                         <Tooltip>
                           <TooltipTrigger asChild>
