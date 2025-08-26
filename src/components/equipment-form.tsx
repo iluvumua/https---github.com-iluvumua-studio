@@ -220,15 +220,17 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     router.push('/dashboard/equipment');
   }
 
-  const canEdit = user.role === 'Technicien' || user.role === 'Responsable Énergie et Environnement';
+  const canEdit = user.role === 'Responsable Énergie et Environnement';
+  const canCreate = user.role === 'Technicien';
 
-  if (!canEdit) {
-    return (
-        <div className="p-4 text-center text-muted-foreground">
-            Vous n'avez pas la permission de voir ce formulaire.
-        </div>
-    );
+  if (isEditMode && !canEdit && !canCreate) {
+      return (
+          <div className="p-4 text-center text-muted-foreground">
+              Vous n'avez pas la permission de modifier cet équipement.
+          </div>
+      );
   }
+
 
   const showResiliationFields = isEditMode && (initialEquipment.status === 'En service' || initialEquipment.status === 'En cours de résiliation');
 
@@ -247,6 +249,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       options={fournisseurs.map(f => ({ value: f.value, label: f.label }))}
                       value={field.value}
                       onChange={field.onChange}
+                      disabled={isEditMode && !canEdit}
                     />
                     <FormMessage />
                   </FormItem>
@@ -263,7 +266,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       options={localisations.map(l => ({ value: l.value, label: l.label }))}
                       value={field.value}
                       onChange={field.onChange}
-                      disabled={!!building}
+                      disabled={!!building || (isEditMode && !canEdit)}
                     />
                     <FormMessage />
                   </FormItem>
@@ -275,7 +278,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode && !canEdit}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner le type" />
@@ -298,7 +301,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Type de Châssis</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: 7302" {...field} />
+                      <Input placeholder="ex: 7302" {...field} disabled={isEditMode && !canEdit} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -311,7 +314,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Désignation (Optionnel)</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} readOnly={!!building} />
+                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} readOnly={!!building} disabled={isEditMode && !canEdit} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -321,11 +324,11 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <Label>Coordonnées</Label>
-                        <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
+                        <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate} disabled={isEditMode && !canEdit}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} /></FormControl><FormMessage /></FormItem> )}/>
-                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEdit} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEdit} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
               
@@ -358,7 +361,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       <FormItem className="flex flex-col"><FormLabel>Date Résiliation Compteur</FormLabel>
                           <Popover><PopoverTrigger asChild>
                               <FormControl>
-                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")} disabled={!canEdit}>
                                   {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
@@ -375,7 +378,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                       <FormItem className="flex flex-col"><FormLabel>Date Résiliation Équipement</FormLabel>
                           <Popover><PopoverTrigger asChild>
                               <FormControl>
-                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")} disabled={!canEdit}>
                                   {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
                                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
@@ -391,15 +394,17 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 </div>
               )}
             </div>
-            <div className="flex justify-end gap-2 mt-8">
-                <Button type="button" variant="ghost" asChild>
-                    <Link href="/dashboard/equipment"><X className="mr-2" /> Annuler</Link>
-                </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2" /> Enregistrer
-                </Button>
-            </div>
+            {(canCreate || canEdit) && (
+                 <div className="flex justify-end gap-2 mt-8">
+                    <Button type="button" variant="ghost" asChild>
+                        <Link href="/dashboard/equipment"><X className="mr-2" /> Annuler</Link>
+                    </Button>
+                    <Button type="submit" disabled={form.formState.isSubmitting}>
+                        {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Save className="mr-2" /> Enregistrer
+                    </Button>
+                </div>
+            )}
           </form>
         </Form>
   );

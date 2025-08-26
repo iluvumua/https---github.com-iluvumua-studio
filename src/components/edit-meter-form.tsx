@@ -34,7 +34,7 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
   const { updateMeter } = useMetersStore();
   const router = useRouter();
   const { toast } = useToast();
-  const canEdit = user.role === 'Technicien' || user.role === 'Responsable Énergie et Environnement';
+  const canEdit = user.role === 'Responsable Énergie et Environnement';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
