@@ -25,7 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from './ui/calendar';
-import { useBuildingsStore } from './use-buildings-store';
+import { useBuildingsStore } from '@/hooks/use-buildings-store';
 
 const formSchema = z.object({
   dateDemandeResiliation: z.date().optional(),
