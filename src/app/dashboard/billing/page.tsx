@@ -52,15 +52,17 @@ export default function BillingPage() {
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
     if (!meter) return "N/A";
-    
+
+    const associatedEquipment = equipment.filter(e => e.compteurId === meter.id);
+    if (associatedEquipment.length > 0) {
+      return associatedEquipment.map(e => e.name).join(', ');
+    }
+
     if (meter.buildingId) {
         const building = buildings.find(b => b.id === meter.buildingId);
         return building?.name || "Bâtiment Inconnu";
     }
-    if (meter.equipmentId) {
-        const eq = equipment.find(e => e.id === meter.equipmentId);
-        return eq?.name || "Équipement Inconnu";
-    }
+
     return "Non Associé";
   }
 
