@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2 } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal } from "lucide-react";
 import React, { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,7 @@ import { useSearchParams } from "next/navigation";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useUser } from "@/hooks/use-user";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 function MetersPageComponent() {
   const { meters } = useMetersStore();
@@ -147,7 +148,7 @@ function MetersPageComponent() {
                   <TableHead>Type de Tension</TableHead>
                   <TableHead>État</TableHead>
                   <TableHead>Dernière MAJ</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="w-[100px] text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -178,26 +179,42 @@ function MetersPageComponent() {
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">{formatShortDate(meter.lastUpdate)}</TableCell>
                         <TableCell>
-                        <div className="flex items-center gap-1">
-                           {meter.description && (
-                                 <Popover>
-                                    <PopoverTrigger asChild>
+                            <div className="flex items-center justify-end">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon">
-                                            <Info className="h-4 w-4" />
+                                            <MoreHorizontal className="h-4 w-4" />
                                         </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent>
-                                        <p className="text-sm">{meter.description}</p>
-                                    </PopoverContent>
-                                </Popover>
-                            )}
-                            <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/meters/${meter.id}/edit`}>
-                                    <Pencil className="h-4 w-4" />
-                                </Link>
-                            </Button>
-                            {canResiliate && <ResiliationDialog item={meter} itemType="meter" />}
-                        </div>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        {meter.description && (
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                        <Info className="mr-2 h-4 w-4" />
+                                                        Détails
+                                                    </DropdownMenuItem>
+                                                </PopoverTrigger>
+                                                <PopoverContent>
+                                                    <p className="text-sm">{meter.description}</p>
+                                                </PopoverContent>
+                                            </Popover>
+                                        )}
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/dashboard/meters/${meter.id}/edit`}>
+                                                <Pencil className="mr-2 h-4 w-4" />
+                                                Modifier
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        {canResiliate && (
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                                                <ResiliationDialog item={meter} itemType="meter" />
+                                            </DropdownMenuItem>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </TableCell>
                     </TableRow>
                 ))}

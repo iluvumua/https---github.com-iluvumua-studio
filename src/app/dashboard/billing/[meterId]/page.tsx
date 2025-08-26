@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Calculator, File, FileText, PlusCircle, Search, History, Pencil } from "lucide-react";
+import { Calculator, File, FileText, PlusCircle, Search, History, Pencil, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { useParams } from "next/navigation";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function MeterBillingPage() {
   const params = useParams();
@@ -162,7 +163,7 @@ export default function MeterBillingPage() {
               <TableHead>Type</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
               <TableHead className="text-right">Montant</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -198,20 +199,23 @@ export default function MeterBillingPage() {
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center justify-end">
                      {user.role === "Financier" && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/billing/edit/${bill.id}`}>
-                                    <Pencil className="h-4 w-4" />
-                                </Link>
+                       <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Modifier la facture</p>
-                          </TooltipContent>
-                        </Tooltip>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                               <Link href={`/dashboard/billing/edit/${bill.id}`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Modifier
+                                </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                     )}
                   </div>
                 </TableCell>

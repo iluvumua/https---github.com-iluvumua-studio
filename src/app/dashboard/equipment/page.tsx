@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2 } from "lucide-react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -37,6 +37,7 @@ import { locationsData } from "@/lib/locations";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { Separator } from "@/components/ui/separator";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
@@ -85,7 +86,7 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                 <TableHead>Type</TableHead>
                 <TableHead>Fournisseur</TableHead>
                 <TableHead>Date Mise en Service Équip.</TableHead>
-                <TableHead className="w-[120px]">Actions</TableHead>
+                <TableHead className="w-[120px] text-right">Actions</TableHead>
             </TableRow>
             </TableHeader>
             <TableBody>
@@ -132,37 +133,53 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                         <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
                         <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
                         <TableCell>
-                        <div className="flex items-center gap-1">
-                            {item.status === 'En cours' && (
-                            <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
-                                <PlusCircleIcon className="h-4 w-4" />
-                                </Link>
-                            </Button>
-                            )}
-                            {item.coordX && item.coordY && (
-                            <Button variant="ghost" size="icon" asChild>
-                                <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
-                                <MapPin className="h-4 w-4" />
-                                </Link>
-                            </Button>
-                            )}
-                            {item.compteurId && (
-                            <>
-                                <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/meters?search=${item.compteurId}`}>
-                                    <Gauge className="h-4 w-4" />
-                                </Link>
-                                </Button>
-                            </>
-                            )}
-                            <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/dashboard/equipment/${item.id}/edit`}>
-                                <Pencil className="h-4 w-4" />
-                            </Link>
-                            </Button>
-                             {canResiliate && <ResiliationDialog item={item} itemType="equipment" />}
-                        </div>
+                            <div className="flex items-center justify-end">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        {item.status === 'En cours' && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
+                                                    <PlusCircleIcon className="mr-2 h-4 w-4" />
+                                                    Ajouter Compteur
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
+                                        {item.coordX && item.coordY && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
+                                                    <MapPin className="mr-2 h-4 w-4" />
+                                                    Voir sur la carte
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
+                                        {item.compteurId && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/dashboard/meters?search=${item.compteurId}`}>
+                                                    <Gauge className="mr-2 h-4 w-4" />
+                                                    Voir Compteur
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                                <Pencil className="mr-2 h-4 w-4" />
+                                                Modifier
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        {canResiliate && (
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                                                <ResiliationDialog item={item} itemType="equipment" />
+                                            </DropdownMenuItem>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </TableCell>
                     </TableRow>
                     {isExpanded && (

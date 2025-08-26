@@ -1,7 +1,7 @@
 
 "use client";
 
-import { File, Building2, PlusCircle, Network, Pencil, Gauge } from "lucide-react";
+import { File, Building2, PlusCircle, Network, Pencil, Gauge, MoreHorizontal } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import {
@@ -25,12 +25,7 @@ import type { Building } from "@/lib/types";
 import { EditBuildingForm } from "@/components/edit-building-form";
 import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
@@ -69,7 +64,6 @@ export default function BuildingsPage() {
     };
 
   return (
-    <TooltipProvider>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -127,7 +121,7 @@ export default function BuildingsPage() {
               <TableHead>Délégation</TableHead>
               <TableHead>Nature</TableHead>
               <TableHead>Propriété</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -144,52 +138,44 @@ export default function BuildingsPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1">
-                    {user.role === 'Technicien' && (
-                        <>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" asChild>
-                                    <Link href={`/dashboard/equipment/new?buildingId=${building.id}`}>
-                                        <Network className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Ajouter un équipement</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        </>
-                    )}
-                    {user.role === "Moyen Bâtiment" && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" asChild>
-                                    <Link href={`/dashboard/buildings/${building.id}/new-meter`}>
-                                        <Gauge className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Gérer le compteur</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
-                    {user.role === "Moyen Bâtiment" && (
-                         <EditBuildingForm building={building} />
-                    )}
-                    {user.role !== "Moyen Bâtiment" && (
-                       <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" disabled>
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Modification réservée</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
+                  <div className="flex items-center justify-end gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {user.role === 'Technicien' && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/equipment/new?buildingId=${building.id}`}>
+                                    <Network className="mr-2 h-4 w-4" />
+                                    Ajouter équipement
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        {user.role === "Moyen Bâtiment" && (
+                             <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/buildings/${building.id}/new-meter`}>
+                                    <Gauge className="mr-2 h-4 w-4" />
+                                    Gérer le compteur
+                                </Link>
+                            </DropdownMenuItem>
+                        )}
+                        {user.role === "Moyen Bâtiment" && (
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                <EditBuildingForm building={building} />
+                            </DropdownMenuItem>
+                        )}
+                        {user.role !== "Moyen Bâtiment" && (
+                             <DropdownMenuItem disabled>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Modification réservée
+                            </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
@@ -199,6 +185,5 @@ export default function BuildingsPage() {
         )}
       </CardContent>
     </Card>
-    </TooltipProvider>
   );
 }

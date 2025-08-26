@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace, Bell, Check, Settings } from "lucide-react";
+import { File, FileText, PlusCircle, Search, ChevronRight, Info, Replace, Bell, Check, Settings, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -36,6 +36,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useAnomaliesStore } from "@/hooks/use-anomalies-store";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -195,7 +196,7 @@ export default function BillingPage() {
               <TableHead>N° Compteur</TableHead>
               <TableHead>District STEG</TableHead>
               <TableHead>Associé à</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -206,24 +207,35 @@ export default function BillingPage() {
                 <TableCell>{item.districtSteg}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell>
-                    <div className="flex items-center gap-1">
-                        {item.description && (
-                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <Info className="h-4 w-4" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent>
-                                    <p className="text-sm">{item.description}</p>
-                                </PopoverContent>
-                            </Popover>
-                        )}
-                        <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/dashboard/billing/${item.id}`}>
-                                <ChevronRight className="h-4 w-4" />
-                            </Link>
-                        </Button>
+                    <div className="flex items-center justify-end gap-1">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {item.description && (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <Info className="mr-2 h-4 w-4" />
+                                            Détails
+                                        </DropdownMenuItem>
+                                    </PopoverTrigger>
+                                    <PopoverContent>
+                                        <p className="text-sm">{item.description}</p>
+                                    </PopoverContent>
+                                </Popover>
+                                )}
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/billing/${item.id}`}>
+                                        <ChevronRight className="mr-2 h-4 w-4" />
+                                        Voir Factures
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </TableCell>
               </TableRow>

@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -140,9 +141,22 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
        <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" disabled={!canResiliate}>
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
+        <span className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full"
+            onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
+        >
+            {itemType === "meter" && (
+                <>
+                    <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                    <span>Résilier Compteur</span>
+                </>
+            )}
+            {itemType === "equipment" && (
+                <>
+                     <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                     <span>Résilier Équipement</span>
+                </>
+            )}
+        </span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
        <Form {...form}>
@@ -231,7 +245,9 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
                )}
             </div>
             <DialogFooter className="mt-4">
-                <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
+              <DialogClose asChild>
+                <Button type="button" variant="ghost">Annuler</Button>
+              </DialogClose>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Enregistrer
