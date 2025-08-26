@@ -27,7 +27,7 @@ export default function NewMeterWorkflowPage() {
     const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
 
     const [currentStep, setCurrentStep] = useState(1);
-    const [wipMeter, setWipMeter] = useState<Meter | undefined>(undefined);
+    const [wipMeter, setWipMeter] = useState<Partial<Meter> | undefined>(undefined);
 
      // This effect runs only once on mount to handle pre-filling from a parent building.
     useEffect(() => {
@@ -102,8 +102,8 @@ export default function NewMeterWorkflowPage() {
         )
     }
     
-    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number }) => {
-        const newMeter: Meter = {
+    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
+        const newMeter: Partial<Meter> = {
             id: `MTR-WIP-${Date.now()}`,
             status: 'En cours',
             typeTension: data.typeTension,
@@ -111,9 +111,12 @@ export default function NewMeterWorkflowPage() {
             dateDemandeInstallation: data.dateDemandeInstallation.toISOString().split('T')[0],
             lastUpdate: new Date().toISOString().split('T')[0],
             districtSteg: data.districtSteg,
-            description: `Demande pour équipement ${equipmentItem.name}`
+            description: `Demande pour équipement ${equipmentItem.name}`,
+            phase: data.phase,
+            amperage: data.amperage,
+            amperageAutre: data.amperageAutre
         }
-        addMeter(newMeter);
+        addMeter(newMeter as Meter);
         
         updateEquipment({
             ...equipmentItem,
@@ -127,13 +130,14 @@ export default function NewMeterWorkflowPage() {
         setCurrentStep(2);
     }
     
-    const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string }) => {
+    const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string, indexDepart: number }) => {
         if (wipMeter) {
             const tempId = wipMeter.id;
             const updatedWipMeter: Meter = {
-                ...wipMeter,
+                ...(wipMeter as Meter),
                 id: data.meterId,
                 dateMiseEnService: data.dateMiseEnService,
+                indexDepart: data.indexDepart,
                 lastUpdate: new Date().toISOString().split('T')[0],
                 status: 'En cours', // Remain 'En cours'
             };
@@ -158,10 +162,10 @@ export default function NewMeterWorkflowPage() {
             // Only update meter status if it's not already in service
             if (wipMeter.status !== 'En service') {
                 updateMeter({
-                    ...wipMeter,
+                    ...(wipMeter as Meter),
                     status: 'En service',
                     lastUpdate: new Date().toISOString().split('T')[0],
-                }, wipMeter.id);
+                }, wipMeter.id as string);
             }
 
             updateEquipment({

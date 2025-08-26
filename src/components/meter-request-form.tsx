@@ -1,7 +1,8 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar } from "./ui/calendar";
 import { Label } from "./ui/label";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 const formSchema = z.object({
   coordX: z.coerce.number().optional(),
@@ -25,6 +27,17 @@ const formSchema = z.object({
   policeNumber: z.string().optional(),
   districtSteg: z.string().min(1, "Le district STEG est requis."),
   typeTension: z.enum(["Moyenne Tension", "Basse Tension"]),
+  phase: z.enum(["Triphasé", "Monophasé"], { required_error: "Le type de phase est requis." }),
+  amperage: z.enum(["16A", "32A", "63A", "Autre"], { required_error: "L'ampérage est requis." }),
+  amperageAutre: z.string().optional(),
+}).refine(data => {
+    if (data.amperage === 'Autre') {
+        return !!data.amperageAutre;
+    }
+    return true;
+}, {
+    message: "Veuillez préciser l'ampérage.",
+    path: ['amperageAutre'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -34,7 +47,7 @@ interface MeterRequestFormProps {
     building?: Building;
     onFinished: (data: FormValues) => void;
     isFinished?: boolean;
-    initialData?: Meter;
+    initialData?: Partial<Meter>;
 }
 
 export function MeterRequestForm({ equipment, building, onFinished, isFinished, initialData }: MeterRequestFormProps) {
@@ -45,26 +58,35 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        coordX: parentCoords.x ?? 0,
-        coordY: parentCoords.y ?? 0,
-        dateDemandeInstallation: undefined,
-        policeNumber: "",
-        districtSteg: "",
-        typeTension: "Moyenne Tension",
+        coordX: initialData?.coordX ?? parentCoords.x ?? 0,
+        coordY: initialData?.coordY ?? parentCoords.y ?? 0,
+        dateDemandeInstallation: initialData?.dateDemandeInstallation ? new Date(initialData.dateDemandeInstallation) : undefined,
+        policeNumber: initialData?.policeNumber || "",
+        districtSteg: initialData?.districtSteg || "",
+        typeTension: initialData?.typeTension || "Basse Tension",
+        phase: initialData?.phase,
+        amperage: initialData?.amperage,
+        amperageAutre: initialData?.amperageAutre || "",
     }
   });
 
-  useEffect(() => {
+  const watchedAmperage = form.watch('amperage');
+
+  React.useEffect(() => {
     if (initialData) {
         form.reset({
             coordX: parentCoords.x ?? 0,
             coordY: parentCoords.y ?? 0,
-            dateDemandeInstallation: initialData.dateDemandeInstallation ? new Date(initialData.dateDemandeInstallation) : new Date(),
+            dateDemandeInstallation: initialData.dateDemandeInstallation ? new Date(initialData.dateDemandeInstallation) : undefined,
             policeNumber: initialData.policeNumber || '',
             districtSteg: initialData.districtSteg || '',
-            typeTension: initialData.typeTension || 'Moyenne Tension',
+            typeTension: initialData.typeTension || 'Basse Tension',
+            phase: initialData.phase,
+            amperage: initialData.amperage,
+            amperageAutre: initialData.amperageAutre || '',
         });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, parentCoords.x, parentCoords.y, form.reset]);
 
   const onSubmit = (values: FormValues) => {
@@ -153,6 +175,36 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
                 </FormItem>
             )} />
 
+             <FormField control={form.control} name="phase" render={({ field }) => (
+                <FormItem className="space-y-3"><FormLabel>Phase</FormLabel>
+                    <FormControl>
+                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4" disabled={isFinished}>
+                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Monophasé" /></FormControl><FormLabel className="font-normal">Monophasé</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Triphasé" /></FormControl><FormLabel className="font-normal">Triphasé</FormLabel></FormItem>
+                        </RadioGroup>
+                    </FormControl>
+                <FormMessage />
+                </FormItem>
+             )} />
+
+            <FormField control={form.control} name="amperage" render={({ field }) => (
+                <FormItem className="space-y-3"><FormLabel>Ampérage</FormLabel>
+                    <FormControl>
+                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4" disabled={isFinished}>
+                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="16A" /></FormControl><FormLabel className="font-normal">16A</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="32A" /></FormControl><FormLabel className="font-normal">32A</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="63A" /></FormControl><FormLabel className="font-normal">63A</FormLabel></FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0"><FormControl><RadioGroupItem value="Autre" /></FormControl><FormLabel className="font-normal">Autre</FormLabel></FormItem>
+                        </RadioGroup>
+                    </FormControl>
+                     {watchedAmperage === 'Autre' && (
+                        <FormField control={form.control} name="amperageAutre" render={({ field }) => (
+                            <FormItem><FormControl><Input placeholder="Préciser l'ampérage" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                    )}
+                <FormMessage />
+                </FormItem>
+             )} />
 
             {!isFinished && (
                 <div className="flex justify-end gap-2 mt-8">

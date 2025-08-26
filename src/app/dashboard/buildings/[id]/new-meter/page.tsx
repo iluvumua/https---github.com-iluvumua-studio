@@ -28,7 +28,7 @@ export default function NewMeterWorkflowPage() {
     const buildingItem = Array.isArray(buildingId) ? undefined : buildings.find(b => b.id === buildingId);
 
     const [currentStep, setCurrentStep] = useState(1);
-    const [wipMeter, setWipMeter] = useState<Meter | undefined>(undefined);
+    const [wipMeter, setWipMeter] = useState<Partial<Meter> | undefined>(undefined);
 
     useEffect(() => {
         if (buildingItem) {
@@ -60,8 +60,8 @@ export default function NewMeterWorkflowPage() {
         )
     }
     
-    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number }) => {
-        const newMeter: Meter = {
+    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
+        const newMeter: Partial<Meter> = {
             id: `MTR-WIP-${Date.now()}`,
             status: 'En cours',
             typeTension: data.typeTension,
@@ -70,9 +70,13 @@ export default function NewMeterWorkflowPage() {
             lastUpdate: new Date().toISOString().split('T')[0],
             buildingId: buildingItem.id,
             districtSteg: data.districtSteg,
-            description: `Demande pour bâtiment ${buildingItem.name}`
+            description: `Demande pour bâtiment ${buildingItem.name}`,
+            phase: data.phase,
+            amperage: data.amperage,
+            amperageAutre: data.amperageAutre,
         }
-        addMeter(newMeter);
+        
+        addMeter(newMeter as Meter);
         
         updateBuilding({
             ...buildingItem,
@@ -85,13 +89,14 @@ export default function NewMeterWorkflowPage() {
         setCurrentStep(2);
     }
     
-    const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string }) => {
+    const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string, indexDepart: number }) => {
         if (wipMeter) {
             const tempId = wipMeter.id;
             const updatedWipMeter: Meter = {
-                ...wipMeter,
+                ...(wipMeter as Meter),
                 id: data.meterId,
                 dateMiseEnService: data.dateMiseEnService,
+                indexDepart: data.indexDepart,
                 lastUpdate: new Date().toISOString().split('T')[0],
                 status: 'En cours',
             };
@@ -113,7 +118,7 @@ export default function NewMeterWorkflowPage() {
     const handleStep3Finish = () => {
         if(wipMeter) {
             updateMeter({
-                ...wipMeter,
+                ...(wipMeter as Meter),
                 status: 'En service',
                 lastUpdate: new Date().toISOString().split('T')[0],
             }, wipMeter.id);

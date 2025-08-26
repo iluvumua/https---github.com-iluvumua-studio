@@ -114,6 +114,10 @@ export type Meter = {
     replaces?: string; // ID of the meter this one replaces
     replacedBy?: string; // ID of the meter that replaced this one
     districtSteg?: string;
+    phase?: 'Triphasé' | 'Monophasé';
+    amperage?: '16A' | '32A' | '63A' | 'Autre';
+    amperageAutre?: string;
+    indexDepart?: number;
 }
 
       
