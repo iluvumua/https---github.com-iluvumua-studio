@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2, MoreHorizontal } from "lucide-react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2, MoreHorizontal, History } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -38,6 +38,7 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { Separator } from "@/components/ui/separator";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
@@ -173,9 +174,28 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                                         </DropdownMenuItem>
                                         {canResiliate && (
                                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                                                 <ResiliationDialog item={item} itemType="equipment" />
                                             </DropdownMenuItem>
+                                        )}
+                                        {item.status === 'Résilié' && item.associationHistory && item.associationHistory.length > 0 && (
+                                             <Popover>
+                                                <PopoverTrigger asChild>
+                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                        <History className="mr-2 h-4 w-4" />
+                                                        Historique
+                                                    </DropdownMenuItem>
+                                                </PopoverTrigger>
+                                                <PopoverContent>
+                                                    <div className="space-y-2">
+                                                        <h4 className="font-medium text-sm">Historique d'Association</h4>
+                                                        <ul className="list-disc pl-4 text-xs text-muted-foreground">
+                                                            {item.associationHistory.map((entry, idx) => (
+                                                                <li key={idx}>{entry}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
                                         )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>

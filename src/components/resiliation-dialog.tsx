@@ -75,6 +75,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
     if (isEquipment && equipment) {
         let newStatus: Equipment['status'] = equipment.status;
         let meterStatusUpdate: Partial<Meter> | null = null;
+        let history = equipment.associationHistory || [];
 
         if (values.dateDemandeResiliationEquipement && equipment.status === 'En service') {
             newStatus = 'En cours de résiliation';
@@ -85,6 +86,11 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
              if (equipment.compteurId) {
                 const associatedMeter = meters.find(m => m.id === equipment.compteurId);
                 const otherAssociations = allEquipment.some(e => e.id !== equipment.id && e.compteurId === equipment.compteurId && e.status !== 'Résilié') || buildings.some(b => b.meterId === equipment.compteurId);
+                
+                if (associatedMeter) {
+                    history.push(`Associé au compteur ${associatedMeter.id} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
+                }
+
                 if (associatedMeter && !otherAssociations) {
                     meterStatusUpdate = { id: associatedMeter.id, status: 'En cours' };
                 }
@@ -97,6 +103,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             dateDemandeResiliation: values.dateDemandeResiliationEquipement?.toISOString().split('T')[0],
             dateResiliationEquipement: values.dateResiliationEquipement?.toISOString().split('T')[0],
             lastUpdate: new Date().toISOString().split('T')[0],
+            associationHistory: history,
         });
         
         if (meterStatusUpdate) {
@@ -107,6 +114,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
     } else if (meter) {
         let newStatus: Meter['status'] = meter.status;
         let equipmentStatusUpdate: Partial<Equipment> | null = null;
+        let history = meter.associationHistory || [];
         
         if (values.dateDemandeResiliation && meter.status === 'En service') {
             newStatus = 'En cours de resiliation';
@@ -116,6 +124,12 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             const associatedEquip = allEquipment.find(e => e.compteurId === meter.id && e.status !== 'Résilié');
             if (associatedEquip) {
                 equipmentStatusUpdate = { id: associatedEquip.id, status: 'En cours' };
+                history.push(`Associé à l'équipement ${associatedEquip.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
+            } else if (meter.buildingId) {
+                const associatedBuilding = buildings.find(b => b.id === meter.buildingId);
+                if (associatedBuilding) {
+                     history.push(`Associé au bâtiment ${associatedBuilding.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
+                }
             }
         }
         
@@ -125,6 +139,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             dateDemandeResiliation: values.dateDemandeResiliation?.toISOString().split('T')[0],
             dateResiliation: values.dateResiliation?.toISOString().split('T')[0],
             lastUpdate: new Date().toISOString().split('T')[0],
+            associationHistory: history,
         });
         
         if (equipmentStatusUpdate) {

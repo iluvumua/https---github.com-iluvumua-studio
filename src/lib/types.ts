@@ -17,6 +17,7 @@ export type Equipment = {
   dateResiliationEquipement?: string;
   verifiedBy?: string;
   buildingId?: string;
+  associationHistory?: string[];
 };
 
 export type Building = {
@@ -120,6 +121,7 @@ export type Meter = {
     amperage?: '16A' | '32A' | '63A' | 'Autre';
     amperageAutre?: string;
     indexDepart?: number;
+    associationHistory?: string[];
 }
 
       

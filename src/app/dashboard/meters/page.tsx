@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History } from "lucide-react";
 import React, { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -208,9 +208,28 @@ function MetersPageComponent() {
                                         </DropdownMenuItem>
                                         {canResiliate && (
                                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                                                 <ResiliationDialog item={meter} itemType="meter" />
                                             </DropdownMenuItem>
+                                        )}
+                                        {meter.status === 'Résilié' && meter.associationHistory && meter.associationHistory.length > 0 && (
+                                             <Popover>
+                                                <PopoverTrigger asChild>
+                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                        <History className="mr-2 h-4 w-4" />
+                                                        Historique
+                                                    </DropdownMenuItem>
+                                                </PopoverTrigger>
+                                                <PopoverContent>
+                                                    <div className="space-y-2">
+                                                        <h4 className="font-medium text-sm">Historique d'Association</h4>
+                                                        <ul className="list-disc pl-4 text-xs text-muted-foreground">
+                                                            {meter.associationHistory.map((entry, idx) => (
+                                                                <li key={idx}>{entry}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
                                         )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
