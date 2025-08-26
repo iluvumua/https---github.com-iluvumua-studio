@@ -135,6 +135,9 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                         <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
                         <TableCell>
                             <div className="flex items-center justify-end gap-1">
+                                {canResiliate && (
+                                    <ResiliationDialog item={item} itemType="equipment" />
+                                )}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon">
@@ -172,11 +175,6 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                                                 Modifier
                                             </Link>
                                         </DropdownMenuItem>
-                                        {canResiliate && (
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <ResiliationDialog item={item} itemType="equipment" />
-                                            </DropdownMenuItem>
-                                        )}
                                         {item.status === 'Résilié' && item.associationHistory && item.associationHistory.length > 0 && (
                                              <Popover>
                                                 <PopoverTrigger asChild>
@@ -374,3 +372,5 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
+    

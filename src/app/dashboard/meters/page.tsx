@@ -180,6 +180,9 @@ function MetersPageComponent() {
                         <TableCell className="text-xs text-muted-foreground">{formatShortDate(meter.lastUpdate)}</TableCell>
                         <TableCell>
                             <div className="flex items-center justify-end gap-1">
+                                {canResiliate && (
+                                    <ResiliationDialog item={meter} itemType="meter" />
+                                )}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon">
@@ -206,11 +209,6 @@ function MetersPageComponent() {
                                                 Modifier
                                             </Link>
                                         </DropdownMenuItem>
-                                        {canResiliate && (
-                                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <ResiliationDialog item={meter} itemType="meter" />
-                                             </DropdownMenuItem>
-                                        )}
                                         {meter.status === 'Résilié' && meter.associationHistory && meter.associationHistory.length > 0 && (
                                              <Popover>
                                                 <PopoverTrigger asChild>
@@ -254,3 +252,5 @@ export default function MetersPage() {
         </Suspense>
     )
 }
+
+    

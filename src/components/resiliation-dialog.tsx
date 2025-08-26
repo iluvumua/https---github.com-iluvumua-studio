@@ -156,10 +156,10 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
-            <Trash2 className="mr-2 h-4 w-4" />
-            <span>{triggerText}</span>
-        </button>
+        <Button variant="ghost" size="icon">
+          <Trash2 className="h-4 w-4" />
+          <span className="sr-only">{triggerText}</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
        <Form {...form}>
@@ -260,3 +260,5 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
     </Dialog>
   );
 }
+
+    
