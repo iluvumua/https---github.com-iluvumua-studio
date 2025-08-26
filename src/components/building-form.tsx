@@ -31,21 +31,6 @@ const formSchema = z.object({
   }),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
-  
-  // Optional Meter fields
-  policeNumber: z.string().optional(),
-  typeTension: z.enum(["Moyenne Tension", "Basse Tension"]).optional(),
-  districtSteg: z.string().optional(),
-  referenceFacteur: z.string().optional(),
-
-}).refine(data => {
-    const meterFields = [data.policeNumber, data.typeTension, data.districtSteg];
-    const filledFields = meterFields.filter(Boolean).length;
-    // If any field is filled, all must be filled. If all are empty, it's valid.
-    return filledFields === 0 || filledFields === 3;
-}, {
-    message: "Veuillez remplir tous les champs du compteur (N° Police, Type, District) ou les laisser tous vides.",
-    path: ['policeNumber'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -107,26 +92,9 @@ export function BuildingForm() {
         coordY: values.coordY,
     };
     
-    if (values.policeNumber && values.typeTension && values.districtSteg) {
-        const newMeterId = `MTR-WIP-${Date.now()}`;
-        const newMeter: Meter = {
-            id: newMeterId,
-            policeNumber: values.policeNumber,
-            typeTension: values.typeTension,
-            districtSteg: values.districtSteg,
-            referenceFacteur: values.referenceFacteur,
-            status: 'En cours',
-            description: `Compteur initial pour bâtiment ${newBuilding.name}`,
-            lastUpdate: new Date().toISOString().split('T')[0],
-            buildingId: newBuildingId,
-        };
-        newBuilding.meterId = newMeter.id;
-        addMeter(newMeter);
-    }
-    
     addBuilding(newBuilding);
-    toast({ title: "Bâtiment ajouté", description: "Le nouveau bâtiment a été enregistré. Passez à l'étape suivante." });
-    router.push(`/dashboard/buildings/${newBuilding.id}/new-meter`);
+    toast({ title: "Bâtiment ajouté", description: "Le nouveau bâtiment a été enregistré." });
+    router.push(`/dashboard/buildings`);
   }
 
   return (
@@ -194,44 +162,6 @@ export function BuildingForm() {
                         <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 35.829169" {...field} /></FormControl><FormMessage /></FormItem> )} />
                     </div>
                 </div>
-
-                 <div className="md:col-span-2 space-y-4 rounded-lg border p-4">
-                    <h3 className="text-lg font-medium">
-                        Ajouter un Compteur (Optionnel)
-                    </h3>
-                     <p className="text-sm text-muted-foreground">
-                        Si vous fournissez les informations du compteur, un nouveau compteur sera créé et lié à ce bâtiment.
-                    </p>
-                    <Separator />
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <FormField control={form.control} name="typeTension" render={({ field }) => (
-                            <FormItem><FormLabel>Type de Tension</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un type"/></SelectTrigger></FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Moyenne Tension">Moyenne Tension</SelectItem>
-                                    <SelectItem value="Basse Tension">Basse Tension</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )} />
-                        <FormField control={form.control} name="districtSteg" render={({ field }) => (
-                            <FormItem><FormLabel>District STEG</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un district"/></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="SOUSSE NORD">SOUSSE NORD</SelectItem>
-                                        <SelectItem value="SOUSSE CENTRE">SOUSSE CENTRE</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )} />
-                         <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( <FormItem><FormLabel>Réf. Facteur (Optionnel)</FormLabel><FormControl><Input placeholder="ex: 378051249" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    </div>
-                </div>
             </div>
              <div className="flex justify-end gap-2 mt-8">
                 <Button type="button" variant="ghost" asChild>
@@ -239,12 +169,10 @@ export function BuildingForm() {
                 </Button>
                 <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2" /> Enregistrer et Ajouter Compteur
+                    <Save className="mr-2" /> Enregistrer
                 </Button>
             </div>
         </form>
        </Form>
   );
 }
-
-    
