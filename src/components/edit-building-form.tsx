@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,6 +51,7 @@ const formSchema = z.object({
   meterId: z.string().optional(),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
+  googleMapsUrl: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -79,11 +80,25 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
         meterId: building.meterId || '',
         coordX: building.coordX,
         coordY: building.coordY,
+        googleMapsUrl: '',
     }
   });
 
   const watchedCoords = form.watch(['coordY', 'coordX']);
+  const watchedUrl = form.watch('googleMapsUrl');
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
+
+  useEffect(() => {
+    if (watchedUrl) {
+      const match = watchedUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match && match[1] && match[2]) {
+        const lat = parseFloat(match[1]);
+        const lng = parseFloat(match[2]);
+        form.setValue('coordY', lat);
+        form.setValue('coordX', lng);
+      }
+    }
+  }, [watchedUrl, form]);
 
   const onSubmit = (values: FormValues) => {
     const updatedBuilding: Building = {
@@ -98,9 +113,10 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
        <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Pencil className="h-4 w-4" />
-        </Button>
+        <div className="w-full h-full">
+            <Pencil className="mr-2 h-4 w-4" />
+            Modifier
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
        <Form {...form}>
@@ -211,6 +227,7 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
                             </a>
                         </Button>
                     </div>
+                    <FormField control={form.control} name="googleMapsUrl" render={({ field }) => ( <FormItem><FormLabel>Lien Google Maps</FormLabel><FormControl><Input placeholder="Coller le lien Google Maps ici..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormLabel>X (Longitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 10.638617" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 35.829169" {...field} /></FormControl><FormMessage /></FormItem> )} />

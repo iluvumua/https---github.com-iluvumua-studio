@@ -57,6 +57,7 @@ const formSchema = z.object({
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
   buildingId: z.string().optional(),
+  googleMapsUrl: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -94,10 +95,24 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       coordX: initialEquipment?.coordX ?? building?.coordX ?? 0,
       coordY: initialEquipment?.coordY ?? building?.coordY ?? 0,
       buildingId: initialEquipment?.buildingId || buildingIdParam || "",
+      googleMapsUrl: '',
     },
   });
 
   const watchAllFields = form.watch();
+  const watchedUrl = form.watch('googleMapsUrl');
+
+  useEffect(() => {
+    if (watchedUrl) {
+      const match = watchedUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match && match[1] && match[2]) {
+        const lat = parseFloat(match[1]);
+        const lng = parseFloat(match[2]);
+        form.setValue('coordY', lat);
+        form.setValue('coordX', lng);
+      }
+    }
+  }, [watchedUrl, form]);
 
   useEffect(() => {
     const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
@@ -314,6 +329,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                             </a>
                         </Button>
                     </div>
+                     <FormField control={form.control} name="googleMapsUrl" render={({ field }) => ( <FormItem><FormLabel>Lien Google Maps</FormLabel><FormControl><Input placeholder="Coller le lien Google Maps ici..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <div className="grid grid-cols-2 gap-2">
                         <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>
                         <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>

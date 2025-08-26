@@ -1,7 +1,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -23,6 +23,7 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 const formSchema = z.object({
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
+  googleMapsUrl: z.string().optional(),
   dateDemandeInstallation: z.date({ required_error: "La date de demande est requise." }),
   policeNumber: z.string().optional(),
   districtSteg: z.string().min(1, "Le district STEG est requis."),
@@ -60,6 +61,7 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
     defaultValues: {
         coordX: initialData?.coordX ?? parentCoords.x ?? 0,
         coordY: initialData?.coordY ?? parentCoords.y ?? 0,
+        googleMapsUrl: '',
         dateDemandeInstallation: initialData?.dateDemandeInstallation ? new Date(initialData.dateDemandeInstallation) : undefined,
         policeNumber: initialData?.policeNumber || "",
         districtSteg: initialData?.districtSteg || "",
@@ -72,8 +74,20 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
 
   const watchedAmperage = form.watch('amperage');
   const watchedCoords = form.watch(['coordY', 'coordX']);
+  const watchedUrl = form.watch('googleMapsUrl');
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
 
+  useEffect(() => {
+    if (watchedUrl) {
+      const match = watchedUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+      if (match && match[1] && match[2]) {
+        const lat = parseFloat(match[1]);
+        const lng = parseFloat(match[2]);
+        form.setValue('coordY', lat);
+        form.setValue('coordX', lng);
+      }
+    }
+  }, [watchedUrl, form]);
 
   React.useEffect(() => {
     if (initialData) {
@@ -116,6 +130,7 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
                         </a>
                     </Button>
                 </div>
+                 <FormField control={form.control} name="googleMapsUrl" render={({ field }) => ( <FormItem><FormLabel>Lien Google Maps</FormLabel><FormControl><Input placeholder="Coller le lien Google Maps ici..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
                     <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
