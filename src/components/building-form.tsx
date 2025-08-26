@@ -7,23 +7,16 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, MapPin, Save, X } from "lucide-react";
-import { Checkbox } from "./ui/checkbox";
+import { Loader2, MapPin, Save, X, PlusCircle } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
 import { useMetersStore } from '@/hooks/use-meters-store';
-import type { Building } from '@/lib/types';
+import type { Building, Meter } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-const natureOptions = [
-    { id: 'A', label: 'Administratif' },
-    { id: 'T', label: 'Technique' },
-    { id: 'C', label: 'Commercial' },
-    { id: 'D', label: 'Dépôt' },
-] as const;
+import { Separator } from './ui/separator';
 
 const formSchema = z.object({
   code: z.string().min(1, "Le code est requis."),
@@ -35,16 +28,37 @@ const formSchema = z.object({
   nature: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "Vous devez sélectionner au moins une nature.",
   }),
-  meterId: z.string().optional(),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
+  
+  // Optional Meter fields
+  policeNumber: z.string().optional(),
+  typeTension: z.enum(["Moyenne Tension", "Basse Tension"]).optional(),
+  districtSteg: z.string().optional(),
+  referenceFacteur: z.string().optional(),
+
+}).refine(data => {
+    const meterFields = [data.policeNumber, data.typeTension, data.districtSteg];
+    const filledFields = meterFields.filter(Boolean).length;
+    // If any field is filled, all must be filled. If all are empty, it's valid.
+    return filledFields === 0 || filledFields === 3;
+}, {
+    message: "Veuillez remplir tous les champs du compteur (N° Police, Type, District) ou les laisser tous vides.",
+    path: ['policeNumber'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
+const natureOptions = [
+    { id: 'A', label: 'Administratif' },
+    { id: 'T', label: 'Technique' },
+    { id: 'C', label: 'Commercial' },
+    { id: 'D', label: 'Dépôt' },
+] as const;
+
 export function BuildingForm() {
   const { addBuilding } = useBuildingsStore();
-  const { meters } = useMetersStore();
+  const { addMeter } = useMetersStore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -58,7 +72,6 @@ export function BuildingForm() {
         address: '',
         propriete: '',
         nature: [],
-        meterId: '',
         coordX: 0,
         coordY: 0,
     }
@@ -79,20 +92,46 @@ export function BuildingForm() {
   }
   
   const onSubmit = (values: FormValues) => {
+    const newBuildingId = `BLD-${Date.now()}`;
     const newBuilding: Building = {
-        id: `BLD-${Date.now()}`,
-        ...values,
-        meterId: values.meterId === 'none' ? undefined : values.meterId,
+        id: newBuildingId,
+        code: values.code,
+        name: values.name,
+        commune: values.commune,
+        delegation: values.delegation,
+        address: values.address,
+        propriete: values.propriete,
+        nature: values.nature,
+        coordX: values.coordX,
+        coordY: values.coordY,
     };
+    
+    if (values.policeNumber && values.typeTension && values.districtSteg) {
+        const newMeterId = `MTR-WIP-${Date.now()}`;
+        const newMeter: Meter = {
+            id: newMeterId,
+            policeNumber: values.policeNumber,
+            typeTension: values.typeTension,
+            districtSteg: values.districtSteg,
+            referenceFacteur: values.referenceFacteur,
+            status: 'En cours',
+            description: `Compteur initial pour bâtiment ${newBuilding.name}`,
+            lastUpdate: new Date().toISOString().split('T')[0],
+            buildingId: newBuildingId,
+        };
+        newBuilding.meterId = newMeter.id;
+        addMeter(newMeter);
+    }
+    
     addBuilding(newBuilding);
-    toast({ title: "Bâtiment ajouté", description: "Le nouveau bâtiment a été enregistré avec succès." });
-    router.push('/dashboard/buildings');
+    toast({ title: "Bâtiment ajouté", description: "Le nouveau bâtiment a été enregistré. Passez à l'étape suivante." });
+    router.push(`/dashboard/buildings/${newBuilding.id}/new-meter`);
   }
 
   return (
        <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
+            <div className="grid gap-4 py-4 max-h-[65vh] overflow-y-auto pr-4 md:grid-cols-2">
                 <FormField control={form.control} name="code" render={({ field }) => ( <FormItem><FormLabel>Code Bâtiment</FormLabel><FormControl><Input placeholder="ex: SO01" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Nom du Site</FormLabel><FormControl><Input placeholder="ex: Complexe Sousse République" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="commune" render={({ field }) => ( <FormItem><FormLabel>Commune</FormLabel><FormControl><Input placeholder="ex: Sousse" {...field} /></FormControl><FormMessage /></FormItem> )} />
@@ -142,29 +181,7 @@ export function BuildingForm() {
                     )}
                 />
                 <FormField control={form.control} name="propriete" render={({ field }) => ( <FormItem><FormLabel>Propriété</FormLabel><FormControl><Input placeholder="ex: Propriété TT" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField
-                    control={form.control}
-                    name="meterId"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>N° Compteur (Optionnel)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un compteur" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="none">Aucun</SelectItem>
-                                {meters.map(meter => (
-                                    <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
+                
 
                 <div className="space-y-2 md:col-span-2">
                     <div className="flex items-center justify-between">
@@ -176,6 +193,44 @@ export function BuildingForm() {
                         <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 35.829169" {...field} /></FormControl><FormMessage /></FormItem> )} />
                     </div>
                 </div>
+
+                 <div className="md:col-span-2 space-y-4 rounded-lg border p-4">
+                    <h3 className="text-lg font-medium">
+                        Ajouter un Compteur (Optionnel)
+                    </h3>
+                     <p className="text-sm text-muted-foreground">
+                        Si vous fournissez les informations du compteur, un nouveau compteur sera créé et lié à ce bâtiment.
+                    </p>
+                    <Separator />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <FormField control={form.control} name="policeNumber" render={({ field }) => ( <FormItem><FormLabel>N° Police</FormLabel><FormControl><Input placeholder="ex: 25-552200-99" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="typeTension" render={({ field }) => (
+                            <FormItem><FormLabel>Type de Tension</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un type"/></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Moyenne Tension">Moyenne Tension</SelectItem>
+                                    <SelectItem value="Basse Tension">Basse Tension</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="districtSteg" render={({ field }) => (
+                            <FormItem><FormLabel>District STEG</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un district"/></SelectTrigger></FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="SOUSSE NORD">SOUSSE NORD</SelectItem>
+                                        <SelectItem value="SOUSSE CENTRE">SOUSSE CENTRE</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )} />
+                         <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( <FormItem><FormLabel>Réf. Facteur (Optionnel)</FormLabel><FormControl><Input placeholder="ex: 378051249" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                    </div>
+                </div>
             </div>
              <div className="flex justify-end gap-2 mt-8">
                 <Button type="button" variant="ghost" asChild>
@@ -183,7 +238,7 @@ export function BuildingForm() {
                 </Button>
                 <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2" /> Enregistrer
+                    <Save className="mr-2" /> Enregistrer et Ajouter Compteur
                 </Button>
             </div>
         </form>
