@@ -330,30 +330,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     </div>
                 </div>
               
-                 <FormField
-                    control={form.control}
-                    name="compteurId"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>N° Compteur (Optionnel)</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFormDisabled}>
-                            <FormControl>
-                                <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un compteur" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                <SelectItem value="none">Aucun</SelectItem>
-                                {availableMeters.map(meter => (
-                                    <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-
               <div className="md:col-span-2 space-y-2">
                 <Label>Nom Généré</Label>
                 <Input readOnly value={generatedName} className="font-mono bg-muted" placeholder="..."/>
