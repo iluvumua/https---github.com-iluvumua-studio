@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,14 +48,14 @@ type FormValues = z.infer<typeof formSchema>;
 interface ResiliationDialogProps {
     item: Equipment | Meter;
     itemType: 'equipment' | 'meter';
-    onOpenChange: (open: boolean) => void;
 }
 
-export function ResiliationDialog({ item, itemType, onOpenChange }: ResiliationDialogProps) {
+export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   const { toast } = useToast();
   const { equipment: allEquipment, updateEquipment } = useEquipmentStore();
   const { meters, updateMeter } = useMetersStore();
   const { buildings } = useBuildingsStore();
+  const [isOpen, setIsOpen] = useState(false);
   
   const isEquipment = itemType === 'equipment';
   const equipment = isEquipment ? (item as Equipment) : undefined;
@@ -148,11 +148,20 @@ export function ResiliationDialog({ item, itemType, onOpenChange }: ResiliationD
 
         toast({ title: "Compteur Mis à Jour", description: `La demande de résiliation pour ${meter.id} a été enregistrée.` });
     }
-    onOpenChange(false);
+    setIsOpen(false);
   }
 
+  const triggerText = itemType === 'equipment' ? 'Résilier Équipement' : 'Résilier Compteur';
+
   return (
-    <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full">
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span>{triggerText}</span>
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
        <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
@@ -239,7 +248,7 @@ export function ResiliationDialog({ item, itemType, onOpenChange }: ResiliationD
                )}
             </div>
             <DialogFooter className="mt-4">
-                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Annuler</Button>
+                <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Enregistrer
@@ -247,6 +256,7 @@ export function ResiliationDialog({ item, itemType, onOpenChange }: ResiliationD
             </DialogFooter>
         </form>
        </Form>
-    </DialogContent>
+      </DialogContent>
+    </Dialog>
   );
 }
