@@ -69,7 +69,7 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId, initial
             <FormField control={form.control} name="meterId" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: 552200" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
            
             <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
-                <FormItem className="flex flex-col"><FormLabel>Date de Mise en Service du Compteur</FormLabel>
+                <FormItem className="flex flex-col"><FormLabel>Date de Mise en Service du Compteur STEG</FormLabel>
                     <Popover><PopoverTrigger asChild>
                         <FormControl>
                         <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")} disabled={isFinished}>
