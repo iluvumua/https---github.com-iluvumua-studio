@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Separator } from './ui/separator';
+import { Checkbox } from './ui/checkbox';
 
 const formSchema = z.object({
   code: z.string().min(1, "Le code est requis."),
@@ -245,3 +246,5 @@ export function BuildingForm() {
        </Form>
   );
 }
+
+    
