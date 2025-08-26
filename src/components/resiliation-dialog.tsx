@@ -25,14 +25,21 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from './ui/calendar';
+import { useBuildingsStore } from './use-buildings-store';
 
 const formSchema = z.object({
-  // For Meters
   dateDemandeResiliation: z.date().optional(),
   dateResiliation: z.date().optional(),
-  // For Equipment
   dateDemandeResiliationEquipement: z.date().optional(),
   dateResiliationEquipement: z.date().optional(),
+}).refine(data => {
+    if (data.dateResiliation) {
+        return !!data.dateDemandeResiliation;
+    }
+    return true;
+}, {
+    message: "La date de demande de résiliation doit être définie avant la date de résiliation finale.",
+    path: ["dateResiliation"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -45,8 +52,9 @@ interface ResiliationDialogProps {
 export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
-  const { updateEquipment } = useEquipmentStore();
-  const { updateMeter } = useMetersStore();
+  const { equipment: allEquipment, updateEquipment } = useEquipmentStore();
+  const { meters, updateMeter } = useMetersStore();
+  const { buildings } = useBuildingsStore();
   
   const isEquipment = itemType === 'equipment';
   const equipment = isEquipment ? (item as Equipment) : undefined;
@@ -65,12 +73,23 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   const onSubmit = (values: FormValues) => {
     if (isEquipment && equipment) {
         let newStatus: Equipment['status'] = equipment.status;
-        if (equipment.status === 'En service' && (values.dateDemandeResiliationEquipement || values.dateResiliationEquipement)) {
+        let meterStatusUpdate: Partial<Meter> | null = null;
+
+        if (values.dateDemandeResiliationEquipement && equipment.status === 'En service') {
             newStatus = 'En cours de résiliation';
         }
-        if (equipment.status === 'En cours de résiliation' && values.dateDemandeResiliationEquipement && values.dateResiliationEquipement) {
-            newStatus = 'Résilié';
+
+        if (values.dateResiliationEquipement) {
+             newStatus = 'Résilié';
+             if (equipment.compteurId) {
+                const associatedMeter = meters.find(m => m.id === equipment.compteurId);
+                const otherAssociations = allEquipment.some(e => e.id !== equipment.id && e.compteurId === equipment.compteurId && e.status !== 'Résilié') || buildings.some(b => b.meterId === equipment.compteurId);
+                if (associatedMeter && !otherAssociations) {
+                    meterStatusUpdate = { id: associatedMeter.id, status: 'En cours' };
+                }
+             }
         }
+        
         updateEquipment({
             ...equipment,
             status: newStatus,
@@ -78,15 +97,27 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             dateResiliationEquipement: values.dateResiliationEquipement?.toISOString().split('T')[0],
             lastUpdate: new Date().toISOString().split('T')[0],
         });
+        
+        if (meterStatusUpdate) {
+            updateMeter({ ...meters.find(m => m.id === meterStatusUpdate!.id)!, ...meterStatusUpdate, lastUpdate: new Date().toISOString().split('T')[0] });
+        }
+
         toast({ title: "Équipement Mis à Jour", description: `La demande de résiliation pour ${equipment.name} a été enregistrée.` });
     } else if (meter) {
         let newStatus: Meter['status'] = meter.status;
+        let equipmentStatusUpdate: Partial<Equipment> | null = null;
+        
         if (values.dateDemandeResiliation && meter.status === 'En service') {
             newStatus = 'En cours de resiliation';
         }
-        if (values.dateResiliation && meter.status === 'En cours de resiliation') {
+        if (values.dateResiliation) {
             newStatus = 'Résilié';
+            const associatedEquip = allEquipment.find(e => e.compteurId === meter.id && e.status !== 'Résilié');
+            if (associatedEquip) {
+                equipmentStatusUpdate = { id: associatedEquip.id, status: 'En cours' };
+            }
         }
+        
         updateMeter({
             ...meter,
             status: newStatus,
@@ -94,12 +125,17 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             dateResiliation: values.dateResiliation?.toISOString().split('T')[0],
             lastUpdate: new Date().toISOString().split('T')[0],
         });
+        
+        if (equipmentStatusUpdate) {
+             updateEquipment({ ...allEquipment.find(e => e.id === equipmentStatusUpdate!.id)!, ...equipmentStatusUpdate, lastUpdate: new Date().toISOString().split('T')[0] });
+        }
+
         toast({ title: "Compteur Mis à Jour", description: `La demande de résiliation pour ${meter.id} a été enregistrée.` });
     }
     setIsOpen(false);
   }
 
-  const canResiliate = item.status === 'En service' || item.status === 'En cours de resiliation';
+  const canResiliate = item.status === 'En service' || item.status === 'En cours de resiliation' || item.status === 'En cours de résiliation';
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -114,7 +150,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             <DialogHeader>
                 <DialogTitle>Demande de Résiliation</DialogTitle>
                 <DialogDescription>
-                    Saisir les dates pour la résiliation de {itemType === 'equipment' ? `l'équipement ${item.name}` : `le compteur ${item.id}`}.
+                    Saisir les dates pour la résiliation de {itemType === 'equipment' ? `l'équipement ${'name' in item ? item.name : ''}` : `le compteur ${item.id}`}.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">

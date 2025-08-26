@@ -6,7 +6,7 @@ import type { Meter } from '@/lib/types';
 interface MeterState {
   meters: Meter[];
   addMeter: (meter: Meter) => void;
-  updateMeter: (updatedMeter: Meter, oldId?: string) => void;
+  updateMeter: (updatedMeter: Partial<Meter> & { id: string }, oldId?: string) => void;
 }
 
 export const useMetersStore = create<MeterState>((set) => ({

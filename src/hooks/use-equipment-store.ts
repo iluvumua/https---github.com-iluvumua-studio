@@ -6,7 +6,7 @@ import type { Equipment } from '@/lib/types';
 interface EquipmentState {
   equipment: Equipment[];
   addEquipment: (equipment: Equipment) => void;
-  updateEquipment: (updatedEquipment: Equipment) => void;
+  updateEquipment: (updatedEquipment: Partial<Equipment> & { id: string }) => void;
 }
 
 export const useEquipmentStore = create<EquipmentState>((set) => ({
@@ -18,7 +18,7 @@ export const useEquipmentStore = create<EquipmentState>((set) => ({
   updateEquipment: (updatedEquipment) =>
     set((state) => ({
         equipment: state.equipment.map((item) =>
-            item.id === updatedEquipment.id ? updatedEquipment : item
+            item.id === updatedEquipment.id ? { ...item, ...updatedEquipment } : item
         ),
     })),
 }));
