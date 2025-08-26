@@ -24,6 +24,7 @@ import { useMetersStore } from '@/hooks/use-meters-store';
 import type { Building } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { locationsData } from '@/lib/locations';
 
 const natureOptions = [
     { id: 'A', label: 'Administratif' },
@@ -32,11 +33,16 @@ const natureOptions = [
     { id: 'D', label: 'Dépôt' },
 ] as const;
 
+const localisations = locationsData.map(loc => ({
+    value: loc.abbreviation,
+    label: loc.localite,
+}));
+
 const formSchema = z.object({
   code: z.string().min(1, "Le code est requis."),
   name: z.string().min(1, "Le nom est requis."),
   commune: z.string().min(1, "La commune est requise."),
-  delegation: z.string().min(1, "La délégation est requise."),
+  localisation: z.string().min(1, "La localisation est requise."),
   address: z.string().min(1, "L'adresse est requise."),
   propriete: z.string().min(1, "La propriété est requise."),
   nature: z.array(z.string()).refine((value) => value.some((item) => item), {
@@ -66,7 +72,7 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
         code: building.code,
         name: building.name,
         commune: building.commune,
-        delegation: building.delegation,
+        localisation: building.localisation || '',
         address: building.address,
         propriete: building.propriete,
         nature: building.nature,
@@ -120,7 +126,24 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
                 <FormField control={form.control} name="code" render={({ field }) => ( <FormItem><FormLabel>Code Bâtiment</FormLabel><FormControl><Input placeholder="ex: SO01" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Nom du Site</FormLabel><FormControl><Input placeholder="ex: Complexe Sousse République" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="commune" render={({ field }) => ( <FormItem><FormLabel>Commune</FormLabel><FormControl><Input placeholder="ex: Sousse" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="delegation" render={({ field }) => ( <FormItem><FormLabel>Délégation</FormLabel><FormControl><Input placeholder="ex: Sousse Medina" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="localisation" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Localisation</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner une localisation" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {localisations.map(l => (
+                                    <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                )} />
                 <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Adresse</FormLabel><FormControl><Input placeholder="ex: Av de la République - Sousse 4000" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 
                 <FormField

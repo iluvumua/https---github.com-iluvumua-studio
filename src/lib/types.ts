@@ -25,7 +25,7 @@ export type Building = {
   code: string; // Code selon Service Bâtiment
   name: string; // NOM DU SITE
   commune: string;
-  delegation: string;
+  localisation?: string;
   address: string;
   nature: string[]; // Nature can be multiple values (A, T, C, D)
   propriete: 'Propriété TT' | 'Location, ETT' | 'Propriété TT non exploité' | string; // Proriété

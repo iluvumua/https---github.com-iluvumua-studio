@@ -26,6 +26,7 @@ import { EditBuildingForm } from "@/components/edit-building-form";
 import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { locationsData } from "@/lib/locations";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
@@ -46,12 +47,18 @@ export default function BuildingsPage() {
         return 'outline';
     };
 
+    const getLocationLabel = (abbreviation?: string) => {
+        if (!abbreviation) return "N/A";
+        const location = locationsData.find(l => l.abbreviation === abbreviation);
+        return location?.localite || abbreviation;
+    }
+
     const handleExport = () => {
         const dataToExport = buildings.map(building => ({
             "Code Bâtiment": building.code,
             "Nom du Site": building.name,
             "Commune": building.commune,
-            "Délégation": building.delegation,
+            "Localisation": getLocationLabel(building.localisation),
             "Nature": getNatureLabel(building.nature),
             "Propriété": building.propriete,
             "ID Compteur": building.meterId || 'N/A',
@@ -118,7 +125,7 @@ export default function BuildingsPage() {
               <TableHead>Code Bâtiment</TableHead>
               <TableHead>Nom du Site</TableHead>
               <TableHead>Commune</TableHead>
-              <TableHead>Délégation</TableHead>
+              <TableHead>Localisation</TableHead>
               <TableHead>Nature</TableHead>
               <TableHead>Propriété</TableHead>
               <TableHead className="w-[100px] text-right">Actions</TableHead>
@@ -130,7 +137,7 @@ export default function BuildingsPage() {
                 <TableCell className="font-medium">{building.code}</TableCell>
                 <TableCell>{building.name}</TableCell>
                 <TableCell>{building.commune}</TableCell>
-                <TableCell>{building.delegation}</TableCell>
+                <TableCell>{getLocationLabel(building.localisation)}</TableCell>
                 <TableCell>{getNatureLabel(building.nature)}</TableCell>
                  <TableCell>
                   <Badge variant={getProprieteBadgeVariant(building.propriete)}>
