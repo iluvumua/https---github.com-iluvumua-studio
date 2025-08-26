@@ -13,7 +13,7 @@ export type Equipment = {
   coordY?: number;
   compteurId?: string;
   dateMiseEnService?: string;
-  dateResiliationCompteur?: string;
+  dateDemandeResiliation?: string;
   dateResiliationEquipement?: string;
   verifiedBy?: string;
   buildingId?: string;
@@ -109,6 +109,7 @@ export type Meter = {
     typeTension: 'Moyenne Tension' | 'Basse Tension';
     dateDemandeInstallation?: string;
     dateDemandeResiliation?: string;
+    dateResiliation?: string;
     dateMiseEnService?: string;
     description?: string;
     lastUpdate?: string;

@@ -176,7 +176,7 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                                 <div className="col-span-2"><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
                                 <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
                                 {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
-                                {item.dateResiliationCompteur && <div><span className="font-medium text-muted-foreground">Date Résil. Compteur:</span> {formatShortDate(item.dateResiliationCompteur)}</div>}
+                                {item.dateDemandeResiliation && <div><span className="font-medium text-muted-foreground">Demande Résil.:</span> {formatShortDate(item.dateDemandeResiliation)}</div>}
                                 {item.dateResiliationEquipement && <div><span className="font-medium text-muted-foreground">Date Résil. Équipement:</span> {formatShortDate(item.dateResiliationEquipement)}</div>}
                                 </div>
                                 {isIndoor && associatedBuilding && (
