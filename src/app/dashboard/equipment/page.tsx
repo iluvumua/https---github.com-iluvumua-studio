@@ -39,6 +39,7 @@ import { Separator } from "@/components/ui/separator";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog } from "@/components/ui/dialog";
 
 const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
@@ -47,6 +48,7 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
     const { bills } = useBillingStore();
     const { buildings } = useBuildingsStore();
     const { user } = useUser();
+    const [resiliationItem, setResiliationItem] = useState<Equipment | null>(null);
 
     const canResiliate = user.role === 'Responsable Énergie et Environnement';
 
@@ -78,196 +80,206 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
     }
 
     return (
-        <Table>
-            <TableHeader>
-            <TableRow>
-                <TableHead className="w-[50px]"></TableHead>
-                <TableHead className="w-1/4">Nom_MSAN</TableHead>
-                <TableHead>État</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Fournisseur</TableHead>
-                <TableHead>Date Mise en Service Équip.</TableHead>
-                <TableHead className="w-[120px] text-right">Actions</TableHead>
-            </TableRow>
-            </TableHeader>
-            <TableBody>
-            {equipment.map((item) => {
-                const associatedMeter = meters.find(m => m.id === item.compteurId);
-                const isExpanded = openRow === item.id;
-                const isIndoor = item.buildingId && indoorEquipmentTypes.includes(item.type);
-                const associatedBuilding = buildings.find(b => b.id === item.buildingId);
-                
-                const equipmentAverageCost = useMemo(() => {
-                if (!associatedMeter) return null;
-                
-                const meterBills = bills.filter(b => b.meterId === associatedMeter.id);
-                const annualBills = meterBills
-                    .filter(b => b.nombreMois && b.nombreMois >= 12)
-                    .sort((a, b) => b.id.localeCompare(a, b));
+        <Dialog onOpenChange={(open) => !open && setResiliationItem(null)}>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead className="w-1/4">Nom_MSAN</TableHead>
+                    <TableHead>État</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Fournisseur</TableHead>
+                    <TableHead>Date Mise en Service Équip.</TableHead>
+                    <TableHead className="w-[120px] text-right">Actions</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {equipment.map((item) => {
+                    const associatedMeter = meters.find(m => m.id === item.compteurId);
+                    const isExpanded = openRow === item.id;
+                    const isIndoor = item.buildingId && indoorEquipmentTypes.includes(item.type);
+                    const associatedBuilding = buildings.find(b => b.id === item.buildingId);
+                    
+                    const equipmentAverageCost = useMemo(() => {
+                    if (!associatedMeter) return null;
+                    
+                    const meterBills = bills.filter(b => b.meterId === associatedMeter.id);
+                    const annualBills = meterBills
+                        .filter(b => b.nombreMois && b.nombreMois >= 12)
+                        .sort((a, b) => b.id.localeCompare(a, b));
 
-                if (annualBills.length > 0) {
-                    const latestAnnualBill = annualBills[0];
-                    return latestAnnualBill.amount / latestAnnualBill.nombreMois;
-                }
-                return null;
-                }, [associatedMeter, bills]);
+                    if (annualBills.length > 0) {
+                        const latestAnnualBill = annualBills[0];
+                        return latestAnnualBill.amount / latestAnnualBill.nombreMois;
+                    }
+                    return null;
+                    }, [associatedMeter, bills]);
 
-                return (
-                <React.Fragment key={item.id}>
-                    <TableRow>
-                        <TableCell>
-                            <Button variant="ghost" size="icon" onClick={() => setOpenRow(isExpanded ? null : item.id)}>
-                                {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                            </Button>
-                        </TableCell>
-                        <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
-                        <TableCell>
-                        <Badge variant="outline" className={cn(
-                            "whitespace-nowrap",
-                            item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                            item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
-                            item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                            item.status === 'En cours de résiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10'
-                        )}>{item.status}</Badge>
-                        </TableCell>
-                        <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
-                        <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
-                        <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
-                        <TableCell>
-                            <div className="flex items-center justify-end">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        {item.status === 'En cours' && (
-                                            <DropdownMenuItem asChild>
-                                                <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
-                                                    <PlusCircleIcon className="mr-2 h-4 w-4" />
-                                                    Ajouter Compteur
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        )}
-                                        {item.coordX && item.coordY && (
-                                            <DropdownMenuItem asChild>
-                                                <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
-                                                    <MapPin className="mr-2 h-4 w-4" />
-                                                    Voir sur la carte
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        )}
-                                        {item.compteurId && (
-                                            <DropdownMenuItem asChild>
-                                                <Link href={`/dashboard/meters?search=${item.compteurId}`}>
-                                                    <Gauge className="mr-2 h-4 w-4" />
-                                                    Voir Compteur
-                                                </Link>
-                                            </DropdownMenuItem>
-                                        )}
-                                        <DropdownMenuItem asChild>
-                                            <Link href={`/dashboard/equipment/${item.id}/edit`}>
-                                                <Pencil className="mr-2 h-4 w-4" />
-                                                Modifier
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        {canResiliate && (
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <ResiliationDialog item={item} itemType="equipment" />
-                                            </DropdownMenuItem>
-                                        )}
-                                        {item.status === 'Résilié' && item.associationHistory && item.associationHistory.length > 0 && (
-                                             <Popover>
-                                                <PopoverTrigger asChild>
-                                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <History className="mr-2 h-4 w-4" />
-                                                        Historique
-                                                    </DropdownMenuItem>
-                                                </PopoverTrigger>
-                                                <PopoverContent>
-                                                    <div className="space-y-2">
-                                                        <h4 className="font-medium text-sm">Historique d'Association</h4>
-                                                        <ul className="list-disc pl-4 text-xs text-muted-foreground">
-                                                            {item.associationHistory.map((entry, idx) => (
-                                                                <li key={idx}>{entry}</li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                </PopoverContent>
-                                            </Popover>
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                    {isExpanded && (
+                    return (
+                    <React.Fragment key={item.id}>
                         <TableRow>
-                        <TableCell colSpan={7} className="p-0">
-                            <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-3">
-                                <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
-                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
-                                <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
-                                {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
-                                {item.dateDemandeResiliation && <div><span className="font-medium text-muted-foreground">Demande Résil.:</span> {formatShortDate(item.dateDemandeResiliation)}</div>}
-                                {item.dateResiliationEquipement && <div><span className="font-medium text-muted-foreground">Date Résil. Équipement:</span> {formatShortDate(item.dateResiliationEquipement)}</div>}
+                            <TableCell>
+                                <Button variant="ghost" size="icon" onClick={() => setOpenRow(isExpanded ? null : item.id)}>
+                                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                </Button>
+                            </TableCell>
+                            <TableCell className="font-medium truncate whitespace-nowrap">{item.name}</TableCell>
+                            <TableCell>
+                            <Badge variant="outline" className={cn(
+                                "whitespace-nowrap",
+                                item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
+                                item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                                item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
+                                item.status === 'En cours de résiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10'
+                            )}>{item.status}</Badge>
+                            </TableCell>
+                            <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
+                            <TableCell className="truncate whitespace-nowrap">{item.fournisseur}</TableCell>
+                            <TableCell>{formatShortDate(item.dateMiseEnService)}</TableCell>
+                            <TableCell>
+                                <div className="flex items-center justify-end">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            {item.status === 'En cours' && (
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
+                                                        <PlusCircleIcon className="mr-2 h-4 w-4" />
+                                                        Ajouter Compteur
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            )}
+                                            {item.coordX && item.coordY && (
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`https://www.openstreetmap.org/?mlat=${item.coordY}&mlon=${item.coordX}#map=18/${item.coordY}/${item.coordX}`} target="_blank">
+                                                        <MapPin className="mr-2 h-4 w-4" />
+                                                        Voir sur la carte
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            )}
+                                            {item.compteurId && (
+                                                <DropdownMenuItem asChild>
+                                                    <Link href={`/dashboard/meters?search=${item.compteurId}`}>
+                                                        <Gauge className="mr-2 h-4 w-4" />
+                                                        Voir Compteur
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            )}
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/dashboard/equipment/${item.id}/edit`}>
+                                                    <Pencil className="mr-2 h-4 w-4" />
+                                                    Modifier
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            {canResiliate && (
+                                                <DropdownMenuItem onSelect={() => setResiliationItem(item)}>
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    <span>Résilier Équipement</span>
+                                                </DropdownMenuItem>
+                                            )}
+                                            {item.status === 'Résilié' && item.associationHistory && item.associationHistory.length > 0 && (
+                                                 <Popover>
+                                                    <PopoverTrigger asChild>
+                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                            <History className="mr-2 h-4 w-4" />
+                                                            Historique
+                                                        </DropdownMenuItem>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent>
+                                                        <div className="space-y-2">
+                                                            <h4 className="font-medium text-sm">Historique d'Association</h4>
+                                                            <ul className="list-disc pl-4 text-xs text-muted-foreground">
+                                                                {item.associationHistory.map((entry, idx) => (
+                                                                    <li key={idx}>{entry}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    </PopoverContent>
+                                                </Popover>
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
-                                {isIndoor && associatedBuilding && (
-                                    <>
+                            </TableCell>
+                        </TableRow>
+                        {isExpanded && (
+                            <TableRow>
+                            <TableCell colSpan={7} className="p-0">
+                                <div className="p-4 bg-muted/50 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                    <h4 className="font-semibold text-sm">Informations sur l'Équipement</h4>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                    <div className="col-span-2"><span className="font-medium text-muted-foreground">Désignation:</span> {item.designation || 'N/A'}</div>
+                                    <div className="col-span-2"><span className="font-medium text-muted-foreground">Châssis:</span> {item.typeChassis}</div>
+                                    <div><span className="font-medium text-muted-foreground">Dernière MAJ Équip.:</span> {formatShortDate(item.lastUpdate)}</div>
+                                    {item.verifiedBy && <div><span className="font-medium text-muted-foreground">Vérifié par:</span> {item.verifiedBy}</div>}
+                                    {item.dateDemandeResiliation && <div><span className="font-medium text-muted-foreground">Demande Résil.:</span> {formatShortDate(item.dateDemandeResiliation)}</div>}
+                                    {item.dateResiliationEquipement && <div><span className="font-medium text-muted-foreground">Date Résil. Équipement:</span> {formatShortDate(item.dateResiliationEquipement)}</div>}
+                                    </div>
+                                    {isIndoor && associatedBuilding && (
+                                        <>
+                                        <Separator className="my-2" />
+                                        <h5 className="font-semibold text-sm">Informations sur le Bâtiment</h5>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Nom:</span> {associatedBuilding.name} ({associatedBuilding.code})</div>
+                                                <div className="col-span-2"><span className="font-medium text-muted-foreground">Adresse:</span> {associatedBuilding.address}</div>
+                                            </div>
+                                        </>
+                                    )}
                                     <Separator className="my-2" />
-                                    <h5 className="font-semibold text-sm">Informations sur le Bâtiment</h5>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                            <div className="col-span-2"><span className="font-medium text-muted-foreground">Nom:</span> {associatedBuilding.name} ({associatedBuilding.code})</div>
-                                            <div className="col-span-2"><span className="font-medium text-muted-foreground">Adresse:</span> {associatedBuilding.address}</div>
-                                        </div>
-                                    </>
-                                )}
-                                <Separator className="my-2" />
-                                <h5 className="font-semibold text-sm">Coordonnées & Localisation</h5>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                    <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
-                                    {item.coordX && item.coordY && <div><span className="font-medium text-muted-foreground">Coords:</span> {item.coordY}, {item.coordX}</div>}
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
-                                {associatedMeter ? (
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                    <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
-                                    <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
-                                    <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
-                                    <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
-                                    <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                                    <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
-                                    <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
-                                    <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
-                                    <div className="col-span-full mt-2">
-                                    <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                                        <Link href={`/dashboard/billing/${associatedMeter.id}`}>
-                                        Voir toutes les factures de ce compteur
-                                        </Link>
-                                    </Button>
+                                    <h5 className="font-semibold text-sm">Coordonnées & Localisation</h5>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                        <div><span className="font-medium text-muted-foreground">Localisation:</span> {getLocationLabel(item.location)}</div>
+                                        {item.coordX && item.coordY && <div><span className="font-medium text-muted-foreground">Coords:</span> {item.coordY}, {item.coordX}</div>}
                                     </div>
                                 </div>
-                                ) : (
-                                <div className="text-center text-muted-foreground text-sm py-4">
-                                    Aucun compteur n'est associé à cet équipement.
+                                <div className="space-y-3">
+                                    <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
+                                    {associatedMeter ? (
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                                        <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
+                                        <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
+                                        <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
+                                        <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
+                                        <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
+                                        <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
+                                        <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
+                                        <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
+                                        <div className="col-span-full mt-2">
+                                        <Button variant="link" size="sm" className="p-0 h-auto" asChild>
+                                            <Link href={`/dashboard/billing/${associatedMeter.id}`}>
+                                            Voir toutes les factures de ce compteur
+                                            </Link>
+                                        </Button>
+                                        </div>
+                                    </div>
+                                    ) : (
+                                    <div className="text-center text-muted-foreground text-sm py-4">
+                                        Aucun compteur n'est associé à cet équipement.
+                                    </div>
+                                    )}
                                 </div>
-                                )}
-                            </div>
-                            </div>
-                        </TableCell>
-                        </TableRow>
-                    )}
-                    </React.Fragment>
-                )
-            })}
-            </TableBody>
-        </Table>
+                                </div>
+                            </TableCell>
+                            </TableRow>
+                        )}
+                        </React.Fragment>
+                    )
+                })}
+                </TableBody>
+            </Table>
+            {resiliationItem && (
+                 <ResiliationDialog
+                    item={resiliationItem}
+                    itemType="equipment"
+                    onOpenChange={(open) => !open && setResiliationItem(null)}
+                />
+            )}
+        </Dialog>
     )
 }
 

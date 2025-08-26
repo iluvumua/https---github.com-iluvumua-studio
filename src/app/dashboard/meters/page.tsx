@@ -2,7 +2,7 @@
 "use client";
 
 import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History } from "lucide-react";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,6 +35,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { useUser } from "@/hooks/use-user";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog } from "@/components/ui/dialog";
 
 function MetersPageComponent() {
   const { meters } = useMetersStore();
@@ -44,8 +45,9 @@ function MetersPageComponent() {
   const initialSearch = searchParams.get('search') || "";
   const { user } = useUser();
   
-  const [searchTerm, setSearchTerm] = React.useState(initialSearch);
-  const [activeTab, setActiveTab] = React.useState("all");
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [activeTab, setActiveTab] = useState("all");
+  const [resiliationItem, setResiliationItem] = useState<Meter | null>(null);
 
   const canResiliate = user.role === 'Responsable Énergie et Environnement';
 
@@ -91,6 +93,7 @@ function MetersPageComponent() {
   });
 
   return (
+    <Dialog onOpenChange={(open) => !open && setResiliationItem(null)}>
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center mb-4">
         <TabsList>
@@ -207,8 +210,9 @@ function MetersPageComponent() {
                                             </Link>
                                         </DropdownMenuItem>
                                         {canResiliate && (
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <ResiliationDialog item={meter} itemType="meter" />
+                                            <DropdownMenuItem onSelect={() => setResiliationItem(meter)}>
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <span>Résilier Compteur</span>
                                             </DropdownMenuItem>
                                         )}
                                         {meter.status === 'Résilié' && meter.associationHistory && meter.associationHistory.length > 0 && (
@@ -244,6 +248,14 @@ function MetersPageComponent() {
         </Card>
       </TabsContent>
     </Tabs>
+    {resiliationItem && (
+        <ResiliationDialog 
+            item={resiliationItem}
+            itemType="meter"
+            onOpenChange={(open) => !open && setResiliationItem(null)}
+        />
+    )}
+    </Dialog>
   );
 }
 
