@@ -7,6 +7,9 @@ import { EquipmentForm } from "@/components/equipment-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from '@/hooks/use-user';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function EditEquipmentPage() {
     const params = useParams();
@@ -15,15 +18,26 @@ export default function EditEquipmentPage() {
     const { user } = useUser();
 
     const equipmentToEdit = Array.isArray(id) ? undefined : equipment.find(e => e.id === id);
-    const canEdit = user.role === 'Responsable Énergie et Environnement';
+    const canEdit = user.role === 'Responsable Énergie et Environnement' || user.role === 'Technicien';
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Modifier l'équipement</CardTitle>
-                <CardDescription>
-                    {canEdit ? "Mettez à jour" : "Consultez"} les détails de l'équipement ci-dessous.
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Modifier l'équipement</CardTitle>
+                        <CardDescription>
+                            {canEdit ? "Mettez à jour" : "Consultez"} les détails de l'équipement ci-dessous.
+                        </CardDescription>
+                    </div>
+                     {!canEdit && (
+                         <Button variant="outline" asChild>
+                            <Link href="/dashboard/equipment">
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Retour
+                            </Link>
+                        </Button>
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
                 {equipmentToEdit ? (

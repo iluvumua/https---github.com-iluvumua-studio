@@ -34,7 +34,10 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
   const { updateMeter } = useMetersStore();
   const router = useRouter();
   const { toast } = useToast();
-  const canEdit = user.role === 'Responsable Énergie et Environnement';
+  
+  const canEditStatus = user.role === 'Responsable Énergie et Environnement';
+  const canEditDescription = user.role === 'Responsable Énergie et Environnement' || user.role === 'Technicien';
+  const canSaveChanges = canEditStatus || canEditDescription;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,7 +62,7 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="status" render={({ field }) => (
                 <FormItem><FormLabel>État</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!canEdit}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!canEditStatus}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                         <SelectItem value="En cours">En cours</SelectItem>
@@ -76,13 +79,13 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                 <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                        <Textarea placeholder="Aucune description" {...field} disabled={!canEdit} />
+                        <Textarea placeholder="Aucune description" {...field} disabled={!canEditDescription} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
             )} />
 
-            {canEdit && (
+            {canSaveChanges ? (
                  <div className="flex justify-end gap-2 pt-4">
                     <Button type="button" variant="ghost" asChild>
                         <Link href="/dashboard/meters"><X className="mr-2" /> Annuler</Link>
@@ -90,6 +93,14 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                     <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
                         {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         <Save className="mr-2" /> Enregistrer
+                    </Button>
+                </div>
+            ) : (
+                <div className="flex justify-end pt-4">
+                     <Button variant="outline" asChild>
+                        <Link href="/dashboard/meters">
+                            <X className="mr-2" /> Retour
+                        </Link>
                     </Button>
                 </div>
             )}
