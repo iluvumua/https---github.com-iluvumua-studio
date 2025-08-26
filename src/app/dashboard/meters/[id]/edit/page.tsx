@@ -19,6 +19,8 @@ export default function EditMeterPage() {
     const { user } = useUser();
 
     const meterToEdit = Array.isArray(id) ? undefined : meters.find(e => e.id === id);
+    const canEdit = user.role === 'Technicien' || user.role === 'Responsable Énergie et Environnement';
+
 
     return (
         <Card>
@@ -27,10 +29,10 @@ export default function EditMeterPage() {
                     <div>
                         <CardTitle>Détails du compteur <span className="text-primary font-mono">{meterToEdit?.id}</span></CardTitle>
                         <CardDescription>
-                           {user.role === 'Technicien' ? "Modifiez" : "Consultez"} l'état et la description du compteur.
+                           {canEdit ? "Modifiez" : "Consultez"} l'état et la description du compteur.
                         </CardDescription>
                     </div>
-                     {user.role !== 'Technicien' && (
+                     {!canEdit && (
                         <Button variant="outline" asChild>
                             <Link href="/dashboard/meters">
                                 <ArrowLeft className="mr-2" /> Retour

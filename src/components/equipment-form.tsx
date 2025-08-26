@@ -220,7 +220,9 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     router.push('/dashboard/equipment');
   }
 
-  if (user.role !== "Technicien") {
+  const canEdit = user.role === 'Technicien' || user.role === 'Responsable Énergie et Environnement';
+
+  if (!canEdit) {
     return (
         <div className="p-4 text-center text-muted-foreground">
             Vous n'avez pas la permission de voir ce formulaire.

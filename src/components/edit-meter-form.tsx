@@ -34,7 +34,7 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
   const { updateMeter } = useMetersStore();
   const router = useRouter();
   const { toast } = useToast();
-  const isTechnician = user.role === 'Technicien';
+  const canEdit = user.role === 'Technicien' || user.role === 'Responsable Énergie et Environnement';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,7 +59,7 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField control={form.control} name="status" render={({ field }) => (
                 <FormItem><FormLabel>État</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isTechnician}>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!canEdit}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                         <SelectItem value="En cours">En cours</SelectItem>
@@ -76,13 +76,13 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                 <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                        <Textarea placeholder="Aucune description" {...field} disabled={!isTechnician} />
+                        <Textarea placeholder="Aucune description" {...field} disabled={!canEdit} />
                     </FormControl>
                     <FormMessage />
                 </FormItem>
             )} />
 
-            {isTechnician && (
+            {canEdit && (
                  <div className="flex justify-end gap-2 pt-4">
                     <Button type="button" variant="ghost" asChild>
                         <Link href="/dashboard/meters"><X className="mr-2" /> Annuler</Link>

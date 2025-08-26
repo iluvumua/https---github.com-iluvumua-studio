@@ -6,20 +6,23 @@ import { useEquipmentStore } from '@/hooks/use-equipment-store';
 import { EquipmentForm } from "@/components/equipment-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from '@/hooks/use-user';
 
 export default function EditEquipmentPage() {
     const params = useParams();
     const { id } = params;
     const { equipment } = useEquipmentStore();
+    const { user } = useUser();
 
     const equipmentToEdit = Array.isArray(id) ? undefined : equipment.find(e => e.id === id);
+    const canEdit = user.role === 'Technicien' || user.role === 'Responsable Énergie et Environnement';
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Modifier l'équipement</CardTitle>
                 <CardDescription>
-                    Mettez à jour les détails de l'équipement ci-dessous.
+                    {canEdit ? "Mettez à jour" : "Consultez"} les détails de l'équipement ci-dessous.
                 </CardDescription>
             </CardHeader>
             <CardContent>
