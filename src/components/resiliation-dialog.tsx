@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar } from './ui/calendar';
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
+import { DropdownMenuItem } from './ui/dropdown-menu';
 
 const formSchema = z.object({
   dateDemandeResiliation: z.date().optional(),
@@ -156,9 +157,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
        <DialogTrigger asChild>
-        <span className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 w-full"
-            onClick={(e) => { e.stopPropagation(); setIsOpen(true); }}
-        >
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
             {itemType === "meter" && (
                 <>
                     <Trash2 className="mr-2 h-4 w-4 text-destructive" />
@@ -171,7 +170,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
                      <span>Résilier Équipement</span>
                 </>
             )}
-        </span>
+            </DropdownMenuItem>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
        <Form {...form}>
