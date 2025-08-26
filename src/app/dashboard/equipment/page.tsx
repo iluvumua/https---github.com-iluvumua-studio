@@ -149,7 +149,7 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                                             <DropdownMenuItem asChild>
                                                 <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
                                                     <PlusCircleIcon className="mr-2 h-4 w-4" />
-                                                    Ajouter Compteur
+                                                    mise a jour equipement
                                                 </Link>
                                             </DropdownMenuItem>
                                         )}
