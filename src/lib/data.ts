@@ -2,12 +2,12 @@
 import type { Equipment, Building, Bill, Meter } from './types';
 
 export const equipmentData: Equipment[] = [
-  { id: 'EQP-001', name: 'ALU_SO_ERR5_MSI11_7302', type: 'MSI', location: 'ERR5', status: 'En service', lastUpdate: '2023-10-25', fournisseur: 'Alcatel Lucent', typeChassis: '7302', coordX: 10.5921583, coordY: 35.7995278, designation: 'ALU-Erriadh5-Rk_01-Sh_A-7302', compteurId: '542440', dateMiseEnService: '2023-01-15' },
-  { id: 'EQP-002', name: 'NSN_SO_EZZH_MSI11_5625-G400', type: 'MSI', location: 'EZZH', status: 'En service', lastUpdate: '2023-10-24', fournisseur: 'Siemens', typeChassis: '5625-G400', coordX: 10.585829, coordY: 35.791822, designation: 'Hix_Ezzouhour_1-1', compteurId: '542300', dateMiseEnService: '2023-02-20' },
+  { id: 'EQP-001', name: 'ALU_SO_ERR5_MSI11_7302', type: 'MSI', location: 'ERR5', status: 'En service', lastUpdate: '2023-10-25', fournisseur: 'Alcatel Lucent', typeChassis: '7302', coordX: 10.5921583, coordY: 35.7995278, designation: 'ALU-Erriadh5-Rk_01-Sh_A-7302', compteurId: '542440', dateMiseEnService: '2023-01-15', buildingId: '13' },
+  { id: 'EQP-002', name: 'NSN_SO_EZZH_MSI11_5625-G400', type: 'MSI', location: 'EZZH', status: 'En service', lastUpdate: '2023-10-24', fournisseur: 'Siemens', typeChassis: '5625-G400', coordX: 10.585829, coordY: 35.791822, designation: 'Hix_Ezzouhour_1-1', compteurId: '542300', dateMiseEnService: '2023-02-20', buildingId: '12' },
   { id: 'EQP-003', name: 'ALU_SO_HRGL_MSI21_7330', type: 'MSI', location: 'HRGL', status: 'En cours', lastUpdate: '2023-09-15', fournisseur: 'Alcatel Lucent', typeChassis: '7330', coordX: 10.51041, coordY: 36.028373, designation: 'ALU-Hergla-Sh_A-7330', verifiedBy: 'Admin' },
   { id: 'EQP-004', name: 'ALU_SO_KANT_MSN01_MM_Immeuble Zarrouk_7353', type: 'MSN', location: 'KANT', status: 'En service', lastUpdate: '2023-10-26', fournisseur: 'Alcatel Lucent', typeChassis: '7353', coordX: 10.589497, coordY: 35.886259, designation: 'ALU_SO_MM_Immeuble Zarrouk _FTTB', compteurId: '537400', dateMiseEnService: '2022-05-10' },
   { id: 'EQP-005', name: 'HUW_SO_CENN_MSN01_T300', type: 'MSN', location: 'CENN', status: 'Résilié', lastUpdate: '2023-10-22', fournisseur: 'Huawei', typeChassis: 'T300', coordX: 10.587450, coordY: 35.735262, designation: 'HW_SO_Cite_Ennour1_T300' },
-  { id: 'EQP-006', name: 'ALU_SO_REP_MSI01_7330', type: 'MSI', location: 'SO01', status: 'En cours', lastUpdate: '2023-11-01', fournisseur: 'Alcatel Lucent', typeChassis: '7330', coordX: 10.638617, coordY: 35.829169, designation: 'ALU-Republique-Rk_01-Sh_A-7330' },
+  { id: 'EQP-006', name: 'ALU_SO_REP_MSI01_7330', type: 'MSI', location: 'SO01', status: 'En cours', lastUpdate: '2023-11-01', fournisseur: 'Alcatel Lucent', typeChassis: '7330', coordX: 10.638617, coordY: 35.829169, designation: 'ALU-Republique-Rk_01-Sh_A-7330', buildingId: '1' },
 ];
 
 export const buildingData: Building[] = [
@@ -46,14 +46,14 @@ export const billingData: Bill[] = [
 ];
 
 export const metersData: Meter[] = [
-    { id: '537400', policeNumber: '25-537400-99', referenceFacteur: '378051241', equipmentId: 'EQP-004', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2022-01-01', description: 'Compteur pour Kantaoui', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE NORD' },
+    { id: '537400', policeNumber: '25-537400-99', referenceFacteur: '378051241', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2022-01-01', description: 'Compteur pour Kantaoui', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE NORD' },
     { id: '542300', policeNumber: '25-542300-99', referenceFacteur: '378051242', buildingId: '12', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2021-11-15', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
     { id: '542440', policeNumber: '25-542440-99', referenceFacteur: '378051243', buildingId: '13', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2021-12-20', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
     { id: '545040', policeNumber: '25-545040-99', referenceFacteur: '378051244', buildingId: '3', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2020-05-10', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
     { id: '548710', policeNumber: '25-548710-99', referenceFacteur: '378051245', buildingId: '10', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2019-03-25', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
     { id: '597878951', policeNumber: '25-597878951-99', referenceFacteur: '378051246', buildingId: '55', typeTension: 'Basse Tension', status: 'En service', dateMiseEnService: '2023-08-01', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
-    { id: '587687455', policeNumber: '25-587687455-99', referenceFacteur: '378051247', equipmentId: 'EQP-005', typeTension: 'Moyenne Tension', status: 'Résilié', description: 'Ancien compteur pour équipement Huawei, maintenant résilié.', lastUpdate: '2023-10-22', districtSteg: 'SOUSSE CENTRE' },
-    { id: '552201', policeNumber: '25-552201-99', referenceFacteur: '378051248', equipmentId: 'EQP-006', typeTension: 'Moyenne Tension', status: 'En cours', dateDemandeInstallation: '2023-11-05', description: 'En attente d\'installation pour le nouveau MSI.', lastUpdate: '2023-11-05', districtSteg: 'SOUSSE CENTRE' },
+    { id: '587687455', policeNumber: '25-587687455-99', referenceFacteur: '378051247', typeTension: 'Moyenne Tension', status: 'Résilié', description: 'Ancien compteur pour équipement Huawei, maintenant résilié.', lastUpdate: '2023-10-22', districtSteg: 'SOUSSE CENTRE' },
+    { id: '552201', policeNumber: '25-552201-99', referenceFacteur: '378051248', typeTension: 'Moyenne Tension', status: 'En cours', dateDemandeInstallation: '2023-11-05', description: 'En attente d\'installation pour le nouveau MSI.', lastUpdate: '2023-11-05', districtSteg: 'SOUSSE CENTRE' },
     { id: '552200', policeNumber: '25-552200-99', referenceFacteur: '378051249', buildingId: '1', typeTension: 'Moyenne Tension', status: 'En service', dateMiseEnService: '2022-03-10', description: 'Compteur principal du Complexe Sousse République.', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
 ];
 

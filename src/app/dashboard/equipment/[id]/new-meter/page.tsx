@@ -32,7 +32,7 @@ export default function NewMeterWorkflowPage() {
      // This effect runs only once on mount to handle pre-filling from a parent building.
     useEffect(() => {
         const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
-        if (equipmentItem) {
+        if (equipmentItem && equipmentItem.buildingId) {
             const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
             if (parentBuilding && parentBuilding.meterId) {
                 if (equipmentItem.compteurId !== parentBuilding.meterId) {
@@ -75,7 +75,7 @@ export default function NewMeterWorkflowPage() {
                         setCurrentStep(3);
                     } else if (meter.id.startsWith('MTR-WIP-')) {
                         // This is a request in progress
-                        setCurrentStep(1);
+                        setCurrentStep(2);
                     } else {
                         // Meter exists but is not a WIP, likely needs installation details
                         setCurrentStep(2);
@@ -105,7 +105,6 @@ export default function NewMeterWorkflowPage() {
             policeNumber: data.policeNumber,
             dateDemandeInstallation: data.dateDemandeInstallation.toISOString().split('T')[0],
             lastUpdate: new Date().toISOString().split('T')[0],
-            equipmentId: equipmentItem.id,
             districtSteg: data.districtSteg,
             description: `Demande pour équipement ${equipmentItem.name}`
         }
@@ -142,14 +141,6 @@ export default function NewMeterWorkflowPage() {
                     compteurId: data.meterId,
                     status: 'En cours', // Remain 'En cours'
                 });
-            }
-
-            // Also update building if it was associated
-            if (equipmentItem.buildingId) {
-                const building = buildings.find(b => b.id === equipmentItem.buildingId);
-                if (building && !building.meterId) {
-                    // Update building store if needed, assuming a function exists
-                }
             }
             
             setWipMeter(updatedWipMeter);

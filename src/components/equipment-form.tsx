@@ -12,7 +12,6 @@ import { Loader2, MapPin, Save, X } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Combobox } from "./combobox";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Equipment } from "@/lib/types";
 import { locationsData } from "@/lib/locations";
@@ -26,7 +25,6 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
-import { Separator } from "./ui/separator";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -225,9 +223,31 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const canCreate = user.role === 'Technicien';
 
   const isFormDisabled = isEditMode && !canEditStatus && !canEditDescription;
-
-
   const showResiliationFields = isEditMode && (initialEquipment.status === 'En service' || initialEquipment.status === 'En cours de résiliation');
+
+  const availableMeters = useMemo(() => {
+    const selectedLocation = watchAllFields.localisation;
+    const selectedBuilding = buildings.find(b => b.code === selectedLocation);
+
+    if (selectedBuilding) {
+      // Find all equipment in the same building
+      const equipmentInBuilding = allEquipment.filter(e => e.buildingId === selectedBuilding.id);
+      const meterIds = equipmentInBuilding.map(e => e.compteurId).filter(Boolean);
+      if (selectedBuilding.meterId) {
+        meterIds.push(selectedBuilding.meterId);
+      }
+      const uniqueMeterIds = [...new Set(meterIds)];
+      return meters.filter(m => uniqueMeterIds.includes(m.id));
+    }
+
+    if (selectedLocation) {
+        const equipmentInLocation = allEquipment.filter(e => e.location === selectedLocation);
+        const meterIds = new Set(equipmentInLocation.map(e => e.compteurId).filter(Boolean));
+        return meters.filter(m => meterIds.has(m.id));
+    }
+    
+    return meters;
+  }, [watchAllFields.localisation, meters, buildings, allEquipment]);
 
   return (
         <Form {...form}>
@@ -239,13 +259,18 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Fournisseur</FormLabel>
-                    <Combobox
-                      placeholder="Sélectionner ou créer..."
-                      options={fournisseurs.map(f => ({ value: f.value, label: f.label }))}
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={isEditMode && !canEditStatus}
-                    />
+                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode && !canEditStatus}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner le type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {fournisseurs.map(f => (
+                            <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -256,13 +281,18 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Localisation</FormLabel>
-                    <Combobox
-                      placeholder="Sélectionner ou créer..."
-                      options={localisations.map(l => ({ value: l.value, label: l.label }))}
-                      value={field.value}
-                      onChange={field.onChange}
-                      disabled={!!building || (isEditMode && !canEditStatus)}
-                    />
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!building || (isEditMode && !canEditStatus)}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner le type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {localisations.map(l => (
+                            <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -309,7 +339,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Désignation (Optionnel)</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} readOnly={!!building} disabled={isEditMode && !canEditDescription} />
+                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} disabled={!canEditDescription} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -327,22 +357,29 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     </div>
                 </div>
               
-                
-                {building?.meterId && (
-                     <FormField
-                        control={form.control}
-                        name="compteurId"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>N° Compteur (Hérité du bâtiment)</FormLabel>
-                             <FormControl>
-                                <Input readOnly {...field} />
+                 <FormField
+                    control={form.control}
+                    name="compteurId"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>N° Compteur (Optionnel)</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFormDisabled}>
+                            <FormControl>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner un compteur" />
+                                </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                )}
+                            <SelectContent>
+                                <SelectItem value="none">Aucun</SelectItem>
+                                {availableMeters.map(meter => (
+                                    <SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
 
               <div className="md:col-span-2 space-y-2">
                 <Label>Nom Généré</Label>

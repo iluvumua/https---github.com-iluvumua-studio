@@ -48,10 +48,12 @@ function MetersPageComponent() {
       const building = buildings.find(b => b.id === meter.buildingId);
       return building?.name || `Bâtiment ID: ${meter.buildingId}`;
     }
-    if (meter.equipmentId) {
-      const eq = equipment.find(e => e.id === meter.equipmentId);
-      return eq?.name || `Équipement ID: ${meter.equipmentId}`;
+    
+    const associatedEquipment = equipment.filter(e => e.compteurId === meter.id);
+    if (associatedEquipment.length > 0) {
+      return associatedEquipment.map(e => e.name).join(', ');
     }
+    
     return "Non Associé";
   }
   
@@ -148,7 +150,7 @@ function MetersPageComponent() {
                     <TableRow key={meter.id}>
                         <TableCell className="font-mono">{meter.id}</TableCell>
                         <TableCell className="font-mono">{meter.policeNumber}</TableCell>
-                        <TableCell className="font-medium">{getAssociationName(meter)}</TableCell>
+                        <TableCell className="font-medium max-w-[300px] truncate">{getAssociationName(meter)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{meter.description}</TableCell>
                         <TableCell>
                         <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
