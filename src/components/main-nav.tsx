@@ -12,11 +12,6 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
@@ -32,13 +27,13 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
       href: "/dashboard/equipment",
       label: "Équipement",
       icon: Network,
-      active: pathname === "/dashboard/equipment",
+      active: pathname.startsWith("/dashboard/equipment"),
     },
     {
       href: "/dashboard/buildings",
       label: "Bâtiments",
       icon: Building2,
-      active: pathname === "/dashboard/buildings",
+      active: pathname.startsWith("/dashboard/buildings"),
     },
     {
       href: "/dashboard/meters",
@@ -56,26 +51,24 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
 
   return (
     <nav
-      className={cn("flex flex-col items-center gap-4 px-2 sm:py-5", className)}
+      className={cn("flex-1 px-4 py-4", className)}
       {...props}
     >
+      <div className="flex flex-col gap-1">
       {routes.map((route) => (
-        <Tooltip key={route.href}>
-          <TooltipTrigger asChild>
-            <Link
-              href={route.href}
-              className={cn(
-                "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8",
-                route.active && "bg-accent text-accent-foreground"
-              )}
-            >
-              <route.icon className="h-5 w-5" />
-              <span className="sr-only">{route.label}</span>
-            </Link>
-          </TooltipTrigger>
-          <TooltipContent side="right">{route.label}</TooltipContent>
-        </Tooltip>
+        <Link
+          key={route.href}
+          href={route.href}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+            route.active && "bg-muted text-primary"
+          )}
+        >
+          <route.icon className="h-4 w-4" />
+          {route.label}
+        </Link>
       ))}
+      </div>
     </nav>
   );
 }
