@@ -106,7 +106,7 @@ export type Meter = {
     referenceFacteur?: string; // 9-digit code
     buildingId?: string;
     equipmentId?: string;
-    status: 'En cours' | 'En service' | 'Résilié' | 'Substitué';
+    status: 'En cours' | 'En service' | 'En cours de resiliation' | 'Résilié' | 'Substitué';
     typeTension: 'Moyenne Tension' | 'Basse Tension';
     dateDemandeInstallation?: string;
     dateMiseEnService?: string;
