@@ -15,12 +15,17 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
-import { Loader2, Save, X } from "lucide-react";
+import { CalendarIcon, Loader2, Save, X } from "lucide-react";
 import Link from "next/link";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar } from "./ui/calendar";
 
 const formSchema = z.object({
   status: z.enum(['En cours', 'En service', 'En cours de resiliation', 'Résilié']),
   description: z.string().optional(),
+  dateDemandeResiliation: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -44,18 +49,28 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
     defaultValues: {
         status: meter.status,
         description: meter.description || "",
+        dateDemandeResiliation: meter.dateDemandeResiliation ? new Date(meter.dateDemandeResiliation) : undefined,
     }
   });
 
   const onSubmit = (values: FormValues) => {
+    let newStatus = values.status;
+    if (values.dateDemandeResiliation && meter.status === 'En service') {
+        newStatus = 'En cours de resiliation';
+    }
+
     updateMeter({
         ...meter,
         ...values,
+        status: newStatus,
+        dateDemandeResiliation: values.dateDemandeResiliation?.toISOString().split('T')[0],
         lastUpdate: new Date().toISOString().split('T')[0],
     });
     toast({ title: "Compteur Mis à Jour", description: `Le compteur ${meter.id} a été modifié.` });
     router.push('/dashboard/meters');
   }
+  
+  const showResiliationDate = meter.status === 'En service' || meter.status === 'En cours de resiliation';
 
   return (
     <Form {...form}>
@@ -84,6 +99,26 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                     <FormMessage />
                 </FormItem>
             )} />
+
+            {showResiliationDate && (
+                 <FormField control={form.control} name="dateDemandeResiliation" render={({ field }) => (
+                      <FormItem className="flex flex-col"><FormLabel>Date de Demande de Résiliation</FormLabel>
+                          <Popover><PopoverTrigger asChild>
+                              <FormControl>
+                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")} disabled={!canEditStatus}>
+                                  {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                              </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                          </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                      </FormItem>
+                  )} />
+            )}
 
             {canSaveChanges ? (
                  <div className="flex justify-end gap-2 pt-4">

@@ -108,6 +108,7 @@ export type Meter = {
     status: 'En cours' | 'En service' | 'En cours de resiliation' | 'Résilié';
     typeTension: 'Moyenne Tension' | 'Basse Tension';
     dateDemandeInstallation?: string;
+    dateDemandeResiliation?: string;
     dateMiseEnService?: string;
     description?: string;
     lastUpdate?: string;
