@@ -56,7 +56,6 @@ const formSchema = z.object({
   designation: z.string().optional(),
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
-  compteurId: z.string().optional(),
   buildingId: z.string().optional(),
 });
 
@@ -94,7 +93,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       designation: initialEquipment?.designation || building?.name || "",
       coordX: initialEquipment?.coordX ?? building?.coordX ?? 0,
       coordY: initialEquipment?.coordY ?? building?.coordY ?? 0,
-      compteurId: initialEquipment?.compteurId || building?.meterId || "",
       buildingId: initialEquipment?.buildingId || buildingIdParam || "",
     },
   });
@@ -138,19 +136,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     }
   }, [watchAllFields.fournisseur, watchAllFields.localisation, watchAllFields.type, watchAllFields.typeChassis, watchAllFields.designation, allEquipment, isEditMode, initialEquipment]);
   
-  const handleGeolocate = () => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            form.setValue('coordX', position.coords.longitude);
-            form.setValue('coordY', position.coords.latitude);
-            toast({ title: "Localisation Récupérée", description: "Les coordonnées ont été mises à jour." });
-        }, (error) => {
-            toast({ variant: "destructive", title: "Erreur de Géolocalisation", description: "Impossible de récupérer votre position." });
-        });
-    } else {
-        toast({ variant: "destructive", title: "Erreur", description: "La géolocalisation n'est pas supportée par votre navigateur." });
-    }
-  }
+  const watchedCoords = form.watch(['coordY', 'coordX']);
+  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
 
   const onSubmit = (values: FormValues) => {
     if (isEditMode && initialEquipment) {
@@ -165,7 +152,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             designation: values.designation,
             coordX: values.coordX,
             coordY: values.coordY,
-            compteurId: values.compteurId,
             buildingId: values.buildingId,
         }
         updateEquipment(updated);
@@ -183,7 +169,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             designation: values.designation || undefined,
             coordX: values.coordX,
             coordY: values.coordY,
-            compteurId: values.compteurId,
+            compteurId: building?.meterId,
             buildingId: values.buildingId,
         }
         addEquipment(newEquipment);
@@ -322,7 +308,11 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <Label>Coordonnées</Label>
-                        <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate} disabled={isEditMode && !canEditStatus}><MapPin className="mr-2 h-4 w-4" /> Position Actuelle</Button>
+                        <Button type="button" variant="ghost" size="sm" asChild>
+                            <a href={mapsLink} target="_blank" rel="noopener noreferrer">
+                                <MapPin className="mr-2 h-4 w-4" /> Ouvrir Google Maps
+                            </a>
+                        </Button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>

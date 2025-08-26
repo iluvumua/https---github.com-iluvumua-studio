@@ -71,6 +71,9 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
   });
 
   const watchedAmperage = form.watch('amperage');
+  const watchedCoords = form.watch(['coordY', 'coordX']);
+  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
+
 
   React.useEffect(() => {
     if (initialData) {
@@ -94,20 +97,6 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
     toast({ title: "Étape 1 Terminée", description: "La demande de compteur a été enregistrée." });
   }
 
-  const handleGeolocate = () => {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            form.setValue('coordX', position.coords.longitude);
-            form.setValue('coordY', position.coords.latitude);
-            toast({ title: "Localisation Récupérée", description: "Les coordonnées ont été mises à jour." });
-        }, (error) => {
-            toast({ variant: "destructive", title: "Erreur de Géolocalisation", description: "Impossible de récupérer votre position." });
-        });
-    } else {
-        toast({ variant: "destructive", title: "Erreur", description: "La géolocalisation n'est pas supportée par votre navigateur." });
-    }
-  }
-
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -121,7 +110,11 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <FormLabel>Coordonnées Compteur</FormLabel>
-                    <Button type="button" variant="ghost" size="sm" onClick={handleGeolocate} disabled={isFinished}><MapPin className="mr-2 h-4 w-4" /> Actuelle</Button>
+                    <Button type="button" variant="ghost" size="sm" asChild>
+                        <a href={mapsLink} target="_blank" rel="noopener noreferrer">
+                            <MapPin className="mr-2 h-4 w-4" /> Ouvrir Google Maps
+                        </a>
+                    </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
