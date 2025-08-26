@@ -56,9 +56,9 @@ export default function NewMeterWorkflowPage() {
             if (parentBuilding && parentBuilding.meterId) {
                 const buildingMeter = meters.find(m => m.id === parentBuilding.meterId);
                 if (buildingMeter) {
-                    // Pre-fill everything and jump to step 3
                     setWipMeter(buildingMeter);
-                    setCurrentStep(3);
+                    // If equipment is not yet in service, it needs commissioning
+                    setCurrentStep(equipmentItem.status === 'En service' ? 4 : 3);
                     return; // Stop further processing
                 }
             }
@@ -68,8 +68,11 @@ export default function NewMeterWorkflowPage() {
                 const meter = meters.find(m => m.id === equipmentItem.compteurId);
                 if (meter) {
                     setWipMeter(meter);
-                    if (meter.status === 'En service') {
+                    if (equipmentItem.status === 'En service') {
                         setCurrentStep(4); // All done
+                    } else if (meter.status === 'En service' && equipmentItem.status !== 'En service') {
+                        // Meter is ready, equipment needs commissioning
+                        setCurrentStep(3);
                     } else if (meter.dateMiseEnService && !meter.id.startsWith('MTR-WIP-')) {
                         // This means it's installed but not commissioned
                         setCurrentStep(3);
@@ -84,6 +87,8 @@ export default function NewMeterWorkflowPage() {
                 }
             }
         }
+        // If no conditions are met, it's a new request
+        setCurrentStep(1);
     }, [equipmentItem, meters, buildings]);
 
 
@@ -150,11 +155,14 @@ export default function NewMeterWorkflowPage() {
 
     const handleStep3Finish = (data: { dateMiseEnService: string }) => {
         if(wipMeter) {
-            updateMeter({
-                ...wipMeter,
-                status: 'En service',
-                lastUpdate: new Date().toISOString().split('T')[0],
-            }, wipMeter.id);
+            // Only update meter status if it's not already in service
+            if (wipMeter.status !== 'En service') {
+                updateMeter({
+                    ...wipMeter,
+                    status: 'En service',
+                    lastUpdate: new Date().toISOString().split('T')[0],
+                }, wipMeter.id);
+            }
 
             updateEquipment({
                 ...equipmentItem,
@@ -251,3 +259,5 @@ export default function NewMeterWorkflowPage() {
         </div>
     )
 }
+
+    
