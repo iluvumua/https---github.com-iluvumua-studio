@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle } from "lucide-react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -36,6 +36,7 @@ import { useBillingStore } from "@/hooks/use-billing-store";
 import { locationsData } from "@/lib/locations";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { Separator } from "@/components/ui/separator";
+import { ResiliationDialog } from "@/components/resiliation-dialog";
 
 const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
@@ -43,6 +44,9 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
     const { meters } = useMetersStore();
     const { bills } = useBillingStore();
     const { buildings } = useBuildingsStore();
+    const { user } = useUser();
+
+    const canResiliate = user.role === 'Responsable Énergie et Environnement';
 
     const formatShortDate = (dateString?: string) => {
         if (!dateString) return "N/A";
@@ -157,6 +161,7 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
                                 <Pencil className="h-4 w-4" />
                             </Link>
                             </Button>
+                             {canResiliate && <ResiliationDialog item={item} itemType="equipment" />}
                         </div>
                         </TableCell>
                     </TableRow>
@@ -332,5 +337,3 @@ export default function EquipmentPage() {
     </div>
   );
 }
-
-    

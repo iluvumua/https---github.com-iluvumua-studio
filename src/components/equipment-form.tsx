@@ -18,11 +18,6 @@ import { locationsData } from "@/lib/locations";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "./ui/calendar";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 
@@ -62,11 +57,7 @@ const formSchema = z.object({
   coordX: z.coerce.number().optional(),
   coordY: z.coerce.number().optional(),
   compteurId: z.string().optional(),
-  dateMiseEnService: z.date().optional(),
-  status: z.string().optional(),
   buildingId: z.string().optional(),
-  dateResiliationCompteur: z.date().optional(),
-  dateResiliationEquipement: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -104,11 +95,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       coordX: initialEquipment?.coordX ?? building?.coordX ?? 0,
       coordY: initialEquipment?.coordY ?? building?.coordY ?? 0,
       compteurId: initialEquipment?.compteurId || building?.meterId || "",
-      dateMiseEnService: initialEquipment?.dateMiseEnService ? new Date(initialEquipment.dateMiseEnService) : undefined,
-      status: initialEquipment?.status || 'En cours',
       buildingId: initialEquipment?.buildingId || buildingIdParam || "",
-      dateResiliationCompteur: initialEquipment?.dateResiliationCompteur ? new Date(initialEquipment.dateResiliationCompteur) : undefined,
-      dateResiliationEquipement: initialEquipment?.dateResiliationEquipement ? new Date(initialEquipment.dateResiliationEquipement) : undefined,
     },
   });
 
@@ -166,22 +153,12 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }
 
   const onSubmit = (values: FormValues) => {
-    let newStatus: Equipment['status'] = values.status as Equipment['status'] || 'En cours';
-
     if (isEditMode && initialEquipment) {
-        if (initialEquipment.status === 'En service' && (values.dateResiliationCompteur || values.dateResiliationEquipement)) {
-            newStatus = 'En cours de résiliation';
-        }
-        if (initialEquipment.status === 'En cours de résiliation' && values.dateResiliationCompteur && values.dateResiliationEquipement) {
-            newStatus = 'Résilié';
-        }
-
         const updated: Equipment = {
             ...initialEquipment,
             name: generatedName,
             type: values.type,
             location: values.localisation,
-            status: newStatus,
             lastUpdate: new Date().toISOString().split('T')[0],
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
@@ -189,10 +166,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             coordX: values.coordX,
             coordY: values.coordY,
             compteurId: values.compteurId,
-            dateMiseEnService: values.dateMiseEnService?.toISOString().split('T')[0],
             buildingId: values.buildingId,
-            dateResiliationCompteur: values.dateResiliationCompteur?.toISOString().split('T')[0],
-            dateResiliationEquipement: values.dateResiliationEquipement?.toISOString().split('T')[0],
         }
         updateEquipment(updated);
         toast({ title: "Équipement Modifié", description: "Les modifications ont été enregistrées avec succès." });
@@ -223,8 +197,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const canCreate = user.role === 'Technicien';
 
   const isFormDisabled = isEditMode && !canEditStatus && !canEditDescription;
-  const showResiliationFields = isEditMode && (initialEquipment.status === 'En service' || initialEquipment.status === 'En cours de résiliation');
-
+  
   const availableMeters = useMemo(() => {
     const selectedLocation = watchAllFields.localisation;
     const selectedBuilding = buildings.find(b => b.code === selectedLocation);
@@ -386,45 +359,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 <Input readOnly value={generatedName} className="font-mono bg-muted" placeholder="..."/>
               </div>
 
-               {showResiliationFields && (
-                <div className="md:col-span-2 space-y-4 rounded-md border p-4">
-                  <h3 className="text-sm font-medium">Informations de Résiliation</h3>
-                   <FormField control={form.control} name="dateResiliationCompteur" render={({ field }) => (
-                      <FormItem className="flex flex-col"><FormLabel>Date Résiliation Compteur</FormLabel>
-                          <Popover><PopoverTrigger asChild>
-                              <FormControl>
-                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")} disabled={!canEditStatus}>
-                                  {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                              </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
-                          </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                      </FormItem>
-                  )} />
-                   <FormField control={form.control} name="dateResiliationEquipement" render={({ field }) => (
-                      <FormItem className="flex flex-col"><FormLabel>Date Résiliation Équipement</FormLabel>
-                          <Popover><PopoverTrigger asChild>
-                              <FormControl>
-                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")} disabled={!canEditStatus}>
-                                  {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                              </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
-                          </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                      </FormItem>
-                  )} />
-                </div>
-              )}
             </div>
             {((isEditMode && (canEditStatus || canEditDescription)) || (!isEditMode && canCreate)) && (
                  <div className="flex justify-end gap-2 mt-8">

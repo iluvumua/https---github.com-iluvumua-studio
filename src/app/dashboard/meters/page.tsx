@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2 } from "lucide-react";
 import React, { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Meter } from "@/lib/types";
 import { useSearchParams } from "next/navigation";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useUser } from "@/hooks/use-user";
+import { ResiliationDialog } from "@/components/resiliation-dialog";
 
 function MetersPageComponent() {
   const { meters } = useMetersStore();
@@ -39,9 +41,12 @@ function MetersPageComponent() {
   const { equipment } = useEquipmentStore();
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || "";
+  const { user } = useUser();
   
   const [searchTerm, setSearchTerm] = React.useState(initialSearch);
   const [activeTab, setActiveTab] = React.useState("all");
+
+  const canResiliate = user.role === 'Responsable Énergie et Environnement';
 
   const getAssociationName = (meter: (typeof meters)[0]) => {
      if (meter.buildingId) {
@@ -173,7 +178,7 @@ function MetersPageComponent() {
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">{formatShortDate(meter.lastUpdate)}</TableCell>
                         <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                            {meter.description && (
                                  <Popover>
                                     <PopoverTrigger asChild>
@@ -191,6 +196,7 @@ function MetersPageComponent() {
                                     <Pencil className="h-4 w-4" />
                                 </Link>
                             </Button>
+                            {canResiliate && <ResiliationDialog item={meter} itemType="meter" />}
                         </div>
                         </TableCell>
                     </TableRow>
