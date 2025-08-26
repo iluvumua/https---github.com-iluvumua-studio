@@ -44,29 +44,6 @@ export default function MeterBillingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [convenableFilter, setConvenableFilter] = useState<"all" | "yes" | "no">("all");
 
-  const meterHistory = useMemo(() => {
-    const history = new Map<string, any>();
-    const allMeters = meters;
-
-    let current = allMeters.find(m => m.id === initialMeterId);
-    if (!current) return [];
-
-    // Go backwards in history
-    while (current) {
-        history.set(current.id, current);
-        current = allMeters.find(m => m.id === current.replaces);
-    }
-    
-    // Go forwards in history
-    current = allMeters.find(m => m.id === initialMeterId);
-    while (current) {
-        history.set(current.id, current);
-        current = allMeters.find(m => m.id === current.replacedBy);
-    }
-
-    return Array.from(history.values());
-  }, [initialMeterId, meters]);
-
   const currentMeterDetails = meters.find(m => m.id === selectedMeterId);
 
   const meterBills = bills.filter(b => b.meterId === selectedMeterId);
@@ -120,23 +97,6 @@ export default function MeterBillingPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                 {meterHistory.length > 1 && (
-                    <Select value={selectedMeterId} onValueChange={setSelectedMeterId}>
-                        <SelectTrigger className="w-[220px]">
-                             <div className="flex items-center gap-2">
-                                <History className="h-4 w-4" />
-                                <SelectValue placeholder="Voir l'historique" />
-                            </div>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {meterHistory.map(meter => (
-                                <SelectItem key={meter.id} value={meter.id}>
-                                    {meter.id} ({meter.status})
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                 )}
                  <div className="relative">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input

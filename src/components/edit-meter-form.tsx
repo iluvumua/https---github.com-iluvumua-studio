@@ -19,7 +19,7 @@ import { Loader2, Save, X } from "lucide-react";
 import Link from "next/link";
 
 const formSchema = z.object({
-  status: z.enum(['En cours', 'En service', 'En cours de resiliation', 'Résilié', 'Substitué']),
+  status: z.enum(['En cours', 'En service', 'En cours de resiliation', 'Résilié']),
   description: z.string().optional(),
 });
 
@@ -69,7 +69,6 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                         <SelectItem value="En service">En service</SelectItem>
                         <SelectItem value="En cours de resiliation">En cours de resiliation</SelectItem>
                         <SelectItem value="Résilié">Résilié</SelectItem>
-                        <SelectItem value="Substitué">Substitué</SelectItem>
                     </SelectContent>
                 </Select>
                 <FormMessage />

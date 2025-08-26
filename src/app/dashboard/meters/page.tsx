@@ -76,7 +76,6 @@ function MetersPageComponent() {
           'en_service': ['En service'],
           'en_cours_resiliation': ['En cours de resiliation'],
           'resilie': ['Résilié'],
-          'substitue': ['Substitué'],
       };
       const statuses = statusMap[activeTab];
 
@@ -92,7 +91,6 @@ function MetersPageComponent() {
           <TabsTrigger value="en_service">En service</TabsTrigger>
           <TabsTrigger value="en_cours_resiliation">En cours de résil.</TabsTrigger>
           <TabsTrigger value="resilie">Résilié</TabsTrigger>
-          <TabsTrigger value="substitue">Substitué</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
             <div className="relative">
@@ -166,7 +164,6 @@ function MetersPageComponent() {
                                 meter.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
                                 meter.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
                                 meter.status === 'En cours de resiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10',
-                                meter.status === 'Substitué' && 'text-yellow-500 border-yellow-500/50 bg-yellow-500/10'
                             )}
                         >
                             {meter.status}

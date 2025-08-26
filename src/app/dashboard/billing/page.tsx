@@ -34,7 +34,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ReplaceMeterForm } from "@/components/replace-meter-form";
 import { useAnomaliesStore } from "@/hooks/use-anomalies-store";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -65,7 +64,7 @@ export default function BillingPage() {
   }
 
   const meterBillingData = meters
-    .filter(meter => meter.status !== 'Substitué' && meter.referenceFacteur)
+    .filter(meter => meter.status !== 'Résilié' && meter.referenceFacteur)
     .map(meter => {
         return {
             ...meter,
@@ -219,9 +218,6 @@ export default function BillingPage() {
                                     <p className="text-sm">{item.description}</p>
                                 </PopoverContent>
                             </Popover>
-                        )}
-                        {item.status === 'Résilié' && user.role === 'Financier' && (
-                             <ReplaceMeterForm oldMeter={item} />
                         )}
                         <Button variant="ghost" size="icon" asChild>
                             <Link href={`/dashboard/billing/${item.id}`}>
