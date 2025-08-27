@@ -82,8 +82,8 @@ function MetersPageComponent() {
       const statusMap: { [key: string]: Meter['status'][] } = {
           'en_cours': ['En cours'],
           'en_service': ['En service'],
-          'en_cours_resiliation': ['En cours de resiliation'],
-          'resilie': ['Résilié'],
+          'switched_off_en_cours': ['switched off en cours'],
+          'switched_off': ['switched off'],
       };
       const statuses = statusMap[activeTab];
 
@@ -97,8 +97,8 @@ function MetersPageComponent() {
           <TabsTrigger value="all">Tous</TabsTrigger>
           <TabsTrigger value="en_cours">En cours</TabsTrigger>
           <TabsTrigger value="en_service">En service</TabsTrigger>
-          <TabsTrigger value="en_cours_resiliation">En cours de résil.</TabsTrigger>
-          <TabsTrigger value="resilie">Résilié</TabsTrigger>
+          <TabsTrigger value="switched_off_en_cours">Switched Off En Cours</TabsTrigger>
+          <TabsTrigger value="switched_off">Switched Off</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
             <div className="relative">
@@ -169,9 +169,9 @@ function MetersPageComponent() {
                             className={cn(
                                 "whitespace-nowrap",
                                 meter.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                                meter.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                                meter.status === 'switched off' && 'text-red-500 border-red-500/50 bg-red-500/10',
                                 meter.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                                meter.status === 'En cours de resiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10',
+                                meter.status === 'switched off en cours' && 'text-orange-500 border-orange-500/50 bg-orange-500/10',
                             )}
                         >
                             {meter.status}
@@ -209,7 +209,7 @@ function MetersPageComponent() {
                                                 Modifier
                                             </Link>
                                         </DropdownMenuItem>
-                                        {meter.status === 'Résilié' && meter.associationHistory && meter.associationHistory.length > 0 && (
+                                        {meter.status === 'switched off' && meter.associationHistory && meter.associationHistory.length > 0 && (
                                              <Popover>
                                                 <PopoverTrigger asChild>
                                                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

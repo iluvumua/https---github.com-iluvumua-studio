@@ -98,9 +98,9 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                 <Badge variant="outline" className={cn(
                     "whitespace-nowrap",
                     item.status === 'En service' && 'text-green-500 border-green-500/50 bg-green-500/10',
-                    item.status === 'Résilié' && 'text-red-500 border-red-500/50 bg-red-500/10',
+                    item.status === 'switched off' && 'text-red-500 border-red-500/50 bg-red-500/10',
                     item.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
-                    item.status === 'En cours de résiliation' && 'text-orange-500 border-orange-500/50 bg-orange-500/10'
+                    item.status === 'switched off en cours' && 'text-orange-500 border-orange-500/50 bg-orange-500/10'
                 )}>{item.status}</Badge>
                 </TableCell>
                 <TableCell className="truncate whitespace-nowrap">{item.type}</TableCell>
@@ -148,7 +148,7 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                                         Modifier
                                     </Link>
                                 </DropdownMenuItem>
-                                {item.status === 'Résilié' && item.associationHistory && item.associationHistory.length > 0 && (
+                                {item.status === 'switched off' && item.associationHistory && item.associationHistory.length > 0 && (
                                      <Popover>
                                         <PopoverTrigger asChild>
                                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -315,8 +315,8 @@ export default function EquipmentPage() {
           <TabsTrigger value="all">Tous</TabsTrigger>
           <TabsTrigger value="en_cours">En cours</TabsTrigger>
           <TabsTrigger value="en_service">En service</TabsTrigger>
-          <TabsTrigger value="en_cours_resiliation">En cours de résiliation</TabsTrigger>
-          <TabsTrigger value="resilie">Résilié</TabsTrigger>
+          <TabsTrigger value="switched_off_en_cours">Switched Off En Cours</TabsTrigger>
+          <TabsTrigger value="switched_off">Switched Off</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
             <div className="relative">
@@ -364,11 +364,11 @@ export default function EquipmentPage() {
             <TabsContent value="en_service">
                  <EquipmentTable equipment={getFilteredEquipment('En service')} openRow={openRow} setOpenRow={setOpenRow} />
             </TabsContent>
-            <TabsContent value="en_cours_resiliation">
-                 <EquipmentTable equipment={getFilteredEquipment('En cours de résiliation')} openRow={openRow} setOpenRow={setOpenRow} />
+            <TabsContent value="switched_off_en_cours">
+                 <EquipmentTable equipment={getFilteredEquipment('switched off en cours')} openRow={openRow} setOpenRow={setOpenRow} />
             </TabsContent>
-            <TabsContent value="resilie">
-                 <EquipmentTable equipment={getFilteredEquipment('Résilié')} openRow={openRow} setOpenRow={setOpenRow} />
+            <TabsContent value="switched_off">
+                 <EquipmentTable equipment={getFilteredEquipment('switched off')} openRow={openRow} setOpenRow={setOpenRow} />
             </TabsContent>
           </CardContent>
         </Card>
@@ -376,3 +376,5 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
+    

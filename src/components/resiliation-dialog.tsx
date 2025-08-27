@@ -78,14 +78,14 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
         let history = equipment.associationHistory || [];
 
         if (values.dateDemandeResiliationEquipement && equipment.status === 'En service') {
-            newStatus = 'En cours de résiliation';
+            newStatus = 'switched off en cours';
         }
 
         if (values.dateResiliationEquipement) {
-             newStatus = 'Résilié';
+             newStatus = 'switched off';
              if (equipment.compteurId) {
                 const associatedMeter = meters.find(m => m.id === equipment.compteurId);
-                const otherAssociations = allEquipment.some(e => e.id !== equipment.id && e.compteurId === equipment.compteurId && e.status !== 'Résilié') || buildings.some(b => b.meterId === equipment.compteurId);
+                const otherAssociations = allEquipment.some(e => e.id !== equipment.id && e.compteurId === equipment.compteurId && e.status !== 'switched off') || buildings.some(b => b.meterId === equipment.compteurId);
                 
                 if (associatedMeter) {
                     history.push(`Associé au compteur ${associatedMeter.id} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
@@ -117,11 +117,11 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
         let history = meter.associationHistory || [];
         
         if (values.dateDemandeResiliation && meter.status === 'En service') {
-            newStatus = 'En cours de resiliation';
+            newStatus = 'switched off en cours';
         }
         if (values.dateResiliation) {
-            newStatus = 'Résilié';
-            const associatedEquip = allEquipment.find(e => e.compteurId === meter.id && e.status !== 'Résilié');
+            newStatus = 'switched off';
+            const associatedEquip = allEquipment.find(e => e.compteurId === meter.id && e.status !== 'switched off');
             if (associatedEquip) {
                 equipmentStatusUpdate = { id: associatedEquip.id, status: 'En cours' };
                 history.push(`Associé à l'équipement ${associatedEquip.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);

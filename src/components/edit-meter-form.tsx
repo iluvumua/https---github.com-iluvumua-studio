@@ -23,7 +23,7 @@ import { format } from "date-fns";
 import { Calendar } from "./ui/calendar";
 
 const formSchema = z.object({
-  status: z.enum(['En cours', 'En service', 'En cours de resiliation', 'Résilié']),
+  status: z.enum(['En cours', 'En service', 'switched off en cours', 'switched off']),
   description: z.string().optional(),
 });
 
@@ -71,8 +71,8 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
                     <SelectContent>
                         <SelectItem value="En cours">En cours</SelectItem>
                         <SelectItem value="En service">En service</SelectItem>
-                        <SelectItem value="En cours de resiliation">En cours de resiliation</SelectItem>
-                        <SelectItem value="Résilié">Résilié</SelectItem>
+                        <SelectItem value="switched off en cours">Switched Off En Cours</SelectItem>
+                        <SelectItem value="switched off">Switched Off</SelectItem>
                     </SelectContent>
                 </Select>
                 <FormMessage />
@@ -112,3 +112,5 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
     </Form>
   );
 }
+
+    

@@ -4,7 +4,7 @@ export type Equipment = {
   name: string; // Nom_MSAN
   type: string;
   location: string; // Code  Abréviation
-  status: 'En cours' | 'En service' | 'En cours de résiliation' | 'Résilié'; // Etat
+  status: 'En cours' | 'En service' | 'switched off en cours' | 'switched off'; // Etat
   lastUpdate: string;
   fournisseur?: string;
   typeChassis?: string;
@@ -106,7 +106,7 @@ export type Meter = {
     policeNumber?: string;
     referenceFacteur?: string; // 9-digit code
     buildingId?: string;
-    status: 'En cours' | 'En service' | 'En cours de resiliation' | 'Résilié';
+    status: 'En cours' | 'En service' | 'switched off en cours' | 'switched off';
     typeTension: 'Moyenne Tension' | 'Basse Tension';
     dateDemandeInstallation?: string;
     dateDemandeResiliation?: string;
@@ -125,3 +125,5 @@ export type Meter = {
 }
 
       
+
+    
