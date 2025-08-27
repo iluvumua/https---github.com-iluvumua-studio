@@ -106,11 +106,12 @@ export type Meter = {
     policeNumber?: string;
     referenceFacteur?: string; // 9-digit code
     buildingId?: string;
-    status: 'En cours' | 'En service' | 'switched off en cours' | 'switched off';
+    status: 'En cours' | 'En service' | 'switched off en cours' | 'switched off' | 'substitué';
     typeTension: 'Moyenne Tension' | 'Basse Tension';
     dateDemandeInstallation?: string;
     dateDemandeResiliation?: string;
     dateResiliation?: string;
+    dateSubstitution?: string;
     dateMiseEnService?: string;
     description?: string;
     lastUpdate?: string;
@@ -123,7 +124,3 @@ export type Meter = {
     indexDepart?: number;
     associationHistory?: string[];
 }
-
-      
-
-    

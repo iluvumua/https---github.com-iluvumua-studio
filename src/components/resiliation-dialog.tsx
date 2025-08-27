@@ -27,12 +27,24 @@ import { format } from 'date-fns';
 import { Calendar } from './ui/calendar';
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
 import { DropdownMenuItem } from './ui/dropdown-menu';
+import { useUser } from '@/hooks/use-user';
+import { Checkbox } from './ui/checkbox';
 
 const formSchema = z.object({
   dateDemandeResiliation: z.date().optional(),
   dateResiliation: z.date().optional(),
   dateDemandeResiliationEquipement: z.date().optional(),
   dateResiliationEquipement: z.date().optional(),
+  isSubstitution: z.boolean().default(false),
+  dateSubstitution: z.date().optional(),
+}).refine(data => {
+    if (data.isSubstitution) {
+        return !!data.dateSubstitution;
+    }
+    return true;
+}, {
+    message: "La date de substitution est requise.",
+    path: ["dateSubstitution"],
 }).refine(data => {
     if (data.dateResiliation) {
         return !!data.dateDemandeResiliation;
@@ -52,14 +64,18 @@ interface ResiliationDialogProps {
 
 export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   const { toast } = useToast();
+  const { user } = useUser();
   const { equipment: allEquipment, updateEquipment } = useEquipmentStore();
   const { meters, updateMeter } = useMetersStore();
-  const { buildings } = useBuildingsStore();
+  const { buildings, updateBuilding } = useBuildingsStore();
   const [isOpen, setIsOpen] = useState(false);
   
   const isEquipment = itemType === 'equipment';
   const equipment = isEquipment ? (item as Equipment) : undefined;
   const meter = !isEquipment ? (item as Meter) : undefined;
+  
+  const isRespoEnergie = user.role === 'Responsable Énergie et Environnement';
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -68,8 +84,12 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
         dateResiliation: meter?.dateResiliation ? new Date(meter.dateResiliation) : undefined,
         dateDemandeResiliationEquipement: equipment?.dateDemandeResiliation ? new Date(equipment.dateDemandeResiliation) : undefined,
         dateResiliationEquipement: equipment?.dateResiliationEquipement ? new Date(equipment.dateResiliationEquipement) : undefined,
+        isSubstitution: false,
+        dateSubstitution: meter?.dateSubstitution ? new Date(meter.dateSubstitution) : undefined,
     }
   });
+  
+  const watchedIsSubstitution = form.watch('isSubstitution');
 
   const onSubmit = (values: FormValues) => {
     if (isEquipment && equipment) {
@@ -112,43 +132,71 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
 
         toast({ title: "Équipement Mis à Jour", description: `La demande de résiliation pour ${equipment.name} a été enregistrée.` });
     } else if (meter) {
-        let newStatus: Meter['status'] = meter.status;
-        let equipmentStatusUpdate: Partial<Equipment> | null = null;
-        let history = meter.associationHistory || [];
-        
-        if (values.dateDemandeResiliation && meter.status === 'En service') {
-            newStatus = 'switched off en cours';
-        }
-        if (values.dateResiliation) {
-            newStatus = 'switched off';
-            const associatedEquip = allEquipment.find(e => e.compteurId === meter.id && e.status !== 'switched off');
-            if (associatedEquip) {
-                equipmentStatusUpdate = { id: associatedEquip.id, status: 'En cours' };
-                history.push(`Associé à l'équipement ${associatedEquip.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
-            } else if (meter.buildingId) {
-                const associatedBuilding = buildings.find(b => b.id === meter.buildingId);
-                if (associatedBuilding) {
-                     history.push(`Associé au bâtiment ${associatedBuilding.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
+        if (values.isSubstitution && values.dateSubstitution) {
+             // Handle substitution
+            const associatedEquipment = allEquipment.filter(e => e.compteurId === meter.id && e.status !== 'switched off');
+            const associatedBuilding = buildings.find(b => b.id === meter.buildingId);
+
+            // Update associated equipment
+            associatedEquipment.forEach(eq => {
+                updateEquipment({ id: eq.id, status: 'En cours', compteurId: undefined, lastUpdate: new Date().toISOString().split('T')[0] });
+            });
+
+            // Update associated building
+            if (associatedBuilding) {
+                updateBuilding({ ...associatedBuilding, meterId: undefined });
+            }
+            
+            // Update meter
+            updateMeter({ 
+                ...meter, 
+                status: 'substitué', 
+                dateSubstitution: values.dateSubstitution.toISOString().split('T')[0], 
+                lastUpdate: new Date().toISOString().split('T')[0] 
+            });
+
+            toast({ title: "Compteur Substitué", description: `Le compteur ${meter.id} a été marqué comme substitué.` });
+        } else {
+            // Handle regular resiliation
+            let newStatus: Meter['status'] = meter.status;
+            let equipmentStatusUpdate: Partial<Equipment> | null = null;
+            let history = meter.associationHistory || [];
+            
+            if (values.dateDemandeResiliation && meter.status === 'En service') {
+                newStatus = 'switched off en cours';
+            }
+            if (values.dateResiliation) {
+                newStatus = 'switched off';
+                const associatedEquip = allEquipment.find(e => e.compteurId === meter.id && e.status !== 'switched off');
+                if (associatedEquip) {
+                    equipmentStatusUpdate = { id: associatedEquip.id, status: 'En cours' };
+                    history.push(`Associé à l'équipement ${associatedEquip.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
+                } else if (meter.buildingId) {
+                    const associatedBuilding = buildings.find(b => b.id === meter.buildingId);
+                    if (associatedBuilding) {
+                         history.push(`Associé au bâtiment ${associatedBuilding.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
+                    }
                 }
             }
-        }
-        
-        updateMeter({
-            ...meter,
-            status: newStatus,
-            dateDemandeResiliation: values.dateDemandeResiliation?.toISOString().split('T')[0],
-            dateResiliation: values.dateResiliation?.toISOString().split('T')[0],
-            lastUpdate: new Date().toISOString().split('T')[0],
-            associationHistory: history,
-        });
-        
-        if (equipmentStatusUpdate) {
-             updateEquipment({ ...allEquipment.find(e => e.id === equipmentStatusUpdate!.id)!, ...equipmentStatusUpdate, lastUpdate: new Date().toISOString().split('T')[0] });
-        }
+            
+            updateMeter({
+                ...meter,
+                status: newStatus,
+                dateDemandeResiliation: values.dateDemandeResiliation?.toISOString().split('T')[0],
+                dateResiliation: values.dateResiliation?.toISOString().split('T')[0],
+                lastUpdate: new Date().toISOString().split('T')[0],
+                associationHistory: history,
+            });
+            
+            if (equipmentStatusUpdate) {
+                 updateEquipment({ ...allEquipment.find(e => e.id === equipmentStatusUpdate!.id)!, ...equipmentStatusUpdate, lastUpdate: new Date().toISOString().split('T')[0] });
+            }
 
-        toast({ title: "Compteur Mis à Jour", description: `La demande de résiliation pour ${meter.id} a été enregistrée.` });
+            toast({ title: "Compteur Mis à Jour", description: `La demande de résiliation pour ${meter.id} a été enregistrée.` });
+        }
     }
     setIsOpen(false);
+    form.reset();
   }
 
   const triggerText = itemType === 'equipment' ? 'Résilier Équipement' : 'Résilier Compteur';
@@ -165,9 +213,9 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
        <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
-                <DialogTitle>Demande de Résiliation</DialogTitle>
+                <DialogTitle>Demande de Résiliation / Substitution</DialogTitle>
                 <DialogDescription>
-                    Saisir les dates pour la résiliation de {itemType === 'equipment' ? `l'équipement ${'name' in item ? item.name : ''}` : `le compteur ${item.id}`}.
+                    Gérer la résiliation de {itemType === 'equipment' ? `l'équipement ${'name' in item ? item.name : ''}` : `le compteur ${item.id}`}.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -210,40 +258,79 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
                 </div>
                ) : (
                  <div className="space-y-4">
-                 <FormField control={form.control} name="dateDemandeResiliation" render={({ field }) => (
-                      <FormItem className="flex flex-col"><FormLabel>Date de Demande de Résiliation</FormLabel>
-                          <Popover><PopoverTrigger asChild>
-                              <FormControl>
-                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                                  {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                              </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
-                          </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                      </FormItem>
-                  )} />
-                   <FormField control={form.control} name="dateResiliation" render={({ field }) => (
-                      <FormItem className="flex flex-col"><FormLabel>Date Résiliation Finale Compteur</FormLabel>
-                          <Popover><PopoverTrigger asChild>
-                              <FormControl>
-                              <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
-                                  {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                              </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
-                          </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                      </FormItem>
-                  )} />
+                    {!watchedIsSubstitution && (
+                        <>
+                        <FormField control={form.control} name="dateDemandeResiliation" render={({ field }) => (
+                            <FormItem className="flex flex-col"><FormLabel>Date de Demande de Résiliation</FormLabel>
+                                <Popover><PopoverTrigger asChild>
+                                    <FormControl>
+                                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                        {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={form.control} name="dateResiliation" render={({ field }) => (
+                            <FormItem className="flex flex-col"><FormLabel>Date Résiliation Finale Compteur</FormLabel>
+                                <Popover><PopoverTrigger asChild>
+                                    <FormControl>
+                                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                        {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        </>
+                    )}
+                    {watchedIsSubstitution && (
+                        <FormField control={form.control} name="dateSubstitution" render={({ field }) => (
+                            <FormItem className="flex flex-col"><FormLabel>Date de Substitution</FormLabel>
+                                <Popover><PopoverTrigger asChild>
+                                    <FormControl>
+                                    <Button variant={"outline"} className={cn("pl-3 text-left font-normal",!field.value && "text-muted-foreground")}>
+                                        {field.value ? (format(field.value, "PPP")) : (<span>Choisir une date</span>)}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                                </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    )}
+                    {isRespoEnergie && (
+                        <FormField
+                            control={form.control}
+                            name="isSubstitution"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel>Mise en substitution</FormLabel>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                    )}
                   </div>
                )}
             </div>
@@ -260,5 +347,3 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
     </Dialog>
   );
 }
-
-    

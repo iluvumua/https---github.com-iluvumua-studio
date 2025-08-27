@@ -84,6 +84,7 @@ function MetersPageComponent() {
           'en_service': ['En service'],
           'switched_off_en_cours': ['switched off en cours'],
           'switched_off': ['switched off'],
+          'substitue': ['substitué'],
       };
       const statuses = statusMap[activeTab];
 
@@ -99,6 +100,7 @@ function MetersPageComponent() {
           <TabsTrigger value="en_service">En service</TabsTrigger>
           <TabsTrigger value="switched_off_en_cours">Switched Off En Cours</TabsTrigger>
           <TabsTrigger value="switched_off">Switched Off</TabsTrigger>
+          <TabsTrigger value="substitue">Substitué</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
             <div className="relative">
@@ -172,6 +174,7 @@ function MetersPageComponent() {
                                 meter.status === 'switched off' && 'text-red-500 border-red-500/50 bg-red-500/10',
                                 meter.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
                                 meter.status === 'switched off en cours' && 'text-orange-500 border-orange-500/50 bg-orange-500/10',
+                                meter.status === 'substitué' && 'text-purple-500 border-purple-500/50 bg-purple-500/10',
                             )}
                         >
                             {meter.status}
@@ -252,5 +255,3 @@ export default function MetersPage() {
         </Suspense>
     )
 }
-
-    
