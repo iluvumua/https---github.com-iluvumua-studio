@@ -5,16 +5,127 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEquipmentStore } from '@/hooks/use-equipment-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MeterRequestForm } from '@/components/meter-request-form';
 import type { Meter } from '@/lib/types';
 import { useMetersStore } from '@/hooks/use-meters-store';
 import { MeterInstallationForm } from '@/components/meter-installation-form';
 import { EquipmentCommissioningForm } from '@/components/equipment-commissioning-form';
-import { CheckCircle, Circle, CircleDotDashed } from 'lucide-react';
+import { CheckCircle, Circle, CircleDotDashed, List, PlusSquare, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useToast } from '@/hooks/use-toast';
+
+const existingMeterSchema = z.object({
+  meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
+});
+type ExistingMeterFormValues = z.infer<typeof existingMeterSchema>;
+
+
+const AssignExistingMeterForm = ({ equipmentId }: { equipmentId: string }) => {
+    const router = useRouter();
+    const { toast } = useToast();
+    const { equipment, updateEquipment } = useEquipmentStore();
+    const { meters } = useMetersStore();
+    const equipmentItem = equipment.find(e => e.id === equipmentId);
+
+    const availableMeters = useMemo(() => {
+        // Filter for outdoor meters (no buildingId)
+        const outdoorMeters = meters.filter(m => !m.buildingId && m.status === 'En service');
+        
+        // Count how many equipment are associated with each meter
+        const meterUsageCount = equipment.reduce((acc, eq) => {
+            if (eq.compteurId) {
+                acc[eq.compteurId] = (acc[eq.compteurId] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+        // Filter meters that are used by 1 or 0 equipment
+        return outdoorMeters.filter(m => (meterUsageCount[m.id] || 0) <= 1);
+
+    }, [meters, equipment]);
+    
+    const form = useForm<ExistingMeterFormValues>({
+        resolver: zodResolver(existingMeterSchema),
+        defaultValues: { meterId: "" }
+    });
+
+    const onSubmit = (values: ExistingMeterFormValues) => {
+        if (equipmentItem) {
+            updateEquipment({
+                ...equipmentItem,
+                compteurId: values.meterId,
+                status: 'En service',
+                dateMiseEnService: new Date().toISOString().split('T')[0],
+                lastUpdate: new Date().toISOString().split('T')[0],
+            });
+            toast({
+                title: "Compteur Assigné",
+                description: `Le compteur ${values.meterId} a été assigné à l'équipement ${equipmentItem.name}.`
+            });
+            router.push('/dashboard/equipment');
+        }
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Affecter un Compteur Existant</CardTitle>
+                <CardDescription>
+                    Sélectionnez un compteur extérieur disponible pour l'associer à cet équipement.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                         <FormField
+                            control={form.control}
+                            name="meterId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Compteurs Extérieurs Disponibles</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Sélectionner un compteur..." />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {availableMeters.length > 0 ? (
+                                                availableMeters.map(meter => (
+                                                    <SelectItem key={meter.id} value={meter.id}>
+                                                        {meter.id} - {meter.description || "N/A"}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className="p-4 text-center text-sm text-muted-foreground">Aucun compteur extérieur disponible.</div>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
+                                <Save className="mr-2 h-4 w-4"/> Enregistrer l'Association
+                            </Button>
+                        </div>
+                    </form>
+                </Form>
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default function NewMeterWorkflowPage() {
     const params = useParams();
@@ -23,6 +134,8 @@ export default function NewMeterWorkflowPage() {
     const { equipment, updateEquipment } = useEquipmentStore();
     const { meters, addMeter, updateMeter } = useMetersStore();
     const { buildings } = useBuildingsStore();
+    
+    const [workflowChoice, setWorkflowChoice] = useState<'existing' | 'new' | null>(null);
     
     const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
 
@@ -51,6 +164,9 @@ export default function NewMeterWorkflowPage() {
 
     useEffect(() => {
         if (equipmentItem) {
+            // If a choice has been made, don't re-evaluate
+            if(workflowChoice) return;
+
             // Case 1: Indoor equipment in a building that already has a meter
             const parentBuilding = buildings.find(b => b.id === equipmentItem.buildingId);
             if (parentBuilding && parentBuilding.meterId) {
@@ -59,6 +175,7 @@ export default function NewMeterWorkflowPage() {
                     setWipMeter(buildingMeter);
                     // If equipment is not yet in service, it needs commissioning
                     setCurrentStep(equipmentItem.status === 'En service' ? 4 : 3);
+                    setWorkflowChoice('new'); // It's a new "installation" workflow
                     return; // Stop further processing
                 }
             }
@@ -67,6 +184,7 @@ export default function NewMeterWorkflowPage() {
             if (equipmentItem.compteurId) {
                 const meter = meters.find(m => m.id === equipmentItem.compteurId);
                 if (meter) {
+                    setWorkflowChoice('new'); // It has a meter, so it follows the new installation workflow
                     setWipMeter(meter);
                     if (equipmentItem.status === 'En service') {
                         setCurrentStep(4); // All done
@@ -87,9 +205,10 @@ export default function NewMeterWorkflowPage() {
                 }
             }
         }
-        // If no conditions are met, it's a new request
-        setCurrentStep(1);
-    }, [equipmentItem, meters, buildings]);
+        
+        // If no conditions met (e.g. outdoor equipment with no meter), currentStep remains 1
+        // and workflowChoice remains null, waiting for user input.
+    }, [equipmentItem, meters, buildings, workflowChoice]);
 
 
     if (!equipmentItem) {
@@ -100,6 +219,11 @@ export default function NewMeterWorkflowPage() {
                 <Skeleton className="h-10 w-full" />
             </div>
         )
+    }
+
+    // Do not show choice for indoor equipment
+    if (!workflowChoice && equipmentItem.buildingId) {
+        setWorkflowChoice('new');
     }
     
     const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
@@ -193,75 +317,114 @@ export default function NewMeterWorkflowPage() {
             <Card className="mb-8">
                 <CardHeader>
                     <CardTitle>Nouveau Compteur pour l'Équipement: <span className="font-mono text-primary">{equipmentItem.name}</span></CardTitle>
-                    <CardDescription>Suivez les étapes pour demander et installer un nouveau compteur pour cet équipement.</CardDescription>
+                    <CardDescription>
+                         {workflowChoice === 'new' ? "Suivez les étapes pour demander et installer un nouveau compteur pour cet équipement." : "Choisissez une méthode pour affecter un compteur à cet équipement."}
+                    </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex items-center space-x-4">
-                        <div className="flex items-center gap-2">
-                           {getStepIcon(1)}
-                           <span className={cn(currentStep >= 1 && "font-semibold")}>1. Demande</span>
+                {workflowChoice === 'new' && (
+                    <CardContent>
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center gap-2">
+                            {getStepIcon(1)}
+                            <span className={cn(currentStep >= 1 && "font-semibold")}>1. Demande</span>
+                            </div>
+                            <Separator className="flex-1" />
+                            <div className="flex items-center gap-2">
+                            {getStepIcon(2)}
+                            <span className={cn(currentStep >= 2 && "font-semibold")}>2. Installation Compteur</span>
+                            </div>
+                            <Separator className="flex-1" />
+                            <div className="flex items-center gap-2">
+                            {getStepIcon(3)}
+                            <span className={cn(currentStep >= 3 && "font-semibold")}>3. Mise en Service</span>
+                            </div>
                         </div>
-                        <Separator className="flex-1" />
-                        <div className="flex items-center gap-2">
-                           {getStepIcon(2)}
-                           <span className={cn(currentStep >= 2 && "font-semibold")}>2. Installation Compteur</span>
-                        </div>
-                        <Separator className="flex-1" />
-                        <div className="flex items-center gap-2">
-                           {getStepIcon(3)}
-                           <span className={cn(currentStep >= 3 && "font-semibold")}>3. Mise en Service</span>
-                        </div>
-                    </div>
-                </CardContent>
+                    </CardContent>
+                )}
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Étape 1: Demande de Compteur</CardTitle>
-                        <CardDescription>Informations pour la demande initiale.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <MeterRequestForm 
-                            equipment={equipmentItem} 
-                            onFinished={handleStep1Finish}
-                            isFinished={currentStep > 1}
-                            initialData={wipMeter}
-                        />
-                    </CardContent>
-                </Card>
+            {!workflowChoice && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <button onClick={() => setWorkflowChoice('existing')} className="text-left">
+                        <Card className="hover:bg-accent hover:border-primary transition-all">
+                            <CardHeader>
+                                <div className="flex items-center gap-4">
+                                    <List className="h-10 w-10 text-primary" />
+                                    <div>
+                                        <CardTitle>Affecter un Compteur Existant</CardTitle>
+                                        <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    </button>
+                    <button onClick={() => setWorkflowChoice('new')} className="text-left">
+                        <Card className="hover:bg-accent hover:border-primary transition-all">
+                            <CardHeader>
+                                <div className="flex items-center gap-4">
+                                    <PlusSquare className="h-10 w-10 text-primary" />
+                                     <div>
+                                        <CardTitle>Nouvelle Demande de Compteur</CardTitle>
+                                        <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    </button>
+                </div>
+            )}
 
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Étape 2: Installation du Compteur</CardTitle>
-                        <CardDescription>Saisir les informations du compteur physique.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <MeterInstallationForm 
-                            onFinished={handleStep2Finish}
-                            isFinished={currentStep > 2}
-                            meterId={wipMeter?.id}
-                            initialData={wipMeter}
-                         />
-                    </CardContent>
-                </Card>
-                
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Étape 3: Mise en Service</CardTitle>
-                        <CardDescription>Finaliser la mise en service de l'équipement.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <EquipmentCommissioningForm 
-                            equipment={equipmentItem} 
-                            onFinished={handleStep3Finish}
-                            isFinished={currentStep > 3}
-                        />
-                    </CardContent>
-                </Card>
-            </div>
+            {workflowChoice === 'existing' && (
+                <AssignExistingMeterForm equipmentId={equipmentItem.id} />
+            )}
+
+            {workflowChoice === 'new' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Étape 1: Demande de Compteur</CardTitle>
+                            <CardDescription>Informations pour la demande initiale.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <MeterRequestForm 
+                                equipment={equipmentItem} 
+                                onFinished={handleStep1Finish}
+                                isFinished={currentStep > 1}
+                                initialData={wipMeter}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Étape 2: Installation du Compteur</CardTitle>
+                            <CardDescription>Saisir les informations du compteur physique.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <MeterInstallationForm 
+                                onFinished={handleStep2Finish}
+                                isFinished={currentStep > 2}
+                                meterId={wipMeter?.id}
+                                initialData={wipMeter}
+                            />
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Étape 3: Mise en Service</CardTitle>
+                            <CardDescription>Finaliser la mise en service de l'équipement.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <EquipmentCommissioningForm 
+                                equipment={equipmentItem} 
+                                onFinished={handleStep3Finish}
+                                isFinished={currentStep > 3}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     )
 }
-
-    
