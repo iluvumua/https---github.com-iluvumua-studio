@@ -60,7 +60,7 @@ export default function MeterBillingPage() {
     const query = searchTerm.toLowerCase();
     const matchesSearch = (
       bill.reference.toLowerCase().includes(query) ||
-      bill.typeTension.toLowerCase().includes(query)
+      bill.month.toLowerCase().includes(query)
     );
 
     const matchesConvenable = convenableFilter === 'all' || 
@@ -73,12 +73,12 @@ export default function MeterBillingPage() {
   const handleExport = () => {
     const dataToExport = filteredBills.map(bill => ({
         "N° Facture": bill.reference,
-        "Type": bill.typeTension,
-        "Consommation (kWh)": bill.consumptionKWh,
-        "Montant": bill.amount,
-        "Convenable STEG": bill.convenableSTEG ? 'Oui' : 'Non',
-        "Montant STEG": bill.montantSTEG,
         "Mois": bill.month,
+        "Consommation (kWh)": bill.consumptionKWh,
+        "Montant Calculé": bill.amount,
+        "Convenable STEG": bill.convenableSTEG ? 'Oui' : 'Non',
+        "Montant STEG": bill.convenableSTEG ? '' : bill.montantSTEG,
+        "Différence": bill.convenableSTEG ? '' : (bill.montantSTEG || 0) - bill.amount,
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -162,7 +162,9 @@ export default function MeterBillingPage() {
               <TableHead>Facture Number</TableHead>
               <TableHead>Mois</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
-              <TableHead className="text-right">Montant</TableHead>
+              <TableHead className="text-right">Montant Calculé</TableHead>
+              <TableHead className="text-right">Montant STEG</TableHead>
+              <TableHead className="text-right">Différence</TableHead>
               <TableHead className="w-[100px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -174,18 +176,23 @@ export default function MeterBillingPage() {
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
                 <TableCell className="text-right font-medium">
                   {formatCurrency(bill.amount)}
-                  {!bill.convenableSTEG && typeof bill.montantSTEG === 'number' && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      STEG: {formatCurrency(bill.montantSTEG)}
-                      <br />
-                      <span className={cn(
-                        'font-semibold',
-                        (bill.montantSTEG - bill.amount) !== 0 ? 'text-destructive' : ''
-                      )}>
-                        Diff: {formatCurrency(bill.montantSTEG - bill.amount)}
-                      </span>
-                    </div>
-                  )}
+                </TableCell>
+                 <TableCell className="text-right">
+                   {!bill.convenableSTEG && typeof bill.montantSTEG === 'number' ? (
+                       formatCurrency(bill.montantSTEG)
+                   ) : (
+                    <span className="text-muted-foreground">-</span>
+                   )}
+                </TableCell>
+                 <TableCell className={cn(
+                     "text-right font-semibold",
+                     !bill.convenableSTEG && (bill.montantSTEG || 0) - bill.amount !== 0 ? 'text-destructive' : ''
+                 )}>
+                   {!bill.convenableSTEG && typeof bill.montantSTEG === 'number' ? (
+                       formatCurrency(bill.montantSTEG - bill.amount)
+                   ) : (
+                    <span className="text-muted-foreground">-</span>
+                   )}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end">
