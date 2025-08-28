@@ -167,7 +167,6 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
         } else {
             // Handle regular resiliation
             let newStatus: Meter['status'] = meter.status;
-            let equipmentStatusUpdate: Partial<Equipment> | null = null;
             let history = meter.associationHistory || [];
             
             if (values.dateDemandeResiliation && meter.status === 'En service') {
@@ -176,8 +175,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             if (values.dateResiliation) {
                 newStatus = 'switched off';
                 const associatedEquip = allEquipment.find(e => e.compteurId === meter.id && e.status !== 'switched off');
-                if (associatedEquip) {
-                    equipmentStatusUpdate = { id: associatedEquip.id, status: 'En cours' };
+                 if (associatedEquip) {
                     history.push(`Associé à l'équipement ${associatedEquip.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
                 } else if (meter.buildingId) {
                     const associatedBuilding = buildings.find(b => b.id === meter.buildingId);
@@ -186,6 +184,12 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
                     }
                 }
             }
+
+            // Find all associated equipment and update their status
+            const associatedEquips = allEquipment.filter(e => e.compteurId === meter.id);
+            associatedEquips.forEach(eq => {
+                updateEquipment({ ...eq, status: newStatus, lastUpdate: new Date().toISOString().split('T')[0] });
+            });
             
             updateMeter({
                 ...meter,
@@ -196,10 +200,6 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
                 associationHistory: history,
             });
             
-            if (equipmentStatusUpdate) {
-                 updateEquipment({ ...allEquipment.find(e => e.id === equipmentStatusUpdate!.id)!, ...equipmentStatusUpdate, lastUpdate: new Date().toISOString().split('T')[0] });
-            }
-
             toast({ title: "Compteur Mis à Jour", description: `La demande de résiliation pour ${meter.id} a été enregistrée.` });
         }
     }
