@@ -161,6 +161,7 @@ export default function MeterBillingPage() {
             <TableRow>
               <TableHead>Facture Number</TableHead>
               <TableHead>Type</TableHead>
+              <TableHead>Mois</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
               <TableHead className="text-right">Montant</TableHead>
               <TableHead className="w-[100px] text-right">Actions</TableHead>
@@ -182,6 +183,7 @@ export default function MeterBillingPage() {
                     {bill.typeTension}
                   </Badge>
                 </TableCell>
+                <TableCell>{bill.month}</TableCell>
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
                 <TableCell className="text-right font-medium">
                   {formatCurrency(bill.amount)}
