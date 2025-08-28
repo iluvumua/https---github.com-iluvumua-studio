@@ -275,6 +275,7 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
 
 export default function EquipmentPage() {
     const { equipment } = useEquipmentStore();
+    const { meters } = useMetersStore();
     const [activeTab, setActiveTab] = useState("all");
     const { user } = useUser();
     const [searchTerm, setSearchTerm] = useState("");
@@ -283,9 +284,22 @@ export default function EquipmentPage() {
     const getFilteredEquipment = (status?: Equipment['status'] | 'all') => {
         return equipment.filter(item => {
             const query = searchTerm.toLowerCase();
-            const matchesSearch = item.name.toLowerCase().includes(query) || item.type.toLowerCase().includes(query) || (item.designation && item.designation.toLowerCase().includes(query));
+            
+            // Find associated meter
+            const associatedMeter = meters.find(m => m.id === item.compteurId);
+
+            const matchesSearch = 
+                item.name.toLowerCase().includes(query) || 
+                item.type.toLowerCase().includes(query) || 
+                (item.designation && item.designation.toLowerCase().includes(query)) ||
+                (item.fournisseur && item.fournisseur.toLowerCase().includes(query)) ||
+                (item.compteurId && item.compteurId.toLowerCase().includes(query)) ||
+                (associatedMeter && associatedMeter.description && associatedMeter.description.toLowerCase().includes(query)) ||
+                (associatedMeter && associatedMeter.typeTension.toLowerCase().includes(query)) ||
+                (associatedMeter && associatedMeter.policeNumber && associatedMeter.policeNumber.toLowerCase().includes(query));
 
             if (!matchesSearch) return false;
+            
             if (status === 'all') return true;
 
             return item.status === status;
@@ -323,7 +337,7 @@ export default function EquipmentPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                     type="search"
-                    placeholder="Rechercher équipement..."
+                    placeholder="Rechercher..."
                     className="pl-8 sm:w-[200px] lg:w-[300px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
