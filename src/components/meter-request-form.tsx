@@ -164,6 +164,8 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
                         <SelectContent>
                             <SelectItem value="SOUSSE NORD">SOUSSE NORD</SelectItem>
                             <SelectItem value="SOUSSE CENTRE">SOUSSE CENTRE</SelectItem>
+                            <SelectItem value="ENFIDHA">ENFIDHA</SelectItem>
+                            <SelectItem value="MSAKEN">MSAKEN</SelectItem>
                         </SelectContent>
                     </Select>
                 <FormMessage />
