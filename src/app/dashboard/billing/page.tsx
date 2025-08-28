@@ -29,6 +29,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { Bell, Check } from "lucide-react";
 import type { Meter } from "@/lib/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function BillingPage() {
   const { meters } = useMetersStore();
@@ -36,6 +37,7 @@ export default function BillingPage() {
   const { equipment } = useEquipmentStore();
   const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
+  const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyenne Tension">("all");
   const { anomalies, markAsRead } = useAnomaliesStore();
 
   const unreadAnomalies = anomalies.filter(a => !a.isRead);
@@ -73,18 +75,20 @@ export default function BillingPage() {
   }, [meterBillingData]);
 
   const filteredMeters = useMemo(() => {
-    if (!searchTerm) {
-        return meterBillingData;
-    }
-    const query = searchTerm.toLowerCase();
-    return meterBillingData.filter(item => 
-        item.id.toLowerCase().includes(query) ||
-        item.associationName.toLowerCase().includes(query) ||
-        (item.referenceFacteur && item.referenceFacteur.toLowerCase().includes(query)) ||
-        (item.districtSteg && item.districtSteg.toLowerCase().includes(query)) ||
-        (item.description && item.description.toLowerCase().includes(query))
-    );
-  }, [searchTerm, meterBillingData]);
+    return meterBillingData.filter(item => {
+        const query = searchTerm.toLowerCase();
+        const matchesSearch = 
+            item.id.toLowerCase().includes(query) ||
+            item.associationName.toLowerCase().includes(query) ||
+            (item.referenceFacteur && item.referenceFacteur.toLowerCase().includes(query)) ||
+            (item.districtSteg && item.districtSteg.toLowerCase().includes(query)) ||
+            (item.description && item.description.toLowerCase().includes(query));
+
+        const matchesTension = tensionFilter === 'all' || item.typeTension === tensionFilter;
+        
+        return matchesSearch && matchesTension;
+    });
+  }, [searchTerm, tensionFilter, meterBillingData]);
   
   const getMetersByDistrict = (district: string) => {
     return filteredMeters.filter(m => m.districtSteg === district);
@@ -146,6 +150,16 @@ export default function BillingPage() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
+                        <Select value={tensionFilter} onValueChange={(value) => setTensionFilter(value as any)}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filtrer par tension" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Toutes tensions</SelectItem>
+                                <SelectItem value="Basse Tension">Basse Tension</SelectItem>
+                                <SelectItem value="Moyenne Tension">Moyenne Tension</SelectItem>
+                            </SelectContent>
+                        </Select>
                         {user.role === 'Financier' && (
                             <>
                             <Button size="sm" variant="outline" className="h-9 gap-1" asChild>
@@ -190,7 +204,7 @@ export default function BillingPage() {
             <div className="grid grid-cols-1 gap-6">
                 {districts.map(district => {
                     const districtMeters = getMetersByDistrict(district);
-                    if (districtMeters.length === 0 && searchTerm) return null;
+                    if (districtMeters.length === 0 && (searchTerm || tensionFilter !== 'all')) return null;
 
                     return (
                         <Card key={district}>
