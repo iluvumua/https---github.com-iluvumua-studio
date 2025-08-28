@@ -28,6 +28,12 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
         );
     }
 
+    const getTensionDisplayName = (tension: Meter['typeTension']) => {
+        if (tension === 'Moyen Tension Forfaitaire') return 'MT - Forfait';
+        if (tension === 'Moyen Tension Tranche Horaire') return 'MT - Horaire';
+        return tension;
+    }
+
     return (
         <Table>
             <TableHeader>
@@ -45,8 +51,8 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                     <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                     <TableCell className="font-mono">{item.id}</TableCell>
                     <TableCell>
-                        <Badge variant={item.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
-                            {item.typeTension}
+                        <Badge variant={item.typeTension === "Basse Tension" ? "outline" : "secondary"}>
+                           {getTensionDisplayName(item.typeTension)}
                         </Badge>
                     </TableCell>
                     <TableCell className="font-medium">{item.associationName}</TableCell>

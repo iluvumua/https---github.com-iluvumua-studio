@@ -91,6 +91,19 @@ function MetersPageComponent() {
       return statuses ? statuses.includes(meter.status) : false;
   });
 
+  const getTensionBadgeVariant = (tension: Meter['typeTension']) => {
+    if (tension === 'Basse Tension') return 'outline';
+    if (tension === 'Moyen Tension Forfaitaire') return 'secondary';
+    if (tension === 'Moyen Tension Tranche Horaire') return 'default';
+    return 'secondary';
+  }
+
+  const getTensionDisplayName = (tension: Meter['typeTension']) => {
+    if (tension === 'Moyen Tension Forfaitaire') return 'MT Forfait';
+    if (tension === 'Moyen Tension Tranche Horaire') return 'MT Horaire';
+    return tension;
+  }
+
   return (
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center mb-4">
@@ -161,8 +174,8 @@ function MetersPageComponent() {
                         <TableCell className="font-medium max-w-[300px] truncate">{getAssociationName(meter)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{meter.description}</TableCell>
                         <TableCell>
-                        <Badge variant={meter.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
-                            {meter.typeTension}
+                        <Badge variant={getTensionBadgeVariant(meter.typeTension)}>
+                           {getTensionDisplayName(meter.typeTension)}
                         </Badge>
                         </TableCell>
                         <TableCell>

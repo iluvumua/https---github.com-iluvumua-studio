@@ -37,7 +37,7 @@ export default function BillingPage() {
   const { equipment } = useEquipmentStore();
   const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
-  const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyenne Tension">("all");
+  const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyen Tension Forfaitaire" | "Moyen Tension Tranche Horaire">("all");
   const { anomalies, markAsRead } = useAnomaliesStore();
 
   const unreadAnomalies = anomalies.filter(a => !a.isRead);
@@ -157,7 +157,8 @@ export default function BillingPage() {
                             <SelectContent>
                                 <SelectItem value="all">Toutes tensions</SelectItem>
                                 <SelectItem value="Basse Tension">Basse Tension</SelectItem>
-                                <SelectItem value="Moyenne Tension">Moyenne Tension</SelectItem>
+                                <SelectItem value="Moyen Tension Forfaitaire">MT - Forfaitaire</SelectItem>
+                                <SelectItem value="Moyen Tension Tranche Horaire">MT - Tranche Horaire</SelectItem>
                             </SelectContent>
                         </Select>
                         {user.role === 'Financier' && (

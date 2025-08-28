@@ -107,7 +107,7 @@ export type Meter = {
     referenceFacteur?: string; // 9-digit code
     buildingId?: string;
     status: 'En cours' | 'En service' | 'switched off en cours' | 'switched off' | 'substitué';
-    typeTension: 'Moyenne Tension' | 'Basse Tension';
+    typeTension: 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire';
     dateDemandeInstallation?: string;
     dateDemandeResiliation?: string;
     dateResiliation?: string;

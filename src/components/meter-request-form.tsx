@@ -27,7 +27,7 @@ const formSchema = z.object({
   dateDemandeInstallation: z.date({ required_error: "La date de demande est requise." }),
   policeNumber: z.string().optional(),
   districtSteg: z.string().min(1, "Le district STEG est requis."),
-  typeTension: z.enum(["Moyenne Tension", "Basse Tension"]),
+  typeTension: z.enum(["Moyen Tension Tranche Horaire", "Moyen Tension Forfaitaire", "Basse Tension"]),
   phase: z.enum(["Triphasé", "Monophasé"], { required_error: "Le type de phase est requis." }),
   amperage: z.enum(["16A", "32A", "63A", "Autre"], { required_error: "L'ampérage est requis." }),
   amperageAutre: z.string().optional(),
@@ -177,8 +177,9 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
                 <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFinished}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
-                        <SelectItem value="Moyenne Tension">Moyenne Tension</SelectItem>
                         <SelectItem value="Basse Tension">Basse Tension</SelectItem>
+                        <SelectItem value="Moyen Tension Forfaitaire">Moyen Tension Forfaitaire</SelectItem>
+                        <SelectItem value="Moyen Tension Tranche Horaire">Moyen Tension Tranche Horaire</SelectItem>
                     </SelectContent>
                 </Select>
                 <FormMessage />
