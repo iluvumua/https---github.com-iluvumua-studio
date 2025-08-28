@@ -46,13 +46,21 @@ const formSchema = z.object({
     message: "La date de substitution est requise.",
     path: ["dateSubstitution"],
 }).refine(data => {
-    if (data.dateResiliation) {
-        return !!data.dateDemandeResiliation;
+    if (data.dateResiliation && data.dateDemandeResiliation && data.dateResiliation < data.dateDemandeResiliation) {
+        return false;
     }
     return true;
 }, {
-    message: "La date de demande de résiliation doit être définie avant la date de résiliation finale.",
+    message: "La date de résiliation finale ne peut pas être antérieure à la date de demande.",
     path: ["dateResiliation"],
+}).refine(data => {
+     if (data.dateResiliationEquipement && data.dateDemandeResiliationEquipement && data.dateResiliationEquipement < data.dateDemandeResiliationEquipement) {
+        return false;
+    }
+    return true;
+}, {
+    message: "La date de résiliation finale ne peut pas être antérieure à la date de demande.",
+    path: ["dateResiliationEquipement"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -336,7 +344,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             </div>
             <DialogFooter className="mt-4">
                 <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
+                <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Enregistrer
                 </Button>

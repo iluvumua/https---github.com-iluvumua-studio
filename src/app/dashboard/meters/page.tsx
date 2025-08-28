@@ -213,7 +213,7 @@ function MetersPageComponent() {
                                             </Link>
                                         </DropdownMenuItem>
                                         {(meter.status === 'switched off' || meter.status === 'substitué') && meter.associationHistory && meter.associationHistory.length > 0 && (
-                                             <Popover>
+                                            <Popover>
                                                 <PopoverTrigger asChild>
                                                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                                         <History className="mr-2 h-4 w-4" />
@@ -255,5 +255,3 @@ export default function MetersPage() {
         </Suspense>
     )
 }
-
-    
