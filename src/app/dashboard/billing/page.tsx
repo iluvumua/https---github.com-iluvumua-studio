@@ -37,6 +37,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAnomaliesStore } from "@/hooks/use-anomalies-store";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 export default function BillingPage() {
   const { bills } = useBillingStore();
@@ -196,6 +197,7 @@ export default function BillingPage() {
             <TableRow>
               <TableHead>Réf. Facteur</TableHead>
               <TableHead>N° Compteur</TableHead>
+              <TableHead>Type de Tension</TableHead>
               <TableHead>District STEG</TableHead>
               <TableHead>Associé à</TableHead>
               <TableHead className="w-[100px] text-right">Actions</TableHead>
@@ -206,6 +208,11 @@ export default function BillingPage() {
               <TableRow key={item.id}>
                 <TableCell className="font-mono">{item.referenceFacteur}</TableCell>
                 <TableCell className="font-mono">{item.id}</TableCell>
+                 <TableCell>
+                  <Badge variant={item.typeTension === "Moyenne Tension" ? "secondary" : "outline"}>
+                    {item.typeTension}
+                  </Badge>
+                </TableCell>
                 <TableCell>{item.districtSteg}</TableCell>
                 <TableCell className="font-medium">{item.associationName}</TableCell>
                 <TableCell>

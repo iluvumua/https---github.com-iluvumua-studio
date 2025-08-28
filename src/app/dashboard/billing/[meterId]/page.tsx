@@ -160,7 +160,6 @@ export default function MeterBillingPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Facture Number</TableHead>
-              <TableHead>Type</TableHead>
               <TableHead>Mois</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
               <TableHead className="text-right">Montant</TableHead>
@@ -171,18 +170,6 @@ export default function MeterBillingPage() {
             {filteredBills.map((bill) => (
               <TableRow key={bill.id} onClick={(e) => e.stopPropagation()}>
                 <TableCell className="font-mono">{bill.reference}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={cn({
-                      'text-blue-500 border-blue-500/50 bg-blue-500/10': bill.typeTension === 'Basse Tension',
-                      'text-purple-500 border-purple-500/50 bg-purple-500/10': bill.typeTension === 'Moyen Tension Tranche Horaire',
-                      'text-orange-500 border-orange-500/50 bg-orange-500/10': bill.typeTension === 'Moyen Tension Forfaitaire',
-                    })}
-                  >
-                    {bill.typeTension}
-                  </Badge>
-                </TableCell>
                 <TableCell>{bill.month}</TableCell>
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
                 <TableCell className="text-right font-medium">
