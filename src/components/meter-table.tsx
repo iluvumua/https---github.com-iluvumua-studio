@@ -12,7 +12,7 @@ import { Badge } from "./ui/badge";
 import { FileText } from "lucide-react";
 
 interface MeterTableProps {
-    meters: (Meter & { associationName: string })[];
+    meters: (Meter & { associationName: string; averageMonthlyConsumption: number | null })[];
 }
 
 export const MeterTable = ({ meters }: MeterTableProps) => {
@@ -26,6 +26,10 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                 </p>
             </div>
         );
+    }
+
+    const formatKWh = (amount: number) => {
+        return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(amount) + ' kWh';
     }
 
     const getTensionDisplayName = (tension: Meter['typeTension']) => {
@@ -42,6 +46,7 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                     <TableHead>N° Compteur</TableHead>
                     <TableHead>Type de Tension</TableHead>
                     <TableHead>Associé à</TableHead>
+                    <TableHead className="text-right">Consommation Mensuelle Moy.</TableHead>
                     <TableHead className="w-[100px] text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
@@ -56,6 +61,9 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                         </Badge>
                     </TableCell>
                     <TableCell className="font-medium">{item.associationName}</TableCell>
+                    <TableCell className="text-right font-medium">
+                        {item.averageMonthlyConsumption !== null ? formatKWh(item.averageMonthlyConsumption) : 'N/A'}
+                    </TableCell>
                     <TableCell>
                         <div className="flex items-center justify-end gap-1">
                             <DropdownMenu>

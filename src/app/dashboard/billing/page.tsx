@@ -30,11 +30,13 @@ import Link from "next/link";
 import { Bell, Check } from "lucide-react";
 import type { Meter } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useBillingStore } from "@/hooks/use-billing-store";
 
 export default function BillingPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
+  const { bills } = useBillingStore();
   const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyen Tension Forfaitaire" | "Moyen Tension Tranche Horaire">("all");
@@ -62,12 +64,24 @@ export default function BillingPage() {
   const meterBillingData = useMemo(() => meters
     .filter(meter => meter.status !== 'Résilié' && meter.referenceFacteur)
     .map(meter => {
+        const meterBills = bills.filter(b => b.meterId === meter.id);
+        const annualBills = meterBills
+            .filter(b => b.nombreMois && b.nombreMois >= 12)
+            .sort((a, b) => b.id.localeCompare(a.id));
+
+        let averageMonthlyConsumption: number | null = null;
+        if (annualBills.length > 0) {
+            const latestAnnualBill = annualBills[0];
+            averageMonthlyConsumption = latestAnnualBill.consumptionKWh / latestAnnualBill.nombreMois;
+        }
+
         return {
             ...meter,
             associationName: getAssociationName(meter.id),
             districtSteg: meter.districtSteg || "Non spécifié",
+            averageMonthlyConsumption,
         }
-    }), [meters, buildings, equipment]);
+    }), [meters, buildings, equipment, bills]);
   
   const districts = useMemo(() => {
     const uniqueDistricts = new Set(meterBillingData.map(m => m.districtSteg));
