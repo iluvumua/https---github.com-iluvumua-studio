@@ -55,6 +55,9 @@ export default function MeterBillingPage() {
    const formatKWh = (amount: number) => {
     return new Intl.NumberFormat('fr-FR').format(amount) + ' kWh';
   }
+   const formatIndex = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR').format(amount);
+  }
 
   const filteredBills = meterBills.filter(bill => {
     const query = searchTerm.toLowerCase();
@@ -74,6 +77,8 @@ export default function MeterBillingPage() {
     const dataToExport = filteredBills.map(bill => ({
         "N° Facture": bill.reference,
         "Mois": bill.month,
+        "Ancien Index": bill.ancienIndex ?? 'N/A',
+        "Nouveau Index": bill.nouveauIndex ?? 'N/A',
         "Consommation (kWh)": bill.consumptionKWh,
         "Montant Calculé": bill.amount,
         "Convenable STEG": bill.convenableSTEG ? 'Oui' : 'Non',
@@ -161,6 +166,8 @@ export default function MeterBillingPage() {
             <TableRow>
               <TableHead>Facture Number</TableHead>
               <TableHead>Mois</TableHead>
+              <TableHead className="text-right">Ancien Index</TableHead>
+              <TableHead className="text-right">Nouveau Index</TableHead>
               <TableHead className="text-right">Consommation</TableHead>
               <TableHead className="text-right">Montant Calculé</TableHead>
               <TableHead className="text-right">Montant STEG</TableHead>
@@ -173,6 +180,8 @@ export default function MeterBillingPage() {
               <TableRow key={bill.id} onClick={(e) => e.stopPropagation()}>
                 <TableCell className="font-mono">{bill.reference}</TableCell>
                 <TableCell>{bill.month}</TableCell>
+                <TableCell className="text-right font-mono">{bill.ancienIndex ? formatIndex(bill.ancienIndex) : '-'}</TableCell>
+                <TableCell className="text-right font-mono">{bill.nouveauIndex ? formatIndex(bill.nouveauIndex) : '-'}</TableCell>
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
                 <TableCell className="text-right font-medium">
                   {formatCurrency(bill.amount)}
