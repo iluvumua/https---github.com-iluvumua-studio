@@ -59,6 +59,8 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
       return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
     }
     
+    const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
+    
     const getLocationLabel = (abbreviation?: string) => {
         if (!abbreviation) return "N/A";
         const location = locationsData.find(l => l.abbreviation === abbreviation);
@@ -70,8 +72,8 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
     const isIndoor = item.buildingId && indoorEquipmentTypes.includes(item.type);
     const associatedBuilding = buildings.find(b => b.id === item.buildingId);
     
-    const equipmentAverageCost = useMemo(() => {
-    if (!associatedMeter) return null;
+    const equipmentMetrics = useMemo(() => {
+    if (!associatedMeter) return { averageCost: null, averageConsumption: null };
     
     const meterBills = bills.filter(b => b.meterId === associatedMeter.id);
     const annualBills = meterBills
@@ -80,9 +82,11 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
 
     if (annualBills.length > 0) {
         const latestAnnualBill = annualBills[0];
-        return latestAnnualBill.amount / latestAnnualBill.nombreMois;
+        const averageCost = latestAnnualBill.amount / latestAnnualBill.nombreMois;
+        const averageConsumption = latestAnnualBill.consumptionKWh / latestAnnualBill.nombreMois;
+        return { averageCost, averageConsumption };
     }
-    return null;
+    return { averageCost: null, averageConsumption: null };
     }, [associatedMeter, bills]);
 
     return (
@@ -214,7 +218,8 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                             <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                             <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
                             <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
-                            <div className="col-span-2 font-medium"><span className="text-muted-foreground">Coût Mensuel Moyen:</span> {equipmentAverageCost !== null ? formatCurrency(equipmentAverageCost) : 'N/A'}</div>
+                            <div className="font-medium"><span className="text-muted-foreground">Coût Mensuel Moy:</span> {equipmentMetrics.averageCost !== null ? formatCurrency(equipmentMetrics.averageCost) : 'N/A'}</div>
+                            <div className="font-medium"><span className="text-muted-foreground">Conso. Mensuelle Moy:</span> {equipmentMetrics.averageConsumption !== null ? `${formatKWh(equipmentMetrics.averageConsumption)} kWh` : 'N/A'}</div>
                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                             <div className="col-span-full mt-2">
                             <Button variant="link" size="sm" className="p-0 h-auto" asChild>
@@ -394,3 +399,4 @@ export default function EquipmentPage() {
     
 
     
+
