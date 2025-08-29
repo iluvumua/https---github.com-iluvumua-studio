@@ -84,7 +84,6 @@ function MetersPageComponent() {
           'en_service': ['En service'],
           'switched_off_en_cours': ['switched off en cours'],
           'switched_off': ['switched off'],
-          'substitue': ['substitué'],
       };
       const statuses = statusMap[activeTab];
 
@@ -113,7 +112,6 @@ function MetersPageComponent() {
           <TabsTrigger value="en_service">En service</TabsTrigger>
           <TabsTrigger value="switched_off_en_cours">Switched Off En Cours</TabsTrigger>
           <TabsTrigger value="switched_off">Switched Off</TabsTrigger>
-          <TabsTrigger value="substitue">Substitué</TabsTrigger>
         </TabsList>
         <div className="ml-auto flex items-center gap-2">
             <div className="relative">
@@ -225,7 +223,7 @@ function MetersPageComponent() {
                                                 Modifier
                                             </Link>
                                         </DropdownMenuItem>
-                                        {(meter.status === 'switched off' || meter.status === 'substitué') && meter.associationHistory && meter.associationHistory.length > 0 && (
+                                        {meter.status === 'switched off' && meter.associationHistory && meter.associationHistory.length > 0 && (
                                              <Popover>
                                                 <PopoverTrigger asChild>
                                                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
