@@ -22,7 +22,7 @@ export const useAnomaliesStore = create<AnomalyState>((set) => ({
     set((state) => ({
       anomalies: [newAnomaly, ...state.anomalies],
     })),
-  markAsRead: (anomalyId) =>
+  markAsRead: (anomalyId: string) =>
     set((state) => ({
         anomalies: state.anomalies.map((item) =>
             item.id === anomalyId ? { ...item, isRead: true } : item

@@ -28,8 +28,10 @@ export const useBillingStore = create<BillingState>((set, get) => ({
     const allBills = [newBill, ...get().bills];
     const overallAverage = calculateOverallAverage(allBills);
     
+    // Check for anomaly only if the new bill has a duration and there's an overall average to compare to.
     if (newBill.nombreMois && newBill.nombreMois > 0 && overallAverage) {
         const newBillAverage = newBill.amount / newBill.nombreMois;
+        // Check if new bill's average is 30% higher than the overall average.
         if (newBillAverage > (overallAverage * 1.30)) {
             const { addAnomaly } = useAnomaliesStore.getState();
             const anomalyMessage = `La facture ${newBill.reference} (${(newBillAverage).toFixed(3)} TND/mois) dépasse la moyenne de 30% (${(overallAverage).toFixed(3)} TND/mois).`;
