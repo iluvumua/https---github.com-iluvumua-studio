@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Calculator, File, FileText, PlusCircle, Search, History, Pencil, MoreHorizontal } from "lucide-react";
+import { Calculator, File, FileText, PlusCircle, Search, History, Pencil, MoreHorizontal, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -32,6 +32,72 @@ import { useParams } from "next/navigation";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const IndexDisplay = ({ bill }: { bill: Bill }) => {
+    const formatIndex = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
+
+    if (bill.typeTension === 'Basse Tension') {
+        return <>{bill.ancienIndex ? formatIndex(bill.ancienIndex) : '-'}</>;
+    }
+    if (bill.typeTension === 'Moyen Tension Forfaitaire') {
+        return <>{bill.mtf_ancien_index ? formatIndex(bill.mtf_ancien_index) : '-'}</>;
+    }
+    if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
+        return (
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="link" size="sm" className="p-0 h-auto font-mono">Voir Index</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64">
+                    <div className="space-y-2 text-sm">
+                        <h4 className="font-semibold">Ancien Index</h4>
+                        <div className="grid grid-cols-2 gap-1">
+                            <span className="text-muted-foreground">Jour:</span><span className="font-mono text-right">{formatIndex(bill.ancien_index_jour ?? 0)}</span>
+                            <span className="text-muted-foreground">Pointe:</span><span className="font-mono text-right">{formatIndex(bill.ancien_index_pointe ?? 0)}</span>
+                            <span className="text-muted-foreground">Soir:</span><span className="font-mono text-right">{formatIndex(bill.ancien_index_soir ?? 0)}</span>
+                            <span className="text-muted-foreground">Nuit:</span><span className="font-mono text-right">{formatIndex(bill.ancien_index_nuit ?? 0)}</span>
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
+        )
+    }
+    return <span className="text-muted-foreground">-</span>;
+};
+
+const NewIndexDisplay = ({ bill }: { bill: Bill }) => {
+    const formatIndex = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
+
+    if (bill.typeTension === 'Basse Tension') {
+        return <>{bill.nouveauIndex ? formatIndex(bill.nouveauIndex) : '-'}</>;
+    }
+    if (bill.typeTension === 'Moyen Tension Forfaitaire') {
+        return <>{bill.mtf_nouveau_index ? formatIndex(bill.mtf_nouveau_index) : '-'}</>;
+    }
+    if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
+         return (
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="link" size="sm" className="p-0 h-auto font-mono">Voir Index</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64">
+                    <div className="space-y-2 text-sm">
+                        <h4 className="font-semibold">Nouveau Index</h4>
+                        <div className="grid grid-cols-2 gap-1">
+                            <span className="text-muted-foreground">Jour:</span><span className="font-mono text-right">{formatIndex(bill.nouveau_index_jour ?? 0)}</span>
+                            <span className="text-muted-foreground">Pointe:</span><span className="font-mono text-right">{formatIndex(bill.nouveau_index_pointe ?? 0)}</span>
+                            <span className="text-muted-foreground">Soir:</span><span className="font-mono text-right">{formatIndex(bill.nouveau_index_soir ?? 0)}</span>
+                            <span className="text-muted-foreground">Nuit:</span><span className="font-mono text-right">{formatIndex(bill.nouveau_index_nuit ?? 0)}</span>
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
+        )
+    }
+    return <span className="text-muted-foreground">-</span>;
+};
+
 
 export default function MeterBillingPage() {
   const params = useParams();
@@ -164,7 +230,7 @@ export default function MeterBillingPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Facture Number</TableHead>
+              <TableHead>N° Facture</TableHead>
               <TableHead>Mois</TableHead>
               <TableHead className="text-right">Ancien Index</TableHead>
               <TableHead className="text-right">Nouveau Index</TableHead>
@@ -180,8 +246,12 @@ export default function MeterBillingPage() {
               <TableRow key={bill.id} onClick={(e) => e.stopPropagation()}>
                 <TableCell className="font-mono">{bill.reference}</TableCell>
                 <TableCell>{bill.month}</TableCell>
-                <TableCell className="text-right font-mono">{bill.ancienIndex ? formatIndex(bill.ancienIndex) : '-'}</TableCell>
-                <TableCell className="text-right font-mono">{bill.nouveauIndex ? formatIndex(bill.nouveauIndex) : '-'}</TableCell>
+                <TableCell className="text-right font-mono">
+                    <IndexDisplay bill={bill} />
+                </TableCell>
+                <TableCell className="text-right font-mono">
+                    <NewIndexDisplay bill={bill} />
+                </TableCell>
                 <TableCell className="text-right">{formatKWh(bill.consumptionKWh)}</TableCell>
                 <TableCell className="text-right font-medium">
                   {formatCurrency(bill.amount)}
