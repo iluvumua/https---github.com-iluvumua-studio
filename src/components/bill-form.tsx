@@ -31,7 +31,7 @@ const monthNames = [
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
 
-const formSchema = z.object({
+const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   billDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Le format doit être MM/AAAA."),
@@ -109,9 +109,24 @@ const formSchema = z.object({
 }, {
     message: "Le montant STEG est requis si la facture n'est pas convenable.",
     path: ["montantSTEG"],
+}).refine(data => {
+    if (isEditMode) return true; // Skip validation in edit mode
+    
+    const [month, year] = data.billDate.split('/');
+    const monthIndex = parseInt(month, 10) - 1;
+    const monthName = monthNames[monthIndex] || 'Unknown';
+    const formattedMonth = `${monthName} ${year}`;
+    
+    const existingBill = bills.find(b => b.meterId === data.meterId && b.month === formattedMonth);
+    
+    return !existingBill;
+}, {
+    message: "Une facture existe déjà pour ce compteur et ce mois.",
+    path: ["billDate"],
 });
 
-type FormValues = z.infer<typeof formSchema>;
+
+type FormValues = z.infer<ReturnType<typeof createBillFormSchema>>;
 
 const calculateBasseTension = (
     ancienIndex?: number, 
@@ -243,11 +258,13 @@ interface BillFormProps {
 export function BillForm({ meterId, bill }: BillFormProps) {
   const isEditMode = !!bill;
   const { meters } = useMetersStore();
-  const { addBill, updateBill } = useBillingStore();
+  const { bills, addBill, updateBill } = useBillingStore();
   const { settings } = useBillingSettingsStore();
   const router = useRouter();
   const { toast } = useToast();
   
+  const formSchema = useMemo(() => createBillFormSchema(bills, isEditMode), [bills, isEditMode]);
+
   const getDefaultValues = () => {
     let billDate = "";
     if (isEditMode && bill?.month) {
