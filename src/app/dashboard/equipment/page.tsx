@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2, MoreHorizontal, History } from "lucide-react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2, MoreHorizontal, History, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -39,6 +39,7 @@ import { Separator } from "@/components/ui/separator";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
@@ -212,7 +213,24 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                         <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
                         {associatedMeter ? (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                            <div><span className="font-medium text-muted-foreground">N° Compteur:</span> <span className="font-mono">{associatedMeter.id}</span></div>
+                            <div>
+                                <span className="font-medium text-muted-foreground">N° Compteur:</span> 
+                                <div className="flex items-center gap-2">
+                                     <span className="font-mono">{associatedMeter.id}</span>
+                                     {item.status === 'switched off' && (
+                                         <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger>
+                                                    <AlertCircle className="h-4 w-4 text-destructive" />
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>L'équipement est "switched off" mais le compteur est peut-être encore actif.</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                     )}
+                                </div>
+                            </div>
                             <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
                             <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                             <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
@@ -399,4 +417,5 @@ export default function EquipmentPage() {
     
 
     
+
 
