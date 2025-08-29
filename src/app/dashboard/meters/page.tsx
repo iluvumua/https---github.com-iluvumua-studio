@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History, AlertCircle } from "lucide-react";
@@ -36,6 +35,7 @@ import { useUser } from "@/hooks/use-user";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function MetersPageComponent() {
   const { meters } = useMetersStore();
@@ -47,6 +47,7 @@ function MetersPageComponent() {
   
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [activeTab, setActiveTab] = useState("all");
+  const [alertFilter, setAlertFilter] = useState<'all' | 'alert' | 'no_alert'>('all');
 
   const canResiliate = user.role === 'Responsable Énergie et Environnement';
 
@@ -78,21 +79,27 @@ function MetersPageComponent() {
       const meterId = meter.id.toLowerCase();
       const policeNumber = meter.policeNumber?.toLowerCase() || '';
       const query = searchTerm.toLowerCase();
+      
       const matchesSearch = meterId.includes(query) || associationName.includes(query) || policeNumber.includes(query);
-
       if (!matchesSearch) return false;
 
-      if (activeTab === 'all') return true;
-        
-      const statusMap: { [key: string]: Meter['status'][] } = {
-          'en_cours': ['En cours'],
-          'en_service': ['En service'],
-          'switched_off_en_cours': ['switched off en cours'],
-          'switched_off': ['switched off'],
-      };
-      const statuses = statusMap[activeTab];
+      if (activeTab !== 'all') {
+        const statusMap: { [key: string]: Meter['status'][] } = {
+            'en_cours': ['En cours'],
+            'en_service': ['En service'],
+            'switched_off_en_cours': ['switched off en cours'],
+            'switched_off': ['switched off'],
+        };
+        const statuses = statusMap[activeTab];
+        if (!statuses || !statuses.includes(meter.status)) return false;
+      }
+      
+      if (alertFilter !== 'all') {
+        if (alertFilter === 'alert' && !meter.hasSwitchedOffEquipment) return false;
+        if (alertFilter === 'no_alert' && meter.hasSwitchedOffEquipment) return false;
+      }
 
-      return statuses ? statuses.includes(meter.status) : false;
+      return true;
   });
 
   const getTensionBadgeVariant = (tension: Meter['typeTension']) => {
@@ -125,11 +132,21 @@ function MetersPageComponent() {
                 <Input
                     type="search"
                     placeholder="Rechercher compteur..."
-                    className="pl-8 sm:w-[200px] lg:w-[300px]"
+                    className="pl-8 sm:w-[200px] lg:w-[200px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+             <Select value={alertFilter} onValueChange={(value) => setAlertFilter(value as any)}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filtrer par alerte" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="alert">Avec Alerte</SelectItem>
+                    <SelectItem value="no_alert">Sans Alerte</SelectItem>
+                </SelectContent>
+            </Select>
           </div>
       </div>
       <TabsContent value={activeTab}>
