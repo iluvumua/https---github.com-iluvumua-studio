@@ -19,6 +19,9 @@ import { useRouter } from "next/navigation";
 const formSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
   referenceFacteur: z.string().length(9, "La Réf. Facteur doit comporter 9 chiffres."),
+  typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"], {
+    required_error: "Le type de tension est requis."
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -37,6 +40,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     defaultValues: {
       meterId: "",
       referenceFacteur: "",
+      typeTension: undefined,
     }
   });
 
@@ -45,10 +49,12 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
   useEffect(() => {
     if (watchedMeterId) {
       const selectedMeter = meters.find(m => m.id === watchedMeterId);
-      if (selectedMeter && selectedMeter.referenceFacteur) {
-        form.setValue("referenceFacteur", selectedMeter.referenceFacteur);
+      if (selectedMeter) {
+        form.setValue("referenceFacteur", selectedMeter.referenceFacteur || "");
+        form.setValue("typeTension", selectedMeter.typeTension);
       } else {
         form.setValue("referenceFacteur", "");
+        form.setValue("typeTension", undefined);
       }
     }
   }, [watchedMeterId, meters, form]);
@@ -67,6 +73,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     const updatedMeter: Meter = {
       ...meterToUpdate,
       referenceFacteur: values.referenceFacteur,
+      typeTension: values.typeTension,
       lastUpdate: new Date().toISOString().split('T')[0],
     };
 
@@ -105,7 +112,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {meters.map(meter => (
+                                {meters.filter(m => m.status === 'En service').map(meter => (
                                     <SelectItem key={meter.id} value={meter.id}>
                                         {meter.id} ({meter.description || 'Pas de description'})
                                     </SelectItem>
@@ -117,7 +124,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                     )}
                 />
                  <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( 
-                    <FormItem className="md:col-span-2">
+                    <FormItem>
                         <FormLabel>Réf. Facteur (9 chiffres)</FormLabel>
                         <FormControl>
                             <Input placeholder="ex: 378051249" {...field} />
@@ -125,6 +132,28 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                         <FormMessage />
                     </FormItem> 
                 )} />
+                 <FormField
+                    control={form.control}
+                    name="typeTension"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Type de Tension</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner le type de tension" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="Basse Tension">Basse Tension</SelectItem>
+                                <SelectItem value="Moyen Tension Forfaitaire">Moyen Tension - Forfaitaire</SelectItem>
+                                <SelectItem value="Moyen Tension Tranche Horaire">Moyen Tension - Tranche Horaire</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
             </div>
             <div className="flex justify-end gap-2 mt-8">
                 <Button type="button" variant="ghost" onClick={handleCancel}>
