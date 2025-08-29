@@ -94,6 +94,8 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
         router.push('/dashboard/billing');
     }
   }
+  
+  const selectedMeter = meters.find(m => m.id === watchedMeterId);
 
   return (
     <Form {...form}>
@@ -138,7 +140,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Type de Tension</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                             <FormControl>
                                 <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner le type de tension" />
