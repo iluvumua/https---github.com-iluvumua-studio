@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History, AlertCircle } from "lucide-react";
 import React, { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { useUser } from "@/hooks/use-user";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 function MetersPageComponent() {
   const { meters } = useMetersStore();
@@ -68,7 +69,11 @@ function MetersPageComponent() {
     return format(new Date(dateString), "dd/MM/yyyy");
   }
 
-  const filteredMeters = meters.filter(meter => {
+  const filteredMeters = meters.map(meter => {
+    const associatedEquipment = equipment.filter(e => e.compteurId === meter.id);
+    const hasSwitchedOffEquipment = meter.status !== 'switched off' && associatedEquipment.some(e => e.status === 'switched off');
+    return { ...meter, hasSwitchedOffEquipment };
+  }).filter(meter => {
       const associationName = getAssociationName(meter).toLowerCase();
       const meterId = meter.id.toLowerCase();
       const policeNumber = meter.policeNumber?.toLowerCase() || '';
@@ -104,6 +109,7 @@ function MetersPageComponent() {
   }
 
   return (
+    <TooltipProvider>
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
       <div className="flex items-center mb-4">
         <TabsList>
@@ -167,7 +173,21 @@ function MetersPageComponent() {
               <TableBody>
                 {filteredMeters.map((meter) => (
                     <TableRow key={meter.id}>
-                        <TableCell className="font-mono">{meter.id}</TableCell>
+                        <TableCell className="font-mono">
+                           <div className="flex items-center gap-2">
+                             <span>{meter.id}</span>
+                             {meter.hasSwitchedOffEquipment && (
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <AlertCircle className="h-4 w-4 text-destructive" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Ce compteur est associé à un équipement "switched off".</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                             )}
+                           </div>
+                        </TableCell>
                         <TableCell className="font-mono">{meter.policeNumber}</TableCell>
                         <TableCell className="font-medium max-w-[300px] truncate">{getAssociationName(meter)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{meter.description}</TableCell>
@@ -185,7 +205,6 @@ function MetersPageComponent() {
                                 meter.status === 'switched off' && 'text-red-500 border-red-500/50 bg-red-500/10',
                                 meter.status === 'En cours' && 'text-blue-500 border-blue-500/50 bg-blue-500/10',
                                 meter.status === 'switched off en cours' && 'text-orange-500 border-orange-500/50 bg-orange-500/10',
-                                meter.status === 'substitué' && 'text-purple-500 border-purple-500/50 bg-purple-500/10',
                             )}
                         >
                             {meter.status}
@@ -256,6 +275,7 @@ function MetersPageComponent() {
         </Card>
       </TabsContent>
     </Tabs>
+    </TooltipProvider>
   );
 }
 
@@ -266,3 +286,5 @@ export default function MetersPage() {
         </Suspense>
     )
 }
+
+    
