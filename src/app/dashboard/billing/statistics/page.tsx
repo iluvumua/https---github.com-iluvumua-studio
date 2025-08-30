@@ -31,7 +31,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import * as XLSX from 'xlsx';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceLine } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -59,7 +59,15 @@ const chartConfig = {
   cost: {
     label: "Coût Total (TND)",
     color: "hsl(var(--chart-2))",
-  }
+  },
+   averageConsumption: {
+    label: "Conso. Moyenne",
+    color: "hsl(var(--chart-3))",
+  },
+  averageCost: {
+    label: "Coût Moyen",
+    color: "hsl(var(--chart-4))",
+  },
 };
 
 export default function BillingStatisticsPage() {
@@ -99,6 +107,17 @@ export default function BillingStatisticsPage() {
       Coût: data.cost,
     }));
   }, [selectedYear, bills]);
+  
+   const annualAverages = useMemo(() => {
+    const totalConsumption = annualChartData.reduce((acc, data) => acc + data.Consommation, 0);
+    const totalCost = annualChartData.reduce((acc, data) => acc + data.Coût, 0);
+    const monthsWithData = annualChartData.filter(d => d.Consommation > 0 || d.Coût > 0).length || 1;
+    
+    return {
+      averageConsumption: totalConsumption / monthsWithData,
+      averageCost: totalCost / monthsWithData,
+    };
+  }, [annualChartData]);
 
 
   const getAssociationName = (meterId: string) => {
@@ -201,6 +220,8 @@ export default function BillingStatisticsPage() {
                         <Legend />
                         <Bar yAxisId="left" dataKey="Consommation" fill="var(--color-Consommation)" radius={4} />
                         <Bar yAxisId="right" dataKey="Coût" fill="var(--color-Coût)" radius={4} />
+                        <ReferenceLine yAxisId="left" y={annualAverages.averageConsumption} label="Moyenne Conso" stroke="var(--color-averageConsumption)" strokeDasharray="3 3" />
+                        <ReferenceLine yAxisId="right" y={annualAverages.averageCost} label="Moyenne Coût" stroke="var(--color-averageCost)" strokeDasharray="3 3" />
                     </BarChart>
                 </ChartContainer>
             </CardContent>
