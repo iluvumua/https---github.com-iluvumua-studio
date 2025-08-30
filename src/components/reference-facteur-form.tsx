@@ -140,7 +140,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Type de Tension</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value} disabled>
                             <FormControl>
                                 <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner le type de tension" />
