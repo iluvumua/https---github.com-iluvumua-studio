@@ -31,17 +31,24 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import * as XLSX from 'xlsx';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Separator } from "@/components/ui/separator";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
+
+const monthOrder: { [key: string]: number } = {
+  "janvier": 1, "février": 2, "mars": 3, "avril": 4, "mai": 5, "juin": 6,
+  "juillet": 7, "août": 8, "septembre": 9, "octobre": 10, "novembre": 11, "décembre": 12
+};
+
 
 const chartConfig = {
   consumption: {
@@ -68,6 +75,30 @@ export default function BillingStatisticsPage() {
     const years = new Set(bills.map(b => b.month.split(' ')[1]));
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [bills]);
+  
+  const annualChartData = useMemo(() => {
+    const yearBills = bills.filter(bill => bill.month.endsWith(selectedYear));
+    const monthlyData: { [key: string]: { consumption: number; cost: number } } = {};
+
+    monthNames.forEach(month => {
+        monthlyData[month] = { consumption: 0, cost: 0 };
+    });
+
+    yearBills.forEach(bill => {
+        const monthName = bill.month.split(' ')[0];
+        if (monthlyData[monthName]) {
+            monthlyData[monthName].consumption += bill.consumptionKWh;
+            monthlyData[monthName].cost += bill.amount;
+        }
+    });
+
+    return Object.entries(monthlyData).map(([month, data]) => ({
+      month: month.slice(0, 3),
+      Consommation: data.consumption,
+      Coût: data.cost,
+    }));
+  }, [selectedYear, bills]);
+
 
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
@@ -139,6 +170,43 @@ export default function BillingStatisticsPage() {
 
   return (
     <div className="grid gap-6">
+       <Card>
+            <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <CardTitle>Statistiques Annuelles</CardTitle>
+                        <CardDescription>Aperçu de la consommation et des coûts pour l'année {selectedYear}.</CardDescription>
+                    </div>
+                     <Select value={selectedYear} onValueChange={setSelectedYear}>
+                        <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="Année" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableYears.map(year => (
+                            <SelectItem key={year} value={year}>{year}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </CardHeader>
+            <CardContent>
+                 <ChartContainer config={{...chartConfig, Coût: { label: "Coût", color: "hsl(var(--chart-2))" }, Consommation: { label: "Consommation", color: "hsl(var(--chart-1))" }}} className="min-h-[300px] w-full">
+                    <BarChart data={annualChartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+                        <YAxis yAxisId="left" stroke="var(--color-Consommation)" tickFormatter={(val) => `${val/1000}k`} />
+                        <YAxis yAxisId="right" orientation="right" stroke="var(--color-Coût)" tickFormatter={(val) => `${new Intl.NumberFormat('fr-TN', { notation: 'compact', compactDisplay: 'short' }).format(val)}`} />
+                        <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="Consommation" fill="var(--color-Consommation)" radius={4} />
+                        <Bar yAxisId="right" dataKey="Coût" fill="var(--color-Coût)" radius={4} />
+                    </BarChart>
+                </ChartContainer>
+            </CardContent>
+        </Card>
+
+      <Separator />
+
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -157,16 +225,6 @@ export default function BillingStatisticsPage() {
                        {monthNames.map(month => (
                          <SelectItem key={month} value={month}>{month}</SelectItem>
                        ))}
-                    </SelectContent>
-                </Select>
-                <Select value={selectedYear} onValueChange={setSelectedYear}>
-                    <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Année" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {availableYears.map(year => (
-                           <SelectItem key={year} value={year}>{year}</SelectItem>
-                        ))}
                     </SelectContent>
                 </Select>
                  <Button size="sm" variant="outline" className="h-9 gap-1" onClick={handleExport} disabled={filteredData.length === 0}>
@@ -260,4 +318,3 @@ export default function BillingStatisticsPage() {
     </div>
   );
 }
-
