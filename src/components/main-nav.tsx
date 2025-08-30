@@ -9,9 +9,11 @@ import {
   LayoutDashboard,
   Network,
   Gauge,
+  Upload,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { ImporterButton } from "./importer-button";
 
 export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
@@ -68,6 +70,7 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
           {route.label}
         </Link>
       ))}
+       <ImporterButton />
       </div>
     </nav>
   );
