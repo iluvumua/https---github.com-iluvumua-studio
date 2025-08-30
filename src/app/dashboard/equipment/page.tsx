@@ -40,6 +40,7 @@ import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ImporterButton } from "@/components/importer-button";
 
 const indoorEquipmentTypes = ['MSI', 'EXC', 'OLT'];
 
@@ -366,6 +367,7 @@ export default function EquipmentPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+            <ImporterButton />
           <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -413,9 +415,3 @@ export default function EquipmentPage() {
     </div>
   );
 }
-
-    
-
-    
-
-

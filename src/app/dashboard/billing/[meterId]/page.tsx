@@ -33,6 +33,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ImporterButton } from "@/components/importer-button";
 
 const IndexDisplay = ({ bill }: { bill: Bill }) => {
     const formatIndex = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
@@ -189,6 +190,7 @@ export default function MeterBillingPage() {
                         <SelectItem value="no">Non Convenable</SelectItem>
                     </SelectContent>
                 </Select>
+                <ImporterButton />
                 <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

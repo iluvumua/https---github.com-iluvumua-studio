@@ -38,6 +38,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
+import { ImporterButton } from "@/components/importer-button";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -227,6 +228,7 @@ export default function BillingStatisticsPage() {
                        ))}
                     </SelectContent>
                 </Select>
+                <ImporterButton />
                  <Button size="sm" variant="outline" className="h-9 gap-1" onClick={handleExport} disabled={filteredData.length === 0}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Exporter</span>
