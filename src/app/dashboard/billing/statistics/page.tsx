@@ -48,6 +48,10 @@ const chartConfig = {
     label: "Consommation (kWh)",
     color: "hsl(var(--chart-1))",
   },
+  cost: {
+    label: "Coût Total (TND)",
+    color: "hsl(var(--chart-2))",
+  }
 };
 
 export default function BillingStatisticsPage() {
@@ -58,6 +62,7 @@ export default function BillingStatisticsPage() {
 
   const [selectedMonth, setSelectedMonth] = useState<string>(monthNames[new Date().getMonth()]);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [chartMetric, setChartMetric] = useState<"consumption" | "cost">("consumption");
   
   const availableYears = useMemo(() => {
     const years = new Set(bills.map(b => b.month.split(' ')[1]));
@@ -88,6 +93,8 @@ export default function BillingStatisticsPage() {
       .filter(bill => bill.month === selectedMonthYear)
       .map(bill => ({
         ...bill,
+        consumption: bill.consumptionKWh,
+        cost: bill.amount,
         meterDetails: meters.find(m => m.id === bill.meterId),
         association: getAssociationName(bill.meterId)
       }));
@@ -115,6 +122,20 @@ export default function BillingStatisticsPage() {
     XLSX.utils.book_append_sheet(workbook, worksheet, `Statistiques ${selectedMonth} ${selectedYear}`);
     XLSX.writeFile(workbook, `statistiques_${selectedMonth.toLowerCase()}_${selectedYear}.xlsx`);
   };
+  
+  const activeChartConfig = chartMetric === 'consumption' ? { consumption: chartConfig.consumption } : { cost: chartConfig.cost };
+  const yAxisFormatter = chartMetric === 'consumption'
+    ? (value: number) => `${value / 1000}k`
+    : (value: number) => `${new Intl.NumberFormat('fr-TN', { notation: 'compact', compactDisplay: 'short' }).format(value)}`;
+  const tooltipFormatter = (value: number, name: string, props: any) => {
+    const association = props.payload?.association || 'N/A';
+    const formattedValue = chartMetric === 'consumption' ? formatKWh(value) : formatCurrency(value);
+    return (
+        <div className="flex flex-col">
+            <span>{`${association}: ${formattedValue}`}</span>
+        </div>
+    );
+  }
 
   return (
     <div className="grid gap-6">
@@ -158,7 +179,18 @@ export default function BillingStatisticsPage() {
         <CardContent>
           {filteredData.length > 0 ? (
             <div className="grid gap-6">
-              <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+               <div className="flex justify-end">
+                    <Select value={chartMetric} onValueChange={(value) => setChartMetric(value as any)}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Afficher métrique" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="consumption">Consommation (kWh)</SelectItem>
+                            <SelectItem value="cost">Coût Total (TND)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+              <ChartContainer config={activeChartConfig} className="min-h-[300px] w-full">
                 <BarChart data={filteredData} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
                   <CartesianGrid vertical={false} />
                   <XAxis
@@ -172,20 +204,22 @@ export default function BillingStatisticsPage() {
                     interval={0}
                   />
                   <YAxis yAxisId="left" orientation="left" stroke="#8884d8"
-                    tickFormatter={(value) => `${value / 1000}k`}
+                    tickFormatter={yAxisFormatter}
                   />
                   <ChartTooltip
                     cursor={false}
                     content={<ChartTooltipContent 
-                        formatter={(value, name, props) => (
-                            <div className="flex flex-col">
-                                <span>{`${(props.payload as any).association}: ${new Intl.NumberFormat('fr-FR').format(value as number)} kWh`}</span>
-                            </div>
-                        )}
+                        formatter={tooltipFormatter}
                         indicator="dot"
                     />}
                   />
-                  <Bar yAxisId="left" dataKey="consumptionKWh" fill="var(--color-consumption)" radius={[4, 4, 0, 0]} name="Consommation"/>
+                  <Bar 
+                    yAxisId="left" 
+                    dataKey={chartMetric}
+                    fill={chartMetric === 'consumption' ? "var(--color-consumption)" : "var(--color-cost)"}
+                    radius={[4, 4, 0, 0]} 
+                    name={chartMetric === 'consumption' ? "Consommation" : "Coût"}
+                    />
                 </BarChart>
               </ChartContainer>
 
@@ -226,3 +260,4 @@ export default function BillingStatisticsPage() {
     </div>
   );
 }
+
