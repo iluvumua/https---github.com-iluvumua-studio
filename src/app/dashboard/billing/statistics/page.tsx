@@ -31,11 +31,24 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import * as XLSX from 'xlsx';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
+
+const chartConfig = {
+  consumption: {
+    label: "Consommation (kWh)",
+    color: "hsl(var(--chart-1))",
+  },
+};
 
 export default function BillingStatisticsPage() {
   const { bills } = useBillingStore();
@@ -144,28 +157,61 @@ export default function BillingStatisticsPage() {
         </CardHeader>
         <CardContent>
           {filteredData.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>N° Compteur</TableHead>
-                  <TableHead>Associé à</TableHead>
-                  <TableHead>Type Tension</TableHead>
-                  <TableHead className="text-right">Consommation</TableHead>
-                  <TableHead className="text-right">Coût Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredData.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-mono">{item.meterId}</TableCell>
-                    <TableCell className="font-medium">{item.association}</TableCell>
-                    <TableCell>{item.typeTension}</TableCell>
-                    <TableCell className="text-right">{formatKWh(item.consumptionKWh)}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatCurrency(item.amount)}</TableCell>
+            <div className="grid gap-6">
+              <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+                <BarChart data={filteredData} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="meterId"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    interval={0}
+                  />
+                  <YAxis yAxisId="left" orientation="left" stroke="#8884d8"
+                    tickFormatter={(value) => `${value / 1000}k`}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent 
+                        formatter={(value, name, props) => (
+                            <div className="flex flex-col">
+                                <span>{`${(props.payload as any).association}: ${new Intl.NumberFormat('fr-FR').format(value as number)} kWh`}</span>
+                            </div>
+                        )}
+                        indicator="dot"
+                    />}
+                  />
+                  <Bar yAxisId="left" dataKey="consumptionKWh" fill="var(--color-consumption)" radius={[4, 4, 0, 0]} name="Consommation"/>
+                </BarChart>
+              </ChartContainer>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>N° Compteur</TableHead>
+                    <TableHead>Associé à</TableHead>
+                    <TableHead>Type Tension</TableHead>
+                    <TableHead className="text-right">Consommation</TableHead>
+                    <TableHead className="text-right">Coût Total</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredData.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-mono">{item.meterId}</TableCell>
+                      <TableCell className="font-medium">{item.association}</TableCell>
+                      <TableCell>{item.typeTension}</TableCell>
+                      <TableCell className="text-right">{formatKWh(item.consumptionKWh)}</TableCell>
+                      <TableCell className="text-right font-semibold">{formatCurrency(item.amount)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <FileText className="h-16 w-16 text-muted-foreground" />
