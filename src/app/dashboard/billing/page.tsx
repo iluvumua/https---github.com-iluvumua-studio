@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { File, FileText, PlusCircle, Search, Settings } from "lucide-react";
+import { File, FileText, PlusCircle, Search, Settings, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -177,6 +177,12 @@ export default function BillingPage() {
                         </Select>
                         {user.role === 'Financier' && (
                             <>
+                             <Button size="sm" variant="outline" className="h-9 gap-1" asChild>
+                                <Link href="/dashboard/billing/statistics">
+                                    <BarChart className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Statistiques</span>
+                                </Link>
+                            </Button>
                             <Button size="sm" variant="outline" className="h-9 gap-1" asChild>
                                 <Link href="/dashboard/billing/settings">
                                     <Settings className="h-3.5 w-3.5" />

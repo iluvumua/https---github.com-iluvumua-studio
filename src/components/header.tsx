@@ -43,6 +43,7 @@ export function Header() {
     billing: "Facturation",
     calcul: "Calcul",
     "add-reference": "Ajouter Référence",
+    statistics: "Statistiques",
   };
 
   return (
