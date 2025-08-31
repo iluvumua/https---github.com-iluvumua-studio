@@ -3,6 +3,9 @@ import { create } from 'zustand';
 import { billingData } from '@/lib/data';
 import type { Bill } from '@/lib/types';
 import { useAnomaliesStore } from './use-anomalies-store';
+import { useBillingSettingsStore } from './use-billing-settings-store';
+import { parse } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface BillingState {
   bills: Bill[];
@@ -10,42 +13,61 @@ interface BillingState {
   updateBill: (updatedBill: Bill) => void;
 }
 
-const calculateOverallAverage = (bills: Bill[]): number | null => {
-    const annualBills = bills
-      .filter(b => b.nombreMois && b.nombreMois >= 12)
-      .sort((a, b) => b.id.localeCompare(a.id));
-
-    if (annualBills.length > 0) {
-      const latestAnnualBill = annualBills[0];
-      return latestAnnualBill.amount / latestAnnualBill.nombreMois;
-    }
-    return null;
+const getMonthNumber = (monthName: string) => {
+    try {
+        const date = parse(monthName, "LLLL yyyy", new Date(), { locale: fr });
+        if (!isNaN(date.getTime())) {
+            return date.getFullYear() * 100 + date.getMonth();
+        }
+    } catch(e) {}
+    return 0;
 }
 
 export const useBillingStore = create<BillingState>((set, get) => ({
   bills: billingData,
   addBill: (newBill) => {
-    const allBills = [newBill, ...get().bills];
-    const overallAverage = calculateOverallAverage(allBills);
+    const allBills = get().bills;
+    const { settings } = useBillingSettingsStore.getState();
+    const { costThresholdPercent, consumptionThresholdPercent } = settings.anomalies;
     
-    // Check for anomaly only if the new bill has a duration and there's an overall average to compare to.
-    if (newBill.nombreMois && newBill.nombreMois > 0 && overallAverage) {
-        const newBillAverage = newBill.amount / newBill.nombreMois;
-        // Check if new bill's average is 30% higher than the overall average.
-        if (newBillAverage > (overallAverage * 1.30)) {
-            const { addAnomaly } = useAnomaliesStore.getState();
-            const anomalyMessage = `La facture ${newBill.reference} (${(newBillAverage).toFixed(3)} TND/mois) dépasse la moyenne de 30% (${(overallAverage).toFixed(3)} TND/mois).`;
-            addAnomaly({
-                id: `ANOM-${Date.now()}`,
-                billId: newBill.id,
-                meterId: newBill.meterId,
-                message: anomalyMessage,
-                date: new Date().toISOString().split('T')[0],
-            });
-        }
+    // Find the previous bill for the same meter
+    const meterBills = allBills
+        .filter(b => b.meterId === newBill.meterId)
+        .sort((a, b) => getMonthNumber(b.month) - getMonthNumber(a.month));
+        
+    const previousBill = meterBills[0];
+    
+    if (previousBill && previousBill.nombreMois && newBill.nombreMois) {
+      const prevCostPerMonth = previousBill.amount / previousBill.nombreMois;
+      const newCostPerMonth = newBill.amount / newBill.nombreMois;
+      const prevConsumptionPerMonth = previousBill.consumptionKWh / previousBill.nombreMois;
+      const newConsumptionPerMonth = newBill.consumptionKWh / newBill.nombreMois;
+
+      const costExceeded = newCostPerMonth > prevCostPerMonth * (1 + costThresholdPercent / 100);
+      const consumptionExceeded = newConsumptionPerMonth > prevConsumptionPerMonth * (1 + consumptionThresholdPercent / 100);
+
+      let anomalyMessages: string[] = [];
+
+      if (costExceeded) {
+          anomalyMessages.push(`Le coût a augmenté de plus de ${costThresholdPercent}%.`);
+      }
+      if (consumptionExceeded) {
+          anomalyMessages.push(`La consommation a augmenté de plus de ${consumptionThresholdPercent}%.`);
+      }
+
+      if (anomalyMessages.length > 0) {
+        const { addAnomaly } = useAnomaliesStore.getState();
+        addAnomaly({
+            id: `ANOM-${Date.now()}`,
+            billId: newBill.id,
+            meterId: newBill.meterId,
+            message: `Facture ${newBill.reference}: ${anomalyMessages.join(' ')}`,
+            date: new Date().toISOString().split('T')[0],
+        });
+      }
     }
 
-    set({ bills: allBills });
+    set({ bills: [newBill, ...allBills] });
   },
   updateBill: (updatedBill) =>
     set((state) => ({

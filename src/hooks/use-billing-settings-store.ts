@@ -2,8 +2,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-// Default values are extracted from the existing forms
-
 const defaultSettings = {
   basseTension: {
     prix_unitaire_bt: 0.250,
@@ -25,14 +23,23 @@ const defaultSettings = {
     pu_consommation: 0.291,
     tva_consommation_percent: 19,
     tva_redevance_percent: 19,
+  },
+  anomalies: {
+    costThresholdPercent: 20,
+    consumptionThresholdPercent: 30,
   }
 };
 
-type Settings = typeof defaultSettings;
+export type Settings = typeof defaultSettings;
 
 interface BillingSettingsState {
   settings: Settings;
   setSettings: (newSettings: Partial<Settings>) => void;
+  updateSetting: <K extends keyof Settings, SK extends keyof Settings[K]>(
+    key: K,
+    subKey: SK,
+    value: Settings[K][SK]
+  ) => void;
   resetSettings: () => void;
 }
 
@@ -44,11 +51,21 @@ export const useBillingSettingsStore = create<BillingSettingsState>()(
         set((state) => ({
           settings: { ...state.settings, ...newSettings },
         })),
+      updateSetting: (key, subKey, value) =>
+        set((state) => ({
+            settings: {
+                ...state.settings,
+                [key]: {
+                    ...state.settings[key],
+                    [subKey]: value,
+                }
+            }
+        })),
       resetSettings: () => set({ settings: defaultSettings }),
     }),
     {
-      name: 'billing-settings-storage', // name of the item in the storage (must be unique)
-      storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+      name: 'billing-settings-storage',
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
