@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { File, FileText, PlusCircle, Search, Settings, BarChart } from "lucide-react";
+import { File, FileText, PlusCircle, Search, Settings, BarChart, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
 import {
@@ -133,7 +133,7 @@ export default function BillingPage() {
                 <AlertTitle>Anomalies de Facturation Détectées!</AlertTitle>
                 <AlertDescription>
                     <ul className="list-disc pl-5 mt-2 space-y-1">
-                    {unreadAnomalies.map(anomaly => (
+                    {unreadAnomalies.slice(0, 3).map(anomaly => (
                         <li key={anomaly.id} className="flex justify-between items-center">
                             <span>
                                 {anomaly.message}
@@ -142,6 +142,13 @@ export default function BillingPage() {
                             <Button variant="ghost" size="sm" onClick={() => markAsRead(anomaly.id)}><Check className="mr-2 h-4 w-4" /> Marquer comme lu</Button>
                         </li>
                     ))}
+                    {unreadAnomalies.length > 3 && (
+                         <li className="mt-2">
+                           <Link href="/dashboard/billing/anomalies" className="font-semibold underline">
+                                Et {unreadAnomalies.length - 3} autres anomalies...
+                            </Link>
+                         </li>
+                    )}
                     </ul>
                 </AlertDescription>
             </Alert>
@@ -178,6 +185,15 @@ export default function BillingPage() {
                         </Select>
                         {user.role === 'Financier' && (
                             <>
+                            <Button size="sm" variant="outline" className="h-9 gap-1" asChild>
+                                <Link href="/dashboard/billing/anomalies">
+                                    <AlertTriangle className="h-3.5 w-3.5" />
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Anomalies</span>
+                                     {unreadAnomalies.length > 0 && (
+                                        <Badge variant="destructive" className="ml-2">{unreadAnomalies.length}</Badge>
+                                     )}
+                                </Link>
+                            </Button>
                              <Button size="sm" variant="outline" className="h-9 gap-1" asChild>
                                 <Link href="/dashboard/billing/statistics">
                                     <BarChart className="h-3.5 w-3.5" />

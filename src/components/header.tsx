@@ -44,6 +44,7 @@ export function Header() {
     calcul: "Calcul",
     "add-reference": "Ajouter Référence",
     statistics: "Statistiques",
+    anomalies: "Anomalies",
   };
 
   return (
