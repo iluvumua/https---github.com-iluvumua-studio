@@ -32,6 +32,7 @@ import type { Meter } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { ImporterButton } from "@/components/importer-button";
+import { Badge } from "@/components/ui/badge";
 
 export default function BillingPage() {
   const { meters } = useMetersStore();
@@ -269,4 +270,5 @@ export default function BillingPage() {
     </div>
     </TooltipProvider>
   );
-}
+
+    
