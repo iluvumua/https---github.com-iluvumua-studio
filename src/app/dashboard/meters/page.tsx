@@ -1,7 +1,8 @@
+
 "use client";
 
 import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History, AlertCircle } from "lucide-react";
-import React, { Suspense, useState } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -69,12 +70,21 @@ function MetersPageComponent() {
     if (!dateString) return "N/A";
     return format(new Date(dateString), "dd/MM/yyyy");
   }
+  
+  const metersWithAlerts = useMemo(() => {
+    return meters.map(meter => {
+      const associatedEquipment = equipment.filter(e => e.compteurId === meter.id);
+      const hasSwitchedOffEquipment = meter.status !== 'switched off' && associatedEquipment.some(e => e.status === 'switched off');
+      return { ...meter, hasSwitchedOffEquipment };
+    });
+  }, [meters, equipment]);
+  
+  const alertCount = useMemo(() => {
+    return metersWithAlerts.filter(m => m.hasSwitchedOffEquipment).length;
+  }, [metersWithAlerts]);
 
-  const filteredMeters = meters.map(meter => {
-    const associatedEquipment = equipment.filter(e => e.compteurId === meter.id);
-    const hasSwitchedOffEquipment = meter.status !== 'switched off' && associatedEquipment.some(e => e.status === 'switched off');
-    return { ...meter, hasSwitchedOffEquipment };
-  }).filter(meter => {
+
+  const filteredMeters = metersWithAlerts.filter(meter => {
       const associationName = getAssociationName(meter).toLowerCase();
       const meterId = meter.id.toLowerCase();
       const policeNumber = meter.policeNumber?.toLowerCase() || '';
@@ -152,7 +162,15 @@ function MetersPageComponent() {
       <TabsContent value={activeTab}>
         <Card>
           <CardHeader>
-            <CardTitle>Gestion des Compteurs</CardTitle>
+            <div className="flex items-center justify-between">
+                <CardTitle>Gestion des Compteurs</CardTitle>
+                {alertCount > 0 && (
+                    <Badge variant="destructive" className="flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        {alertCount} {alertCount > 1 ? 'Compteurs' : 'Compteur'} avec alerte
+                    </Badge>
+                )}
+            </div>
             <CardDescription>
               Suivez et gérez tous les compteurs d'énergie STEG.
             </CardDescription>
@@ -303,5 +321,3 @@ export default function MetersPage() {
         </Suspense>
     )
 }
-
-    
