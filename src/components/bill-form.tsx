@@ -420,7 +420,7 @@ export function BillForm({ bill }: BillFormProps) {
     mode: 'onChange'
   });
   
-  const { setValue, getValues, reset, watch: watchForm } = form;
+  const { setValue, getValues, reset, watch: watchForm, formState: { dirtyFields } } = form;
 
   const watchedFields = watchForm();
   const watchedMeterId = watchedFields.meterId;
@@ -454,42 +454,48 @@ export function BillForm({ bill }: BillFormProps) {
   
   const selectedMeter = useMemo(() => meters.find(m => m.id === watchedMeterId), [meters, watchedMeterId]);
   
+  const hasAnyBillForMeter = useMemo(() => {
+      if (!watchedMeterId) return false;
+      return bills.some(b => b.meterId === watchedMeterId);
+  }, [watchedMeterId, bills]);
+
   const isAncienIndexReadOnly = useMemo(() => {
     if (isEditMode) return false;
-    // It's the first bill for this meter
-    if (!previousBill) return true;
-    return false;
-  }, [isEditMode, previousBill]);
+    return !hasAnyBillForMeter || !!previousBill;
+  }, [isEditMode, hasAnyBillForMeter, previousBill]);
 
   useEffect(() => {
     if (selectedMeter) {
-        setValue('typeTension', selectedMeter.typeTension);
+        if (!dirtyFields.typeTension) {
+            setValue('typeTension', selectedMeter.typeTension);
+        }
     }
-  }, [selectedMeter, setValue]);
+  }, [selectedMeter, setValue, dirtyFields.typeTension]);
 
  useEffect(() => {
     if (isEditMode) return;
-    
+
     const setIndexValues = (prevBill: Bill | null, meter: any) => {
         const type = meter?.typeTension;
+        const isFirstBillEver = !hasAnyBillForMeter;
 
         if (type === 'Basse Tension') {
-            let index = prevBill?.nouveauIndex ?? prevBill?.ancienIndex ?? meter?.indexDepart;
+            let index = isFirstBillEver ? meter?.indexDepart : (prevBill?.nouveauIndex ?? prevBill?.ancienIndex);
             setValue('ancienIndex', index ?? 0);
         } else if (type === 'Moyen Tension Forfaitaire') {
-            let index = prevBill?.mtf_nouveau_index ?? prevBill?.mtf_ancien_index ?? meter?.indexDepart;
+            let index = isFirstBillEver ? meter?.indexDepart : (prevBill?.mtf_nouveau_index ?? prevBill?.mtf_ancien_index);
             setValue('mtf_ancien_index', index ?? 0);
         } else if (type === 'Moyen Tension Tranche Horaire') {
-            setValue('ancien_index_jour', prevBill?.nouveau_index_jour ?? prevBill?.ancien_index_jour ?? meter?.indexDepartJour ?? 0);
-            setValue('ancien_index_pointe', prevBill?.nouveau_index_pointe ?? prevBill?.ancien_index_pointe ?? meter?.indexDepartPointe ?? 0);
-            setValue('ancien_index_soir', prevBill?.nouveau_index_soir ?? prevBill?.ancien_index_soir ?? meter?.indexDepartSoir ?? 0);
-            setValue('ancien_index_nuit', prevBill?.nouveau_index_nuit ?? prevBill?.ancien_index_nuit ?? meter?.indexDepartNuit ?? 0);
+            setValue('ancien_index_jour', isFirstBillEver ? meter?.indexDepartJour : (prevBill?.nouveau_index_jour ?? prevBill?.ancien_index_jour ?? 0));
+            setValue('ancien_index_pointe', isFirstBillEver ? meter?.indexDepartPointe : (prevBill?.nouveau_index_pointe ?? prevBill?.ancien_index_pointe ?? 0));
+            setValue('ancien_index_soir', isFirstBillEver ? meter?.indexDepartSoir : (prevBill?.nouveau_index_soir ?? prevBill?.ancien_index_soir ?? 0));
+            setValue('ancien_index_nuit', isFirstBillEver ? meter?.indexDepartNuit : (prevBill?.nouveau_index_nuit ?? prevBill?.ancien_index_nuit ?? 0));
         }
     };
 
     setIndexValues(previousBill, selectedMeter);
 
-  }, [previousBill, selectedMeter, setValue, isEditMode]);
+  }, [previousBill, selectedMeter, setValue, isEditMode, hasAnyBillForMeter]);
   
   const calculateAndSetValues = useCallback(() => {
     const values = getValues();
@@ -501,16 +507,16 @@ export function BillForm({ bill }: BillFormProps) {
         const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(values);
         if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
         if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
-        if (values.consommation_jour !== calcs.consommation_jour_calc && !isEditMode) setValue("consommation_jour", calcs.consommation_jour_calc);
-        if (values.consommation_pointe !== calcs.consommation_pointe_calc && !isEditMode) setValue("consommation_pointe", calcs.consommation_pointe_calc);
-        if (values.consommation_soir !== calcs.consommation_soir_calc && !isEditMode) setValue("consommation_soir", calcs.consommation_soir_calc);
-        if (values.consommation_nuit !== calcs.consommation_nuit_calc && !isEditMode) setValue("consommation_nuit", calcs.consommation_nuit_calc);
+        if (values.consommation_jour !== calcs.consommation_jour_calc && !dirtyFields.consommation_jour) setValue("consommation_jour", calcs.consommation_jour_calc);
+        if (values.consommation_pointe !== calcs.consommation_pointe_calc && !dirtyFields.consommation_pointe) setValue("consommation_pointe", calcs.consommation_pointe_calc);
+        if (values.consommation_soir !== calcs.consommation_soir_calc && !dirtyFields.consommation_soir) setValue("consommation_soir", calcs.consommation_soir_calc);
+        if (values.consommation_nuit !== calcs.consommation_nuit_calc && !dirtyFields.consommation_nuit) setValue("consommation_nuit", calcs.consommation_nuit_calc);
     } else if (values.typeTension === "Moyen Tension Forfaitaire") {
         const { consommation, montant } = calculateMoyenTensionForfait(values);
         if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
         if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
     }
-}, [getValues, setValue, isEditMode]);
+}, [getValues, setValue, dirtyFields]);
 
 // Re-calculate when any relevant field changes
 useEffect(() => {
