@@ -45,6 +45,7 @@ export type Bill = {
   convenableSTEG?: boolean;
   montantSTEG?: number;
   nombreMois?: number;
+  description?: string;
   
   // Basse tension fields
   ancienIndex?: number;

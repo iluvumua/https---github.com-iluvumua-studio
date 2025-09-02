@@ -36,6 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
+import { Textarea } from "./ui/textarea";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -57,6 +58,7 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
   convenableSTEG: z.boolean().default(false),
   montantSTEG: z.coerce.number().optional(),
+  description: z.string().optional(),
   
   // Basse Tension
   ancienIndex: z.coerce.number().optional(),
@@ -320,6 +322,7 @@ export function BillForm({ bill }: BillFormProps) {
         consumptionKWh: bill?.consumptionKWh ?? 0,
         amount: bill?.amount ?? 0,
         montantSTEG: bill?.montantSTEG ?? 0,
+        description: bill?.description || "",
         // BT
         ancienIndex: bill?.ancienIndex ?? 0,
         nouveauIndex: bill?.nouveauIndex ?? 0,
@@ -484,6 +487,7 @@ export function BillForm({ bill }: BillFormProps) {
         amount: values.amount ?? 0,
         convenableSTEG: values.convenableSTEG,
         montantSTEG: values.montantSTEG,
+        description: values.description,
         
         // BT
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
@@ -817,6 +821,14 @@ export function BillForm({ bill }: BillFormProps) {
                             </AlertDescription>
                         </Alert>
                     )}
+                     <FormField control={form.control} name="description" render={({ field }) => (
+                        <FormItem><FormLabel>Description</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Expliquez la raison de la non-conformité..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                 </div>
             )}
 
@@ -853,4 +865,3 @@ export function BillForm({ bill }: BillFormProps) {
     </Form>
   );
 }
-
