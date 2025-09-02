@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -183,7 +183,7 @@ const calculateBasseTension = (
     return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
 }
 
-const calculateConsumptionWithRollover = (ancien: number, nouveau: number): number => {
+const calculateConsumptionWithRollover = (ancien?: number, nouveau?: number): number => {
     const numAncien = Number(ancien) || 0;
     const numNouveau = Number(nouveau) || 0;
 
@@ -203,10 +203,10 @@ const calculateMoyenTensionHoraire = (values: FormValues) => {
     const consommation_soir_calc = calculateConsumptionWithRollover(values.ancien_index_soir, values.nouveau_index_soir);
     const consommation_nuit_calc = calculateConsumptionWithRollover(values.ancien_index_nuit, values.nouveau_index_nuit);
     
-    const consommation_jour = (Number(values.consommation_jour) || 0) * (Number(values.coefficient_jour) || 1);
-    const consommation_pointe = (Number(values.consommation_pointe) || 0) * (Number(values.coefficient_pointe) || 1);
-    const consommation_soir = (Number(values.consommation_soir) || 0) * (Number(values.coefficient_soir) || 1);
-    const consommation_nuit = (Number(values.consommation_nuit) || 0) * (Number(values.coefficient_nuit) || 1);
+    const consommation_jour = (Number(values.consommation_jour) || consommation_jour_calc || 0) * (Number(values.coefficient_jour) || 1);
+    const consommation_pointe = (Number(values.consommation_pointe) || consommation_pointe_calc || 0) * (Number(values.coefficient_pointe) || 1);
+    const consommation_soir = (Number(values.consommation_soir) || consommation_soir_calc || 0) * (Number(values.coefficient_soir) || 1);
+    const consommation_nuit = (Number(values.consommation_nuit) || consommation_nuit_calc || 0) * (Number(values.coefficient_nuit) || 1);
 
     const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
 
@@ -256,7 +256,7 @@ const calculateMoyenTensionForfait = (values: FormValues) => {
     const avance_consommation = Number(values.avance_consommation) || 0;
     const bonification = Number(values.bonification) || 0;
 
-    const energie_enregistree = Math.max(0, nouveau_index - ancien_index) * coefficient_multiplicateur;
+    const energie_enregistree = calculateConsumptionWithRollover(ancien_index, nouveau_index) * coefficient_multiplicateur;
     const consommation_a_facturer = energie_enregistree + perte_en_charge + perte_a_vide;
     const montant_consommation = consommation_a_facturer * pu_consommation;
     const sous_total_consommation = montant_consommation;
@@ -310,9 +310,9 @@ export function BillForm({ bill }: BillFormProps) {
         }
     } else {
         const now = new Date();
-        const month = getMonth(now) + 1;
+        const month = getMonth(now); // 0-indexed, so we add 1 later
         const year = getYear(now);
-        billDate = `${month.toString().padStart(2, '0')}/${year}`;
+        billDate = `${(month === 0 ? 12 : month).toString().padStart(2, '0')}/${month === 0 ? year -1 : year}`;
     }
      return {
         ...bill,
@@ -320,7 +320,7 @@ export function BillForm({ bill }: BillFormProps) {
         meterId: bill?.meterId || meterId || "",
         billDate,
         nombreMois: bill?.nombreMois || 1,
-        typeTension: bill?.typeTension || "Basse Tension",
+        typeTension: bill?.typeTension || meters.find(m => m.id === (bill?.meterId || meterId))?.typeTension || "Basse Tension",
         convenableSTEG: bill?.convenableSTEG ?? true,
         consumptionKWh: bill?.consumptionKWh ?? 0,
         amount: bill?.amount ?? 0,
@@ -365,19 +365,19 @@ export function BillForm({ bill }: BillFormProps) {
         contribution_rtt_mth: bill?.contribution_rtt_mth ?? 0,
         surtaxe_municipale_mth: bill?.surtaxe_municipale_mth ?? 0,
         // MT Forfait
-        mtf_ancien_index: bill?.mtf_ancien_index ?? 1483440,
-        mtf_nouveau_index: bill?.mtf_nouveau_index ?? 1489924,
+        mtf_ancien_index: bill?.mtf_ancien_index ?? 0,
+        mtf_nouveau_index: bill?.mtf_nouveau_index ?? 0,
         coefficient_multiplicateur: bill?.coefficient_multiplicateur ?? settings.moyenTensionForfait.coefficient_multiplicateur,
-        perte_en_charge: bill?.perte_en_charge ?? 130,
-        perte_a_vide: bill?.perte_a_vide ?? 260,
+        perte_en_charge: bill?.perte_en_charge ?? 0,
+        perte_a_vide: bill?.perte_a_vide ?? 0,
         pu_consommation: bill?.pu_consommation ?? settings.moyenTensionForfait.pu_consommation,
-        prime_puissance: bill?.prime_puissance ?? 250.000,
+        prime_puissance: bill?.prime_puissance ?? 0,
         tva_consommation_percent: bill?.tva_consommation_percent ?? settings.moyenTensionForfait.tva_consommation_percent,
         tva_redevance_percent: bill?.tva_redevance_percent ?? settings.moyenTensionForfait.tva_redevance_percent,
-        contribution_rtt: bill?.contribution_rtt ?? 3.500,
-        surtaxe_municipale: bill?.surtaxe_municipale ?? 68.740,
-        avance_consommation: bill?.avance_consommation ?? 31.134,
-        bonification: bill?.bonification ?? 100.017,
+        contribution_rtt: bill?.contribution_rtt ?? 0,
+        surtaxe_municipale: bill?.surtaxe_municipale ?? 0,
+        avance_consommation: bill?.avance_consommation ?? 0,
+        bonification: bill?.bonification ?? 0,
      }
   }
 
@@ -388,13 +388,70 @@ export function BillForm({ bill }: BillFormProps) {
 
   const watchedValues = form.watch();
   const watchedMeterId = form.watch("meterId");
+  const watchedBillDate = form.watch("billDate");
   const selectedMeter = meters.find(m => m.id === watchedMeterId);
+  
+  const getMonthNumber = useCallback((monthName: string) => {
+    try {
+        const date = parse(monthName, "LLLL yyyy", new Date(), { locale: fr });
+        if (!isNaN(date.getTime())) {
+            return date.getFullYear() * 100 + date.getMonth();
+        }
+    } catch(e) {}
+    return 0;
+  }, []);
+
+  const previousBill = useMemo(() => {
+    if (!watchedMeterId || !watchedBillDate || watchedBillDate.length < 7) return null;
+    
+    const [monthStr, yearStr] = watchedBillDate.split('/');
+    const currentBillDateNum = parseInt(yearStr) * 100 + (parseInt(monthStr) - 1);
+
+    const meterBills = bills
+        .filter(b => b.meterId === watchedMeterId)
+        .sort((a, b) => getMonthNumber(b.month) - getMonthNumber(a.month)); // sort descending
+    
+    // Find the latest bill that is before the current bill's date
+    const lastBill = meterBills.find(b => getMonthNumber(b.month) < currentBillDateNum);
+
+    return lastBill || null;
+  }, [watchedMeterId, watchedBillDate, bills, getMonthNumber]);
+
 
   useEffect(() => {
-    if (selectedMeter) {
+    if (selectedMeter && form.getValues('typeTension') !== selectedMeter.typeTension) {
         form.setValue('typeTension', selectedMeter.typeTension);
     }
   }, [watchedMeterId, meters, form, selectedMeter]);
+
+  useEffect(() => {
+    if (isEditMode) return; // Don't auto-fill in edit mode
+
+    if (previousBill) {
+        switch (previousBill.typeTension) {
+            case 'Basse Tension':
+                form.setValue('ancienIndex', previousBill.nouveauIndex);
+                break;
+            case 'Moyen Tension Forfaitaire':
+                form.setValue('mtf_ancien_index', previousBill.mtf_nouveau_index);
+                break;
+            case 'Moyen Tension Tranche Horaire':
+                form.setValue('ancien_index_jour', previousBill.nouveau_index_jour);
+                form.setValue('ancien_index_pointe', previousBill.nouveau_index_pointe);
+                form.setValue('ancien_index_soir', previousBill.nouveau_index_soir);
+                form.setValue('ancien_index_nuit', previousBill.nouveau_index_nuit);
+                break;
+        }
+    } else {
+        // If no previous bill, reset the ancien index fields
+        form.setValue('ancienIndex', 0);
+        form.setValue('mtf_ancien_index', 0);
+        form.setValue('ancien_index_jour', 0);
+        form.setValue('ancien_index_pointe', 0);
+        form.setValue('ancien_index_soir', 0);
+        form.setValue('ancien_index_nuit', 0);
+    }
+  }, [previousBill, form, isEditMode]);
 
 
   useEffect(() => {
@@ -414,16 +471,17 @@ export function BillForm({ bill }: BillFormProps) {
         form.setValue("consumptionKWh", consommation);
         form.setValue("amount", montant);
 
-        if (form.getValues('consommation_jour') === 0 && calcs.consommation_jour_calc > 0) {
+        // Auto-fill consumption if empty
+        if ((!watchedValues.consommation_jour || watchedValues.consommation_jour === 0) && calcs.consommation_jour_calc > 0) {
             form.setValue("consommation_jour", calcs.consommation_jour_calc);
         }
-        if (form.getValues('consommation_pointe') === 0 && calcs.consommation_pointe_calc > 0) {
+        if ((!watchedValues.consommation_pointe || watchedValues.consommation_pointe === 0) && calcs.consommation_pointe_calc > 0) {
             form.setValue("consommation_pointe", calcs.consommation_pointe_calc);
         }
-        if (form.getValues('consommation_soir') === 0 && calcs.consommation_soir_calc > 0) {
+        if ((!watchedValues.consommation_soir || watchedValues.consommation_soir === 0) && calcs.consommation_soir_calc > 0) {
             form.setValue("consommation_soir", calcs.consommation_soir_calc);
         }
-        if (form.getValues('consommation_nuit') === 0 && calcs.consommation_nuit_calc > 0) {
+        if ((!watchedValues.consommation_nuit || watchedValues.consommation_nuit === 0) && calcs.consommation_nuit_calc > 0) {
             form.setValue("consommation_nuit", calcs.consommation_nuit_calc);
         }
 
@@ -433,39 +491,7 @@ export function BillForm({ bill }: BillFormProps) {
         form.setValue("amount", montant);
     }
   }, [
-    watchedValues.typeTension,
-    // BT
-    watchedValues.ancienIndex,
-    watchedValues.nouveauIndex,
-    watchedValues.prix_unitaire_bt,
-    watchedValues.redevances_fixes,
-    watchedValues.tva_bt,
-    watchedValues.ertt_bt,
-    // MT Horaire
-    watchedValues.ancien_index_jour, watchedValues.nouveau_index_jour,
-    watchedValues.ancien_index_pointe, watchedValues.nouveau_index_pointe,
-    watchedValues.ancien_index_soir, watchedValues.nouveau_index_soir,
-    watchedValues.ancien_index_nuit, watchedValues.nouveau_index_nuit,
-    watchedValues.coefficient_jour, watchedValues.coefficient_pointe,
-    watchedValues.coefficient_soir, watchedValues.coefficient_nuit,
-    watchedValues.prix_unitaire_jour, watchedValues.prix_unitaire_pointe,
-    watchedValues.prix_unitaire_soir, watchedValues.prix_unitaire_nuit,
-    watchedValues.consommation_jour, watchedValues.consommation_pointe,
-    watchedValues.consommation_soir, watchedValues.consommation_nuit,
-    watchedValues.prime_puissance_mth, watchedValues.depassement_puissance,
-    watchedValues.location_materiel, watchedValues.frais_intervention,
-    watchedValues.frais_relance, watchedValues.frais_retard,
-    watchedValues.tva_consommation, watchedValues.tva_redevance,
-    watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth,
-    // MT Forfait
-    watchedValues.mtf_ancien_index, watchedValues.mtf_nouveau_index,
-    watchedValues.coefficient_multiplicateur, watchedValues.perte_en_charge,
-    watchedValues.perte_a_vide, watchedValues.pu_consommation,
-    watchedValues.prime_puissance, watchedValues.tva_consommation_percent,
-    watchedValues.tva_redevance_percent, watchedValues.contribution_rtt,
-    watchedValues.surtaxe_municipale, watchedValues.avance_consommation,
-    watchedValues.bonification,
-    form.setValue,
+    watchedValues,
     form
   ]);
 
@@ -478,7 +504,7 @@ export function BillForm({ bill }: BillFormProps) {
     
     let reference = values.reference;
     if (!isEditMode && selectedMeter?.referenceFacteur) {
-        const dateCode = `${month}${year.slice(2)}`;
+        const dateCode = `${month.padStart(2, '0')}${year.slice(2)}`;
         reference = `${selectedMeter.referenceFacteur}-${dateCode}`;
     }
 
@@ -595,6 +621,8 @@ export function BillForm({ bill }: BillFormProps) {
     watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth
   ]);
 
+  const isAncienIndexReadOnly = !isEditMode && !!previousBill;
+
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -606,7 +634,7 @@ export function BillForm({ bill }: BillFormProps) {
             ) : (
                 <div className="md:col-span-1 space-y-1">
                     <FormLabel>Id Facture (Auto)</FormLabel>
-                    <Input readOnly value={selectedMeter?.referenceFacteur ? `${selectedMeter.referenceFacteur}-${watchedValues.billDate?.replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
+                    <Input readOnly value={selectedMeter?.referenceFacteur && watchedValues.billDate ? `${selectedMeter.referenceFacteur}-${watchedValues.billDate.replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
                 </div>
             )}
             
@@ -636,7 +664,7 @@ export function BillForm({ bill }: BillFormProps) {
                 <div className="space-y-4 rounded-md border p-4 md:col-span-2">
                     <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="ancienIndex" render={({ field }) => (
-                            <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
                             <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
@@ -670,38 +698,38 @@ export function BillForm({ bill }: BillFormProps) {
                     </div>
                     {/* Jour */}
                     <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Pointe */}
                      <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Soir */}
                      <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Nuit */}
                     <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     <Separator />
                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                        <FormField control={form.control} name="consommation_jour" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Jour:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="consommation_pointe" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Pointe:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="consommation_soir" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Soir:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="consommation_nuit" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Nuit:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_jour" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Jour:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_pointe" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Pointe:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_soir" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Soir:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_nuit" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Nuit:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
                      </div>
                     <Separator />
                      <div className="space-y-4 rounded-md border p-4">
@@ -740,7 +768,7 @@ export function BillForm({ bill }: BillFormProps) {
             {watchedValues.typeTension === 'Moyen Tension Forfaitaire' && (
                 <div className="md:col-span-2 space-y-4 rounded-md border p-4">
                      <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} readOnly /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
