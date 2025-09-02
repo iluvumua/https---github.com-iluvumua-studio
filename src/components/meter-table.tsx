@@ -1,15 +1,14 @@
 
 "use client";
 
-import { Info, ChevronRight, MoreHorizontal, PlusCircle } from "lucide-react";
+import { FileText, MoreHorizontal, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Meter } from "@/lib/types";
 import { Badge } from "./ui/badge";
-import { FileText } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface MeterTableProps {
     meters: (Meter & { associationName: string; averageMonthlyConsumption: number | null })[];
@@ -66,27 +65,32 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                     </TableCell>
                     <TableCell>
                         <div className="flex items-center justify-end gap-1">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem asChild>
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" asChild>
                                         <Link href={`/dashboard/billing/${item.id}`}>
-                                            <FileText className="mr-2 h-4 w-4" />
-                                            Voir Factures
+                                            <FileText className="h-4 w-4" />
+                                            <span className="sr-only">Voir Factures</span>
                                         </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Voir Factures</p>
+                                </TooltipContent>
+                            </Tooltip>
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" asChild>
                                         <Link href={`/dashboard/billing/new?meterId=${item.id}`}>
-                                            <PlusCircle className="mr-2 h-4 w-4" />
-                                            Ajouter Facture
+                                            <PlusCircle className="h-4 w-4" />
+                                            <span className="sr-only">Ajouter Facture</span>
                                         </Link>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Ajouter Facture</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                     </TableCell>
                 </TableRow>
