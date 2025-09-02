@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Meter } from "@/lib/types";
 import { Badge } from "./ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "./ui/tooltip";
 
 interface MeterTableProps {
     meters: (Meter & { associationName: string; averageMonthlyConsumption: number | null })[];
@@ -40,6 +40,7 @@ export const MeterTable = ({ meters, selectedMonth, selectedYear }: MeterTablePr
     }
 
     return (
+        <TooltipProvider>
         <Table>
             <TableHeader>
                 <TableRow>
@@ -99,5 +100,6 @@ export const MeterTable = ({ meters, selectedMonth, selectedYear }: MeterTablePr
                 ))}
             </TableBody>
         </Table>
+        </TooltipProvider>
     );
 };
