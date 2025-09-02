@@ -398,11 +398,12 @@ export function BillForm({ bill }: BillFormProps) {
     mode: 'onChange'
   });
   
-  const { setValue, watch, getValues, trigger, reset } = form;
+  const { setValue, watch, getValues, reset } = form;
 
-  const watchedMeterId = watch("meterId");
-  const watchedBillDate = watch("billDate");
-  const watchedTypeTension = watch("typeTension");
+  const watchedFields = watch();
+  const watchedMeterId = watchedFields.meterId;
+  const watchedBillDate = watchedFields.billDate;
+  const watchedTypeTension = watchedFields.typeTension;
 
   const getMonthNumber = useCallback((monthName: string) => {
     try {
@@ -445,13 +446,15 @@ export function BillForm({ bill }: BillFormProps) {
 
     if (prevBill) {
         switch (prevBill.typeTension) {
-            case 'Basse Tension': setValue('ancienIndex', prevBill.nouveauIndex); break;
-            case 'Moyen Tension Forfaitaire': setValue('mtf_ancien_index', prevBill.mtf_nouveau_index); break;
+            case 'Basse Tension':
+                setValue('ancienIndex', prevBill.nouveauIndex ?? prevBill.ancienIndex); break;
+            case 'Moyen Tension Forfaitaire':
+                setValue('mtf_ancien_index', prevBill.mtf_nouveau_index ?? prevBill.mtf_ancien_index); break;
             case 'Moyen Tension Tranche Horaire':
-                setValue('ancien_index_jour', prevBill.nouveau_index_jour);
-                setValue('ancien_index_pointe', prevBill.nouveau_index_pointe);
-                setValue('ancien_index_soir', prevBill.nouveau_index_soir);
-                setValue('ancien_index_nuit', prevBill.nouveau_index_nuit);
+                setValue('ancien_index_jour', prevBill.nouveau_index_jour ?? prevBill.ancien_index_jour);
+                setValue('ancien_index_pointe', prevBill.nouveau_index_pointe ?? prevBill.ancien_index_pointe);
+                setValue('ancien_index_soir', prevBill.nouveau_index_soir ?? prevBill.ancien_index_soir);
+                setValue('ancien_index_nuit', prevBill.nouveau_index_nuit ?? prevBill.ancien_index_nuit);
                 break;
         }
     } else if (selectedMeter) {
@@ -475,7 +478,7 @@ export function BillForm({ bill }: BillFormProps) {
         setValue('ancien_index_soir', 0);
         setValue('ancien_index_nuit', 0);
     }
-  }, [isEditMode, previousBill, selectedMeter, setValue]);
+  }, [previousBill, selectedMeter, setValue, isEditMode]);
   
   const calculateAndSetValues = useCallback(() => {
     const values = getValues();
@@ -501,7 +504,7 @@ export function BillForm({ bill }: BillFormProps) {
 // Re-calculate when any relevant field changes
 useEffect(() => {
     calculateAndSetValues();
-}, [watch(), calculateAndSetValues]);
+}, [watchedFields, calculateAndSetValues]);
 
 useEffect(() => {
     reset(defaultValues);
@@ -621,7 +624,7 @@ useEffect(() => {
            (Number(values.frais_relance) || 0) +
            (Number(values.frais_retard) || 0) +
            (Number(values.penalite_cos_phi) || 0);
-  }, [getValues, watch()]);
+  }, [getValues, watchedFields]);
 
   const mthGroup2Total = useMemo(() => {
     const values = getValues();
@@ -629,7 +632,7 @@ useEffect(() => {
            (Number(values.tva_redevance) || 0) +
            (Number(values.contribution_rtt_mth) || 0) +
            (Number(values.surtaxe_municipale_mth) || 0);
-  }, [getValues, watch()]);
+  }, [getValues, watchedFields]);
 
   const isAncienIndexReadOnly = useMemo(() => {
     if (isEditMode) return false;
