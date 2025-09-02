@@ -100,6 +100,9 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   tva_redevance: z.coerce.number().optional(),
   contribution_rtt_mth: z.coerce.number().optional(),
   surtaxe_municipale_mth: z.coerce.number().optional(),
+  avance_sur_consommation_mth: z.coerce.number().optional(),
+  penalite_cos_phi: z.coerce.number().optional(),
+
 
   // Moyen Tension Forfaitaire
   mtf_ancien_index: z.coerce.number().optional(),
@@ -224,14 +227,15 @@ const calculateMoyenTensionHoraire = (values: Partial<FormValues>) => {
                         (Number(values.location_materiel) || 0) +
                         (Number(values.frais_intervention) || 0) +
                         (Number(values.frais_relance) || 0) +
-                        (Number(values.frais_retard) || 0);
+                        (Number(values.frais_retard) || 0) +
+                        (Number(values.penalite_cos_phi) || 0);
     
     const group2Total = (Number(values.tva_consommation) || 0) +
                         (Number(values.tva_redevance) || 0) +
                         (Number(values.contribution_rtt_mth) || 0) +
                         (Number(values.surtaxe_municipale_mth) || 0);
     
-    const finalAmount = subtotal + group1Total + group2Total;
+    const finalAmount = subtotal + group1Total + group2Total + (Number(values.avance_sur_consommation_mth) || 0);
 
     return { 
         consommation: totalConsumption, 
@@ -369,6 +373,8 @@ export function BillForm({ bill }: BillFormProps) {
         tva_redevance: bill?.tva_redevance ?? 0,
         contribution_rtt_mth: bill?.contribution_rtt_mth ?? 0,
         surtaxe_municipale_mth: bill?.surtaxe_municipale_mth ?? 0,
+        avance_sur_consommation_mth: bill?.avance_sur_consommation_mth ?? 0,
+        penalite_cos_phi: bill?.penalite_cos_phi ?? 0,
         // MT Forfait
         mtf_ancien_index: bill?.mtf_ancien_index ?? 0,
         mtf_nouveau_index: bill?.mtf_nouveau_index ?? 0,
@@ -392,9 +398,8 @@ export function BillForm({ bill }: BillFormProps) {
     mode: 'onChange'
   });
   
-  const { setValue, watch, getValues, trigger } = form;
+  const { setValue, watch, getValues, trigger, reset } = form;
 
-  const watchedValues = watch();
   const watchedMeterId = watch("meterId");
   const watchedBillDate = watch("billDate");
   const watchedTypeTension = watch("typeTension");
@@ -425,14 +430,13 @@ export function BillForm({ bill }: BillFormProps) {
     return lastBill || null;
   }, [watchedMeterId, watchedBillDate, bills, getMonthNumber]);
   
-  const selectedMeter = meters.find(m => m.id === watchedMeterId);
+  const selectedMeter = useMemo(() => meters.find(m => m.id === watchedMeterId), [meters, watchedMeterId]);
 
   useEffect(() => {
-    const selectedMeter = meters.find(m => m.id === watchedMeterId);
     if (selectedMeter) {
         setValue('typeTension', selectedMeter.typeTension);
     }
-  }, [watchedMeterId, meters, setValue]);
+  }, [selectedMeter, setValue]);
 
   useEffect(() => {
     if (isEditMode) return;
@@ -472,40 +476,38 @@ export function BillForm({ bill }: BillFormProps) {
         setValue('ancien_index_nuit', 0);
     }
   }, [isEditMode, previousBill, selectedMeter, setValue]);
-
-  useEffect(() => {
-    const {
-        ancienIndex, nouveauIndex, prix_unitaire_bt, redevances_fixes, tva_bt, ertt_bt,
-        ancien_index_jour, nouveau_index_jour, coefficient_jour, prix_unitaire_jour, consommation_jour,
-        ancien_index_pointe, nouveau_index_pointe, coefficient_pointe, prix_unitaire_pointe, consommation_pointe,
-        ancien_index_soir, nouveau_index_soir, coefficient_soir, prix_unitaire_soir, consommation_soir,
-        ancien_index_nuit, nouveau_index_nuit, coefficient_nuit, prix_unitaire_nuit, consommation_nuit,
-        prime_puissance_mth, depassement_puissance, location_materiel, frais_intervention, frais_relance, frais_retard,
-        tva_consommation, tva_redevance, contribution_rtt_mth, surtaxe_municipale_mth,
-        mtf_ancien_index, mtf_nouveau_index, coefficient_multiplicateur, perte_en_charge, perte_a_vide,
-        pu_consommation, prime_puissance, tva_consommation_percent, tva_redevance_percent, contribution_rtt,
-        surtaxe_municipale, avance_consommation, bonification
-    } = getValues();
-
-    if (watchedTypeTension === "Basse Tension") {
-        const { consommation, montant } = calculateBasseTension(ancienIndex, nouveauIndex, prix_unitaire_bt, redevances_fixes, tva_bt, ertt_bt);
-        if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
-        if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
-    } else if (watchedTypeTension === "Moyen Tension Tranche Horaire") {
-        const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(getValues());
-        if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
-        if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
-        if (getValues("consommation_jour") !== calcs.consommation_jour_calc && !isEditMode) setValue("consommation_jour", calcs.consommation_jour_calc);
-        if (getValues("consommation_pointe") !== calcs.consommation_pointe_calc && !isEditMode) setValue("consommation_pointe", calcs.consommation_pointe_calc);
-        if (getValues("consommation_soir") !== calcs.consommation_soir_calc && !isEditMode) setValue("consommation_soir", calcs.consommation_soir_calc);
-        if (getValues("consommation_nuit") !== calcs.consommation_nuit_calc && !isEditMode) setValue("consommation_nuit", calcs.consommation_nuit_calc);
-    } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
-        const { consommation, montant } = calculateMoyenTensionForfait(getValues());
-        if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
-        if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
-    }
-  }, [watchedValues, watchedTypeTension, getValues, setValue, isEditMode]);
   
+  const calculateAndSetValues = useCallback(() => {
+    const values = getValues();
+    if (values.typeTension === "Basse Tension") {
+        const { consommation, montant } = calculateBasseTension(values.ancienIndex, values.nouveauIndex, values.prix_unitaire_bt, values.redevances_fixes, values.tva_bt, values.ertt_bt);
+        if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
+        if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
+    } else if (values.typeTension === "Moyen Tension Tranche Horaire") {
+        const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(values);
+        if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
+        if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
+        if (values.consommation_jour !== calcs.consommation_jour_calc && !isEditMode) setValue("consommation_jour", calcs.consommation_jour_calc);
+        if (values.consommation_pointe !== calcs.consommation_pointe_calc && !isEditMode) setValue("consommation_pointe", calcs.consommation_pointe_calc);
+        if (values.consommation_soir !== calcs.consommation_soir_calc && !isEditMode) setValue("consommation_soir", calcs.consommation_soir_calc);
+        if (values.consommation_nuit !== calcs.consommation_nuit_calc && !isEditMode) setValue("consommation_nuit", calcs.consommation_nuit_calc);
+    } else if (values.typeTension === "Moyen Tension Forfaitaire") {
+        const { consommation, montant } = calculateMoyenTensionForfait(values);
+        if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
+        if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
+    }
+}, [getValues, setValue, isEditMode]);
+
+// Re-calculate when any relevant field changes
+useEffect(() => {
+    calculateAndSetValues();
+}, [watch(), calculateAndSetValues]);
+
+useEffect(() => {
+    reset(defaultValues);
+}, [defaultValues, reset]);
+
+
   const onSubmit = (values: FormValues) => {
     const [month, year] = values.billDate.split('/');
     const monthIndex = parseInt(month, 10) - 1;
@@ -570,6 +572,8 @@ export function BillForm({ bill }: BillFormProps) {
         tva_redevance: values.typeTension === "Moyen Tension Tranche Horaire" ? values.tva_redevance : undefined,
         contribution_rtt_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.contribution_rtt_mth : undefined,
         surtaxe_municipale_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.surtaxe_municipale_mth : undefined,
+        avance_sur_consommation_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.avance_sur_consommation_mth : undefined,
+        penalite_cos_phi: values.typeTension === "Moyen Tension Tranche Horaire" ? values.penalite_cos_phi : undefined,
 
 
         // MT Forfait
@@ -601,7 +605,7 @@ export function BillForm({ bill }: BillFormProps) {
   const isCalculated = watchedTypeTension === 'Basse Tension' || watchedTypeTension === 'Moyen Tension Tranche Horaire' || watchedTypeTension === 'Moyen Tension Forfaitaire';
   const cancelHref = '/dashboard/billing';
   
-  const difference = (Number(watchedValues.montantSTEG) || 0) - (Number(watchedValues.amount) || 0);
+  const difference = (Number(watch("montantSTEG")) || 0) - (Number(watch("amount")) || 0);
   
   const availableMeters = meters.filter(m => m.status === 'En service');
   
@@ -609,27 +613,23 @@ export function BillForm({ bill }: BillFormProps) {
   const formatDT = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
   
   const mthGroup1Total = useMemo(() => {
-    return (Number(watchedValues.prime_puissance_mth) || 0) +
-           (Number(watchedValues.depassement_puissance) || 0) +
-           (Number(watchedValues.location_materiel) || 0) +
-           (Number(watchedValues.frais_intervention) || 0) +
-           (Number(watchedValues.frais_relance) || 0) +
-           (Number(watchedValues.frais_retard) || 0);
-  }, [
-    watchedValues.prime_puissance_mth, watchedValues.depassement_puissance,
-    watchedValues.location_materiel, watchedValues.frais_intervention,
-    watchedValues.frais_relance, watchedValues.frais_retard
-  ]);
+    const values = getValues();
+    return (Number(values.prime_puissance_mth) || 0) +
+           (Number(values.depassement_puissance) || 0) +
+           (Number(values.location_materiel) || 0) +
+           (Number(values.frais_intervention) || 0) +
+           (Number(values.frais_relance) || 0) +
+           (Number(values.frais_retard) || 0) +
+           (Number(values.penalite_cos_phi) || 0);
+  }, [getValues, watch()]);
 
   const mthGroup2Total = useMemo(() => {
-    return (Number(watchedValues.tva_consommation) || 0) +
-           (Number(watchedValues.tva_redevance) || 0) +
-           (Number(watchedValues.contribution_rtt_mth) || 0) +
-           (Number(watchedValues.surtaxe_municipale_mth) || 0);
-  }, [
-    watchedValues.tva_consommation, watchedValues.tva_redevance,
-    watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth
-  ]);
+    const values = getValues();
+    return (Number(values.tva_consommation) || 0) +
+           (Number(values.tva_redevance) || 0) +
+           (Number(values.contribution_rtt_mth) || 0) +
+           (Number(values.surtaxe_municipale_mth) || 0);
+  }, [getValues, watch()]);
 
   const isAncienIndexReadOnly = useMemo(() => {
     if (isEditMode) return false;
@@ -652,7 +652,7 @@ export function BillForm({ bill }: BillFormProps) {
             ) : (
                 <div className="md:col-span-1 space-y-1">
                     <FormLabel>Id Facture (Auto)</FormLabel>
-                    <Input readOnly value={selectedMeter?.referenceFacteur && watchedValues.billDate.length === 7 ? `${selectedMeter.referenceFacteur}-${watchedValues.billDate.replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
+                    <Input readOnly value={selectedMeter?.referenceFacteur && watch("billDate").length === 7 ? `${selectedMeter.referenceFacteur}-${watch("billDate").replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
                 </div>
             )}
             
@@ -678,7 +678,7 @@ export function BillForm({ bill }: BillFormProps) {
                 )} />
             )}
 
-            {watchedValues.typeTension === 'Basse Tension' && (
+            {watchedTypeTension === 'Basse Tension' && (
                 <div className="space-y-4 rounded-md border p-4 md:col-span-2">
                     <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="ancienIndex" render={({ field }) => (
@@ -707,7 +707,7 @@ export function BillForm({ bill }: BillFormProps) {
                 </div>
             )}
 
-            {watchedValues.typeTension === 'Moyen Tension Tranche Horaire' && (
+            {watchedTypeTension === 'Moyen Tension Tranche Horaire' && (
                 <div className="space-y-4 rounded-md border p-4 md:col-span-2">
                     <div className="grid grid-cols-4 gap-4">
                         <FormLabel className="col-span-2">Index</FormLabel>
@@ -751,14 +751,15 @@ export function BillForm({ bill }: BillFormProps) {
                      </div>
                     <Separator />
                      <div className="space-y-4 rounded-md border p-4">
-                        <h4 className="font-medium text-sm">Groupe 1: Redevances</h4>
+                        <h4 className="font-medium text-sm">Groupe 1: Redevances et Frais Divers</h4>
                         <div className="grid grid-cols-2 gap-4">
                             <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Frais Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                             <FormField control={form.control} name="penalite_cos_phi" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center font-semibold">
@@ -780,10 +781,11 @@ export function BillForm({ bill }: BillFormProps) {
                             <span>{formatDT(mthGroup2Total)}</span>
                         </div>
                     </div>
+                    <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                 </div>
             )}
             
-            {watchedValues.typeTension === 'Moyen Tension Forfaitaire' && (
+            {watchedTypeTension === 'Moyen Tension Forfaitaire' && (
                 <div className="md:col-span-2 space-y-4 rounded-md border p-4">
                      <div className="grid grid-cols-2 gap-4">
                         <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
@@ -858,7 +860,7 @@ export function BillForm({ bill }: BillFormProps) {
                 )}
                 />
             
-            {!watchedValues.convenableSTEG && (
+            {!watch("convenableSTEG") && (
                 <div className="md:col-span-2 space-y-4">
                     <FormField control={form.control} name="montantSTEG" render={({ field }) => (
                         <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
@@ -868,7 +870,7 @@ export function BillForm({ bill }: BillFormProps) {
                             <FormMessage />
                         </FormItem>
                     )} />
-                    {typeof watchedValues.montantSTEG === 'number' && typeof watchedValues.amount === 'number' && (
+                    {typeof watch("montantSTEG") === 'number' && typeof watch("amount") === 'number' && (
                          <Alert variant={difference === 0 ? "default" : "destructive"}>
                             <AlertCircle className="h-4 w-4" />
                             <AlertTitle>Vérification de Montant</AlertTitle>

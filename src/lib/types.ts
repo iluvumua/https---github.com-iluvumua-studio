@@ -86,6 +86,8 @@ export type Bill = {
   tva_redevance?: number;
   contribution_rtt_mth?: number;
   surtaxe_municipale_mth?: number;
+  avance_sur_consommation_mth?: number;
+  penalite_cos_phi?: number;
 
   // Moyen tension forfaitaire fields
   mtf_ancien_index?: number;
