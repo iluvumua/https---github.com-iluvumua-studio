@@ -13,7 +13,7 @@ export default function NewReferencePage() {
             <CardHeader>
                 <CardTitle>Ajouter/Modifier une référence de facturation</CardTitle>
                 <CardDescription>
-                    Sélectionnez un compteur et saisissez sa référence de facteur.
+                    Recherchez un compteur, saisissez sa référence de facteur et son adresse de facturation.
                 </CardDescription>
             </CardHeader>
             <CardContent>
