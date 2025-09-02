@@ -43,17 +43,22 @@ export const useBillingStore = create<BillingState>((set, get) => ({
     const { settings } = useBillingSettingsStore.getState();
     const { costThresholdPercent, consumptionThresholdPercent } = settings.anomalies;
     
-    // Find the previous bill for the same meter
     const meterBills = allBills
         .filter(b => b.meterId === newBill.meterId)
         .sort((a, b) => getMonthNumber(b.month) - getMonthNumber(a.month));
         
-    const previousBill = meterBills[0];
+    const latestExistingBill = meterBills[0];
     
-    if (previousBill && previousBill.nombreMois && newBill.nombreMois) {
-      const prevCostPerMonth = previousBill.amount / previousBill.nombreMois;
+    let isLatestBill = true;
+    if (latestExistingBill) {
+        isLatestBill = getMonthNumber(newBill.month) > getMonthNumber(latestExistingBill.month);
+    }
+    
+    // Only perform anomaly check if the new bill is the most recent one.
+    if (isLatestBill && latestExistingBill && latestExistingBill.nombreMois && newBill.nombreMois) {
+      const prevCostPerMonth = latestExistingBill.amount / latestExistingBill.nombreMois;
       const newCostPerMonth = newBill.amount / newBill.nombreMois;
-      const prevConsumptionPerMonth = previousBill.consumptionKWh / previousBill.nombreMois;
+      const prevConsumptionPerMonth = latestExistingBill.consumptionKWh / latestExistingBill.nombreMois;
       const newConsumptionPerMonth = newBill.consumptionKWh / newBill.nombreMois;
 
       const costExceeded = newCostPerMonth > prevCostPerMonth * (1 + costThresholdPercent / 100);
