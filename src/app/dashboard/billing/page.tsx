@@ -139,7 +139,7 @@ export default function BillingPage() {
   };
 
   const isNumeric = (str: string) => /^\d+$/.test(str);
-  const isValidNumFacture = isNumeric(billingSearchTerm) && [8, 9, 12].includes(billingSearchTerm.length);
+  const isValidNumFacture = isNumeric(billingSearchTerm) && [8, 12].includes(billingSearchTerm.length);
 
 
   return (
@@ -331,6 +331,8 @@ export default function BillingPage() {
     </TooltipProvider>
   );
     
+    
+
     
 
     
