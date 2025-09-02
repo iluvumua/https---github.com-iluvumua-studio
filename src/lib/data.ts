@@ -8,6 +8,8 @@ export const equipmentData: Equipment[] = [
   { id: 'EQP-004', name: 'ALU_SO_KANT_MSN01_MM_Immeuble Zarrouk_7353', type: 'MSN', location: 'KANT', status: 'En service', lastUpdate: '2023-10-26', fournisseur: 'Alcatel Lucent', typeChassis: '7353', coordX: 10.589497, coordY: 35.886259, designation: 'ALU_SO_MM_Immeuble Zarrouk _FTTB', compteurId: '537400', dateMiseEnService: '2022-05-10' },
   { id: 'EQP-005', name: 'HUW_SO_CENN_MSN01_T300', type: 'MSN', location: 'CENN', status: 'switched off', lastUpdate: '2023-10-22', fournisseur: 'Huawei', typeChassis: 'T300', coordX: 10.587450, coordY: 35.735262, designation: 'HW_SO_Cite_Ennour1_T300' },
   { id: 'EQP-006', name: 'ALU_SO_REP_MSI01_7330', type: 'MSI', location: 'SO01', status: 'En cours', lastUpdate: '2023-11-01', fournisseur: 'Alcatel Lucent', typeChassis: '7330', coordX: 10.638617, coordY: 35.829169, designation: 'ALU-Republique-Rk_01-Sh_A-7330', buildingId: '1' },
+  { id: 'EQP-007', name: 'NSN_SO_KSIB_MSN01_F-108', type: 'MSN', location: 'KSIB', status: 'En service', lastUpdate: '2024-01-10', fournisseur: 'Nokia Siemens', typeChassis: 'F-108', coordX: 10.58, coordY: 35.78, designation: 'NSN_SO_KSIB_MSN01_F-108', compteurId: 'MTR-NEW-001', dateMiseEnService: '2024-01-10' },
+  { id: 'EQP-008', name: 'ALU_SO_SAHL_MSN02_7362', type: 'MSN', location: 'SAHL', status: 'En service', lastUpdate: '2024-02-15', fournisseur: 'Alcatel Lucent', typeChassis: '7362', coordX: 10.60, coordY: 35.84, designation: 'ALU_SO_SAHL_MSN02_7362', compteurId: 'MTR-NEW-002', dateMiseEnService: '2024-02-15' },
 ];
 
 export const buildingData: Building[] = [
@@ -55,6 +57,8 @@ export const metersData: Meter[] = [
     { id: '587687455', policeNumber: '25-587687455-99', referenceFacteur: '378051247', typeTension: 'Moyen Tension Forfaitaire', status: 'switched off', description: 'Ancien compteur pour équipement Huawei, maintenant résilié.', lastUpdate: '2023-10-22', districtSteg: 'SOUSSE CENTRE' },
     { id: '552201', policeNumber: '25-552201-99', referenceFacteur: '378051248', typeTension: 'Moyen Tension Tranche Horaire', status: 'En cours', dateDemandeInstallation: '2023-11-05', description: 'En attente d\'installation pour le nouveau MSI.', lastUpdate: '2023-11-05', districtSteg: 'SOUSSE CENTRE' },
     { id: '552200', policeNumber: '25-552200-99', referenceFacteur: '378051249', buildingId: '1', typeTension: 'Moyen Tension Tranche Horaire', status: 'En service', dateMiseEnService: '2022-03-10', description: 'Compteur principal du Complexe Sousse République.', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE' },
+    { id: 'MTR-NEW-001', policeNumber: '25-600001-99', typeTension: 'Basse Tension', status: 'En service', dateMiseEnService: '2024-01-10', description: 'Nouveau compteur pour équipement NSN à Ksiba', lastUpdate: '2024-01-10', districtSteg: 'SOUSSE CENTRE' },
+    { id: 'MTR-NEW-002', policeNumber: '25-600002-99', typeTension: 'Moyen Tension Tranche Horaire', status: 'En service', dateMiseEnService: '2024-02-15', description: 'Nouveau compteur pour équipement ALU à Sahloul', lastUpdate: '2024-02-15', districtSteg: 'SOUSSE CENTRE' },
 ];
 
 
