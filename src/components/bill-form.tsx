@@ -461,8 +461,10 @@ export function BillForm({ bill }: BillFormProps) {
 
   const isAncienIndexReadOnly = useMemo(() => {
     if (isEditMode) return false;
-    return !hasAnyBillForMeter || !!previousBill;
-  }, [isEditMode, hasAnyBillForMeter, previousBill]);
+    // Read-only if it's the first bill for this meter
+    return !hasAnyBillForMeter;
+  }, [isEditMode, hasAnyBillForMeter]);
+
 
   useEffect(() => {
     if (selectedMeter) {
@@ -473,27 +475,37 @@ export function BillForm({ bill }: BillFormProps) {
   }, [selectedMeter, setValue, dirtyFields.typeTension]);
 
  useEffect(() => {
-    if (isEditMode) return;
+    if (isEditMode || !selectedMeter) return;
 
-    const setIndexValues = (prevBill: Bill | null, meter: any) => {
-        const type = meter?.typeTension;
-        const isFirstBillEver = !hasAnyBillForMeter;
+    const isFirstBillEver = !hasAnyBillForMeter;
+    
+    const setIndexValues = (prevBill: Bill | null) => {
+        const type = selectedMeter.typeTension;
 
-        if (type === 'Basse Tension') {
-            let index = isFirstBillEver ? meter?.indexDepart : (prevBill?.nouveauIndex ?? prevBill?.ancienIndex);
-            setValue('ancienIndex', index ?? 0);
-        } else if (type === 'Moyen Tension Forfaitaire') {
-            let index = isFirstBillEver ? meter?.indexDepart : (prevBill?.mtf_nouveau_index ?? prevBill?.mtf_ancien_index);
-            setValue('mtf_ancien_index', index ?? 0);
-        } else if (type === 'Moyen Tension Tranche Horaire') {
-            setValue('ancien_index_jour', isFirstBillEver ? meter?.indexDepartJour : (prevBill?.nouveau_index_jour ?? prevBill?.ancien_index_jour ?? 0));
-            setValue('ancien_index_pointe', isFirstBillEver ? meter?.indexDepartPointe : (prevBill?.nouveau_index_pointe ?? prevBill?.ancien_index_pointe ?? 0));
-            setValue('ancien_index_soir', isFirstBillEver ? meter?.indexDepartSoir : (prevBill?.nouveau_index_soir ?? prevBill?.ancien_index_soir ?? 0));
-            setValue('ancien_index_nuit', isFirstBillEver ? meter?.indexDepartNuit : (prevBill?.nouveau_index_nuit ?? prevBill?.ancien_index_nuit ?? 0));
+        if (isFirstBillEver) {
+            if (type === 'Basse Tension') setValue('ancienIndex', selectedMeter.indexDepart ?? 0);
+            if (type === 'Moyen Tension Forfaitaire') setValue('mtf_ancien_index', selectedMeter.indexDepart ?? 0);
+            if (type === 'Moyen Tension Tranche Horaire') {
+                setValue('ancien_index_jour', selectedMeter.indexDepartJour ?? 0);
+                setValue('ancien_index_pointe', selectedMeter.indexDepartPointe ?? 0);
+                setValue('ancien_index_soir', selectedMeter.indexDepartSoir ?? 0);
+                setValue('ancien_index_nuit', selectedMeter.indexDepartNuit ?? 0);
+            }
+        } else if (prevBill) {
+            if (type === 'Basse Tension') {
+                setValue('ancienIndex', prevBill.nouveauIndex ?? prevBill.ancienIndex ?? 0);
+            } else if (type === 'Moyen Tension Forfaitaire') {
+                setValue('mtf_ancien_index', prevBill.mtf_nouveau_index ?? prevBill.mtf_ancien_index ?? 0);
+            } else if (type === 'Moyen Tension Tranche Horaire') {
+                setValue('ancien_index_jour', prevBill.nouveau_index_jour ?? prevBill.ancien_index_jour ?? 0);
+                setValue('ancien_index_pointe', prevBill.nouveau_index_pointe ?? prevBill.ancien_index_pointe ?? 0);
+                setValue('ancien_index_soir', prevBill.nouveau_index_soir ?? prevBill.ancien_index_soir ?? 0);
+                setValue('ancien_index_nuit', prevBill.nouveau_index_nuit ?? prevBill.ancien_index_nuit ?? 0);
+            }
         }
     };
-
-    setIndexValues(previousBill, selectedMeter);
+    
+    setIndexValues(previousBill);
 
   }, [previousBill, selectedMeter, setValue, isEditMode, hasAnyBillForMeter]);
   
