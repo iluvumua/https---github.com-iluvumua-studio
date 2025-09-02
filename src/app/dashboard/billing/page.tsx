@@ -34,6 +34,13 @@ import { useBillingStore } from "@/hooks/use-billing-store";
 import { ImporterButton } from "@/components/importer-button";
 import { Badge } from "@/components/ui/badge";
 
+const monthNames = [
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+];
+
+const availableYears = Array.from({ length: 10 }, (_, i) => (new Date().getFullYear() - i).toString());
+
 export default function BillingPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
@@ -43,6 +50,9 @@ export default function BillingPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyen Tension Forfaitaire" | "Moyen Tension Tranche Horaire">("all");
   const { anomalies, markAsRead } = useAnomaliesStore();
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(monthNames[new Date().getMonth()]);
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
 
   const unreadAnomalies = anomalies.filter(a => !a.isRead);
 
@@ -105,6 +115,13 @@ export default function BillingPage() {
         return matchesSearch && matchesTension;
     });
   }, [searchTerm, tensionFilter, meterBillingData]);
+
+  const selectedMeter = useMemo(() => {
+    if (filteredMeters.length === 1 && searchTerm) {
+        return filteredMeters[0];
+    }
+    return null;
+  }, [filteredMeters, searchTerm]);
   
   const getMetersByDistrict = (district: string) => {
     return filteredMeters.filter(m => m.districtSteg === district);
@@ -167,7 +184,7 @@ export default function BillingPage() {
                         <CardDescription>Consultez les compteurs avec numéro de facturation pour chaque district.</CardDescription>
                     </div>
                      <div className="flex w-full sm:w-auto items-center gap-2">
-                        <div className="relative flex-1 sm:flex-initial">
+                         <div className="relative flex-1 sm:flex-initial">
                             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 type="search"
@@ -220,6 +237,34 @@ export default function BillingPage() {
                             </>
                         )}
                     </div>
+                </div>
+                 <div className="flex items-center gap-2 pt-4 border-t mt-4">
+                     <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                        <SelectTrigger className="w-[150px]">
+                            <SelectValue placeholder="Mois" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        {monthNames.map(month => (
+                            <SelectItem key={month} value={month}>{month}</SelectItem>
+                        ))}
+                        </SelectContent>
+                    </Select>
+                    <Select value={selectedYear} onValueChange={setSelectedYear}>
+                        <SelectTrigger className="w-[120px]">
+                            <SelectValue placeholder="Année" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableYears.map(year => (
+                            <SelectItem key={year} value={year}>{year}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                     <Button size="sm" className="h-9 gap-1" disabled={!selectedMeter} asChild>
+                        <Link href={`/dashboard/billing/new?meterId=${selectedMeter?.id}&month=${selectedMonth}&year=${selectedYear}`}>
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Ajouter Facture</span>
+                        </Link>
+                    </Button>
                 </div>
             </CardHeader>
         </Card>
@@ -295,7 +340,6 @@ export default function BillingPage() {
     </div>
     </TooltipProvider>
   );
-
     
     
 

@@ -9,7 +9,7 @@ import { Suspense } from 'react';
 function NewBill() {
     const searchParams = useSearchParams();
     const meterId = searchParams.get('meterId');
-    const title = meterId ? "Ajouter une nouvelle facture" : "Ajouter une nouvelle facture";
+    const title = meterId ? `Ajouter une nouvelle facture pour le compteur ${meterId}` : "Ajouter une nouvelle facture";
     
     return (
         <Card>
@@ -20,7 +20,7 @@ function NewBill() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <BillForm meterId={meterId || undefined} />
+                <BillForm />
             </CardContent>
         </Card>
     )

@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import type { Bill } from "@/lib/types";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "./ui/switch";
@@ -30,6 +30,11 @@ const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
+
+const monthNameToNumber: { [key: string]: string } = {
+  "Janvier": "01", "Février": "02", "Mars": "03", "Avril": "04", "Mai": "05", "Juin": "06",
+  "Juillet": "07", "Août": "08", "Septembre": "09", "Octobre": "10", "Novembre": "11", "Décembre": "12"
+};
 
 const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   reference: z.string().length(13, "L'Id Facture doit comporter 13 chiffres."),
@@ -251,17 +256,21 @@ const calculateMoyenTensionForfait = (values: FormValues) => {
 
 
 interface BillFormProps {
-    meterId?: string;
     bill?: Bill;
 }
 
-export function BillForm({ meterId, bill }: BillFormProps) {
+export function BillForm({ bill }: BillFormProps) {
   const isEditMode = !!bill;
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { meters } = useMetersStore();
   const { bills, addBill, updateBill } = useBillingStore();
   const { settings } = useBillingSettingsStore();
-  const router = useRouter();
   const { toast } = useToast();
+  
+  const meterId = searchParams.get('meterId');
+  const monthParam = searchParams.get('month');
+  const yearParam = searchParams.get('year');
   
   const formSchema = useMemo(() => createBillFormSchema(bills, isEditMode), [bills, isEditMode]);
 
@@ -277,6 +286,11 @@ export function BillForm({ meterId, bill }: BillFormProps) {
             }
         } catch(e) {
             console.error("Error parsing date:", e);
+        }
+    } else if (monthParam && yearParam) {
+        const monthNumber = monthNameToNumber[monthParam];
+        if (monthNumber) {
+            billDate = `${monthNumber}/${yearParam}`;
         }
     } else {
         const now = new Date();
@@ -797,5 +811,3 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     </Form>
   );
 }
-
-    
