@@ -48,7 +48,7 @@ const monthNameToNumber: { [key: string]: string } = {
 };
 
 const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
-  reference: z.string().length(13, "L'Id Facture doit comporter 13 chiffres."),
+  reference: z.string().optional(),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   billDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Le format doit être MM/AAAA."),
   nombreMois: z.coerce.number().optional(),
@@ -467,9 +467,15 @@ export function BillForm({ bill }: BillFormProps) {
     const monthName = monthNames[monthIndex] || 'Unknown';
     const formattedMonth = `${monthName} ${year}`;
     
+    let reference = values.reference;
+    if (!isEditMode && selectedMeter?.referenceFacteur) {
+        const dateCode = `${month}${year.slice(2)}`;
+        reference = `${selectedMeter.referenceFacteur}-${dateCode}`;
+    }
+
     const billData: Bill = {
         id: isEditMode ? bill.id : `BILL-${Date.now()}`,
-        reference: values.reference,
+        reference: reference || `UNKNOWN-${Date.now()}`,
         meterId: values.meterId,
         month: formattedMonth,
         nombreMois: values.nombreMois,
@@ -582,15 +588,22 @@ export function BillForm({ bill }: BillFormProps) {
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
-            <FormField control={form.control} name="reference" render={({ field }) => (
-                <FormItem><FormLabel>Id Facture (13 chiffres)</FormLabel><FormControl><Input placeholder="ex: 2023080123456" {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
+            {isEditMode ? (
+                <FormField control={form.control} name="reference" render={({ field }) => (
+                    <FormItem><FormLabel>Id Facture</FormLabel><FormControl><Input {...field} readOnly className="bg-muted" /></FormControl><FormMessage /></FormItem>
+                )} />
+            ) : (
+                <div className="md:col-span-1 space-y-1">
+                    <FormLabel>Id Facture (Auto)</FormLabel>
+                    <Input readOnly value={selectedMeter?.referenceFacteur ? `${selectedMeter.referenceFacteur}-${watchedValues.billDate?.replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
+                </div>
+            )}
             
             <FormField control={form.control} name="meterId" render={({ field }) => (
                 <FormItem><FormLabel>N° Compteur</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterId || isEditMode}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
-                        <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id}</SelectItem>))}</SelectContent>
+                        <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id} - {meter.referenceFacteur}</SelectItem>))}</SelectContent>
                     </Select>
                     <FormMessage />
                 </FormItem>
@@ -840,3 +853,4 @@ export function BillForm({ bill }: BillFormProps) {
     </Form>
   );
 }
+
