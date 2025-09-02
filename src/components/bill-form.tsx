@@ -385,6 +385,8 @@ export function BillForm({ bill }: BillFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: getDefaultValues()
   });
+  
+  const { setValue, getValues } = form;
 
   const watchedValues = form.watch();
   const watchedMeterId = form.watch("meterId");
@@ -419,10 +421,10 @@ export function BillForm({ bill }: BillFormProps) {
 
 
   useEffect(() => {
-    if (selectedMeter && form.getValues('typeTension') !== selectedMeter.typeTension) {
-        form.setValue('typeTension', selectedMeter.typeTension);
+    if (selectedMeter && getValues('typeTension') !== selectedMeter.typeTension) {
+        setValue('typeTension', selectedMeter.typeTension);
     }
-  }, [watchedMeterId, meters, form, selectedMeter]);
+  }, [watchedMeterId, meters, setValue, getValues, selectedMeter]);
 
   useEffect(() => {
     if (isEditMode) return; // Don't auto-fill in edit mode
@@ -430,28 +432,28 @@ export function BillForm({ bill }: BillFormProps) {
     if (previousBill) {
         switch (previousBill.typeTension) {
             case 'Basse Tension':
-                form.setValue('ancienIndex', previousBill.nouveauIndex);
+                setValue('ancienIndex', previousBill.nouveauIndex);
                 break;
             case 'Moyen Tension Forfaitaire':
-                form.setValue('mtf_ancien_index', previousBill.mtf_nouveau_index);
+                setValue('mtf_ancien_index', previousBill.mtf_nouveau_index);
                 break;
             case 'Moyen Tension Tranche Horaire':
-                form.setValue('ancien_index_jour', previousBill.nouveau_index_jour);
-                form.setValue('ancien_index_pointe', previousBill.nouveau_index_pointe);
-                form.setValue('ancien_index_soir', previousBill.nouveau_index_soir);
-                form.setValue('ancien_index_nuit', previousBill.nouveau_index_nuit);
+                setValue('ancien_index_jour', previousBill.nouveau_index_jour);
+                setValue('ancien_index_pointe', previousBill.nouveau_index_pointe);
+                setValue('ancien_index_soir', previousBill.nouveau_index_soir);
+                setValue('ancien_index_nuit', previousBill.nouveau_index_nuit);
                 break;
         }
     } else {
         // If no previous bill, reset the ancien index fields
-        form.setValue('ancienIndex', 0);
-        form.setValue('mtf_ancien_index', 0);
-        form.setValue('ancien_index_jour', 0);
-        form.setValue('ancien_index_pointe', 0);
-        form.setValue('ancien_index_soir', 0);
-        form.setValue('ancien_index_nuit', 0);
+        setValue('ancienIndex', 0);
+        setValue('mtf_ancien_index', 0);
+        setValue('ancien_index_jour', 0);
+        setValue('ancien_index_pointe', 0);
+        setValue('ancien_index_soir', 0);
+        setValue('ancien_index_nuit', 0);
     }
-  }, [previousBill, form, isEditMode]);
+  }, [previousBill, setValue, isEditMode]);
 
 
   useEffect(() => {
@@ -464,35 +466,35 @@ export function BillForm({ bill }: BillFormProps) {
             watchedValues.tva_bt,
             watchedValues.ertt_bt
         );
-        form.setValue("consumptionKWh", consommation);
-        form.setValue("amount", montant);
+        setValue("consumptionKWh", consommation);
+        setValue("amount", montant);
     } else if (watchedValues.typeTension === "Moyen Tension Tranche Horaire") {
         const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(watchedValues);
-        form.setValue("consumptionKWh", consommation);
-        form.setValue("amount", montant);
+        setValue("consumptionKWh", consommation);
+        setValue("amount", montant);
 
         // Auto-fill consumption if empty
         if ((!watchedValues.consommation_jour || watchedValues.consommation_jour === 0) && calcs.consommation_jour_calc > 0) {
-            form.setValue("consommation_jour", calcs.consommation_jour_calc);
+            setValue("consommation_jour", calcs.consommation_jour_calc);
         }
         if ((!watchedValues.consommation_pointe || watchedValues.consommation_pointe === 0) && calcs.consommation_pointe_calc > 0) {
-            form.setValue("consommation_pointe", calcs.consommation_pointe_calc);
+            setValue("consommation_pointe", calcs.consommation_pointe_calc);
         }
         if ((!watchedValues.consommation_soir || watchedValues.consommation_soir === 0) && calcs.consommation_soir_calc > 0) {
-            form.setValue("consommation_soir", calcs.consommation_soir_calc);
+            setValue("consommation_soir", calcs.consommation_soir_calc);
         }
         if ((!watchedValues.consommation_nuit || watchedValues.consommation_nuit === 0) && calcs.consommation_nuit_calc > 0) {
-            form.setValue("consommation_nuit", calcs.consommation_nuit_calc);
+            setValue("consommation_nuit", calcs.consommation_nuit_calc);
         }
 
     } else if (watchedValues.typeTension === "Moyen Tension Forfaitaire") {
         const { consommation, montant } = calculateMoyenTensionForfait(watchedValues);
-        form.setValue("consumptionKWh", consommation);
-        form.setValue("amount", montant);
+        setValue("consumptionKWh", consommation);
+        setValue("amount", montant);
     }
   }, [
     watchedValues,
-    form
+    setValue
   ]);
 
 
