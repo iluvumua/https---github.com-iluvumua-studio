@@ -27,7 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { cn } from "@/lib/utils";
-import type { Equipment } from "@/lib/types";
+import type { Equipment, Meter } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import { Input } from "@/components/ui/input";
@@ -90,6 +90,26 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
     }
     return { averageCost: null, averageConsumption: null };
     }, [associatedMeter, bills]);
+
+    const renderMeterIndex = (meter: Meter) => {
+        if (meter.typeTension === 'Basse Tension' || meter.typeTension === 'Moyen Tension Forfaitaire') {
+            return <div><span className="font-medium text-muted-foreground">Index Départ:</span> {meter.indexDepart ?? 'N/A'}</div>;
+        }
+        if (meter.typeTension === 'Moyen Tension Tranche Horaire') {
+            return (
+                <div className="col-span-2">
+                    <span className="font-medium text-muted-foreground">Index de Départ:</span>
+                    <div className="grid grid-cols-2 text-xs pl-2">
+                        <span>Jour: {meter.indexDepartJour ?? 'N/A'}</span>
+                        <span>Pointe: {meter.indexDepartPointe ?? 'N/A'}</span>
+                        <span>Soir: {meter.indexDepartSoir ?? 'N/A'}</span>
+                        <span>Nuit: {meter.indexDepartNuit ?? 'N/A'}</span>
+                    </div>
+                </div>
+            );
+        }
+        return null;
+    }
 
     return (
         <React.Fragment>
@@ -236,6 +256,7 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                             <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                             <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                             <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
+                            {renderMeterIndex(associatedMeter)}
                             <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
                             <div className="font-medium"><span className="text-muted-foreground">Coût Mensuel Moy:</span> {equipmentMetrics.averageCost !== null ? formatCurrency(equipmentMetrics.averageCost) : 'N/A'}</div>
                             <div className="font-medium"><span className="text-muted-foreground">Conso. Mensuelle Moy:</span> {equipmentMetrics.averageConsumption !== null ? `${formatKWh(equipmentMetrics.averageConsumption)} kWh` : 'N/A'}</div>
