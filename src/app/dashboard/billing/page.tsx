@@ -319,7 +319,7 @@ export default function BillingPage() {
                                     </div>
                                 </CardHeader>
                                 <CardContent>
-                                <MeterTable meters={districtMeters} />
+                                <MeterTable meters={districtMeters} selectedMonth={selectedMonth} selectedYear={selectedYear} />
                                 </CardContent>
                             </Card>
                         )

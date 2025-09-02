@@ -12,9 +12,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface MeterTableProps {
     meters: (Meter & { associationName: string; averageMonthlyConsumption: number | null })[];
+    selectedMonth: string;
+    selectedYear: string;
 }
 
-export const MeterTable = ({ meters }: MeterTableProps) => {
+export const MeterTable = ({ meters, selectedMonth, selectedYear }: MeterTableProps) => {
     if (meters.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -81,7 +83,7 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                              <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button variant="ghost" size="icon" asChild>
-                                        <Link href={`/dashboard/billing/new?meterId=${item.id}`}>
+                                        <Link href={`/dashboard/billing/new?meterId=${item.id}&month=${selectedMonth}&year=${selectedYear}`}>
                                             <PlusCircle className="h-4 w-4" />
                                             <span className="sr-only">Ajouter Facture</span>
                                         </Link>
@@ -99,5 +101,3 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
         </Table>
     );
 };
-
-    
