@@ -290,7 +290,7 @@ export function BillForm({ bill }: BillFormProps) {
   
   const formSchema = useMemo(() => createBillFormSchema(bills, isEditMode), [bills, isEditMode]);
 
-  const getDefaultValues = () => {
+  const defaultValues = useMemo(() => {
     let billDate = "";
     if (isEditMode && bill?.month) {
         try {
@@ -379,14 +379,14 @@ export function BillForm({ bill }: BillFormProps) {
         avance_consommation: bill?.avance_consommation ?? 0,
         bonification: bill?.bonification ?? 0,
      }
-  }
+  }, [isEditMode, bill, meterId, monthParam, yearParam, meters, settings]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: getDefaultValues()
+    defaultValues,
   });
   
-  const { setValue, getValues } = form;
+  const { setValue } = form;
 
   const watchedValues = form.watch();
   const watchedMeterId = form.watch("meterId");
@@ -421,10 +421,11 @@ export function BillForm({ bill }: BillFormProps) {
 
 
   useEffect(() => {
-    if (selectedMeter && getValues('typeTension') !== selectedMeter.typeTension) {
-        setValue('typeTension', selectedMeter.typeTension);
+    const meter = meters.find(m => m.id === watchedMeterId)
+    if (meter && watchedValues.typeTension !== meter.typeTension) {
+        setValue('typeTension', meter.typeTension);
     }
-  }, [watchedMeterId, meters, setValue, getValues, selectedMeter]);
+  }, [watchedMeterId, meters, setValue, watchedValues.typeTension]);
 
   useEffect(() => {
     if (isEditMode) return; // Don't auto-fill in edit mode
@@ -493,7 +494,16 @@ export function BillForm({ bill }: BillFormProps) {
         setValue("amount", montant);
     }
   }, [
-    watchedValues,
+    watchedValues.typeTension,
+    watchedValues.ancienIndex, watchedValues.nouveauIndex, watchedValues.prix_unitaire_bt, watchedValues.redevances_fixes, watchedValues.tva_bt, watchedValues.ertt_bt,
+    watchedValues.ancien_index_jour, watchedValues.nouveau_index_jour, watchedValues.coefficient_jour, watchedValues.prix_unitaire_jour, watchedValues.consommation_jour,
+    watchedValues.ancien_index_pointe, watchedValues.nouveau_index_pointe, watchedValues.coefficient_pointe, watchedValues.prix_unitaire_pointe, watchedValues.consommation_pointe,
+    watchedValues.ancien_index_soir, watchedValues.nouveau_index_soir, watchedValues.coefficient_soir, watchedValues.prix_unitaire_soir, watchedValues.consommation_soir,
+    watchedValues.ancien_index_nuit, watchedValues.nouveau_index_nuit, watchedValues.coefficient_nuit, watchedValues.prix_unitaire_nuit, watchedValues.consommation_nuit,
+    watchedValues.prime_puissance_mth, watchedValues.depassement_puissance, watchedValues.location_materiel, watchedValues.frais_intervention, watchedValues.frais_relance, watchedValues.frais_retard,
+    watchedValues.tva_consommation, watchedValues.tva_redevance, watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth,
+    watchedValues.mtf_ancien_index, watchedValues.mtf_nouveau_index, watchedValues.coefficient_multiplicateur, watchedValues.perte_en_charge, watchedValues.perte_a_vide, watchedValues.pu_consommation,
+    watchedValues.prime_puissance, watchedValues.tva_consommation_percent, watchedValues.tva_redevance_percent, watchedValues.contribution_rtt, watchedValues.surtaxe_municipale, watchedValues.avance_consommation, watchedValues.bonification,
     setValue
   ]);
 
