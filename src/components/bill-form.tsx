@@ -132,6 +132,8 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
     if (isEditMode) return true; // Skip validation in edit mode
     
     const [month, year] = data.billDate.split('/');
+    if (!month || !year || month.length !== 2 || year.length !== 4) return true;
+
     const monthIndex = parseInt(month, 10) - 1;
     const monthName = monthNames[monthIndex] || 'Unknown';
     const formattedMonth = `${monthName} ${year}`;
@@ -197,7 +199,7 @@ const calculateConsumptionWithRollover = (ancien?: number, nouveau?: number): nu
 };
 
 
-const calculateMoyenTensionHoraire = (values: FormValues) => {
+const calculateMoyenTensionHoraire = (values: Partial<FormValues>) => {
     const consommation_jour_calc = calculateConsumptionWithRollover(values.ancien_index_jour, values.nouveau_index_jour);
     const consommation_pointe_calc = calculateConsumptionWithRollover(values.ancien_index_pointe, values.nouveau_index_pointe);
     const consommation_soir_calc = calculateConsumptionWithRollover(values.ancien_index_soir, values.nouveau_index_soir);
@@ -241,7 +243,7 @@ const calculateMoyenTensionHoraire = (values: FormValues) => {
     };
 }
 
-const calculateMoyenTensionForfait = (values: FormValues) => {
+const calculateMoyenTensionForfait = (values: Partial<FormValues>) => {
     const ancien_index = Number(values.mtf_ancien_index) || 0;
     const nouveau_index = Number(values.mtf_nouveau_index) || 0;
     const coefficient_multiplicateur = Number(values.coefficient_multiplicateur) || 0;
@@ -387,15 +389,13 @@ export function BillForm({ bill }: BillFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
+    mode: 'onChange'
   });
   
-  const { setValue } = form;
+  const { setValue, watch, getValues, trigger } = form;
 
-  const watchedValues = form.watch();
-  const watchedMeterId = form.watch("meterId");
-  const watchedBillDate = form.watch("billDate");
-  const selectedMeter = meters.find(m => m.id === watchedMeterId);
-  
+  const watchedValues = watch();
+
   const getMonthNumber = useCallback((monthName: string) => {
     try {
         const date = parse(monthName, "LLLL yyyy", new Date(), { locale: fr });
@@ -407,114 +407,99 @@ export function BillForm({ bill }: BillFormProps) {
   }, []);
 
   const previousBill = useMemo(() => {
-    if (!watchedMeterId || !watchedBillDate || watchedBillDate.length < 7) return null;
+    const { meterId, billDate } = getValues();
+    if (!meterId || !billDate || billDate.length < 7) return null;
     
-    const [monthStr, yearStr] = watchedBillDate.split('/');
+    const [monthStr, yearStr] = billDate.split('/');
     const currentBillDateNum = parseInt(yearStr) * 100 + (parseInt(monthStr) - 1);
 
     const meterBills = bills
-        .filter(b => b.meterId === watchedMeterId)
+        .filter(b => b.meterId === meterId)
         .sort((a, b) => getMonthNumber(b.month) - getMonthNumber(a.month)); // sort descending
     
     // Find the latest bill that is before the current bill's date
     const lastBill = meterBills.find(b => getMonthNumber(b.month) < currentBillDateNum);
 
     return lastBill || null;
-  }, [watchedMeterId, watchedBillDate, bills, getMonthNumber]);
+  }, [getValues, bills, getMonthNumber]);
 
 
   useEffect(() => {
-    if (selectedMeter && watchedValues.typeTension !== selectedMeter.typeTension) {
-        setValue('typeTension', selectedMeter.typeTension);
-    }
-  }, [selectedMeter, setValue, watchedValues.typeTension]);
+    const subscription = watch((values, { name, type }) => {
+      if (name === 'meterId' || name === 'billDate') {
+        const selectedMeter = meters.find(m => m.id === values.meterId);
 
-  useEffect(() => {
-    if (isEditMode) return; // Don't auto-fill in edit mode
+        if (name === 'meterId' && selectedMeter) {
+            setValue('typeTension', selectedMeter.typeTension);
+        }
+        
+        if (isEditMode) return;
+        
+        const prevBill = previousBill; // from useMemo
 
-    if (previousBill) {
-        switch (previousBill.typeTension) {
-            case 'Basse Tension':
-                setValue('ancienIndex', previousBill.nouveauIndex);
-                break;
-            case 'Moyen Tension Forfaitaire':
-                setValue('mtf_ancien_index', previousBill.mtf_nouveau_index);
-                break;
-            case 'Moyen Tension Tranche Horaire':
-                setValue('ancien_index_jour', previousBill.nouveau_index_jour);
-                setValue('ancien_index_pointe', previousBill.nouveau_index_pointe);
-                setValue('ancien_index_soir', previousBill.nouveau_index_soir);
-                setValue('ancien_index_nuit', previousBill.nouveau_index_nuit);
-                break;
-        }
-    } else if (selectedMeter && selectedMeter.indexDepart !== undefined) {
-        // If no previous bill, use the meter's starting index
-        const indexDepart = selectedMeter.indexDepart;
-        switch (selectedMeter.typeTension) {
-            case 'Basse Tension':
-                setValue('ancienIndex', indexDepart);
-                break;
-            case 'Moyen Tension Forfaitaire':
-                setValue('mtf_ancien_index', indexDepart);
-                break;
-            case 'Moyen Tension Tranche Horaire':
-                 // Assuming indexDepart is for 'jour' in MT. Adjust if needed.
-                setValue('ancien_index_jour', indexDepart);
-                setValue('ancien_index_pointe', 0);
-                setValue('ancien_index_soir', 0);
-                setValue('ancien_index_nuit', 0);
-                break;
-        }
-    } else {
-        // If no previous bill and no starting index, reset the fields
-        setValue('ancienIndex', 0);
-        setValue('mtf_ancien_index', 0);
-        setValue('ancien_index_jour', 0);
-        setValue('ancien_index_pointe', 0);
-        setValue('ancien_index_soir', 0);
-        setValue('ancien_index_nuit', 0);
-    }
-  }, [previousBill, selectedMeter, setValue, isEditMode]);
-
-
-  useEffect(() => {
-    if (watchedValues.typeTension === "Basse Tension") {
-        const { consommation, montant } = calculateBasseTension(
-            watchedValues.ancienIndex, 
-            watchedValues.nouveauIndex, 
-            watchedValues.prix_unitaire_bt,
-            watchedValues.redevances_fixes,
-            watchedValues.tva_bt,
-            watchedValues.ertt_bt
-        );
-        setValue("consumptionKWh", consommation);
-        setValue("amount", montant);
-    } else if (watchedValues.typeTension === "Moyen Tension Tranche Horaire") {
-        const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(watchedValues);
-        setValue("consumptionKWh", consommation);
-        setValue("amount", montant);
-
-        // Auto-fill consumption if empty
-        if ((!watchedValues.consommation_jour || watchedValues.consommation_jour === 0) && calcs.consommation_jour_calc > 0) {
-            setValue("consommation_jour", calcs.consommation_jour_calc);
-        }
-        if ((!watchedValues.consommation_pointe || watchedValues.consommation_pointe === 0) && calcs.consommation_pointe_calc > 0) {
-            setValue("consommation_pointe", calcs.consommation_pointe_calc);
-        }
-        if ((!watchedValues.consommation_soir || watchedValues.consommation_soir === 0) && calcs.consommation_soir_calc > 0) {
-            setValue("consommation_soir", calcs.consommation_soir_calc);
-        }
-        if ((!watchedValues.consommation_nuit || watchedValues.consommation_nuit === 0) && calcs.consommation_nuit_calc > 0) {
-            setValue("consommation_nuit", calcs.consommation_nuit_calc);
+        if (prevBill) {
+            switch (prevBill.typeTension) {
+                case 'Basse Tension': setValue('ancienIndex', prevBill.nouveauIndex); break;
+                case 'Moyen Tension Forfaitaire': setValue('mtf_ancien_index', prevBill.mtf_nouveau_index); break;
+                case 'Moyen Tension Tranche Horaire':
+                    setValue('ancien_index_jour', prevBill.nouveau_index_jour);
+                    setValue('ancien_index_pointe', prevBill.nouveau_index_pointe);
+                    setValue('ancien_index_soir', prevBill.nouveau_index_soir);
+                    setValue('ancien_index_nuit', prevBill.nouveau_index_nuit);
+                    break;
+            }
+        } else if (selectedMeter?.indexDepart !== undefined) {
+            switch (selectedMeter.typeTension) {
+                case 'Basse Tension': setValue('ancienIndex', selectedMeter.indexDepart); break;
+                case 'Moyen Tension Forfaitaire': setValue('mtf_ancien_index', selectedMeter.indexDepart); break;
+                case 'Moyen Tension Tranche Horaire':
+                    setValue('ancien_index_jour', selectedMeter.indexDepart);
+                    setValue('ancien_index_pointe', 0);
+                    setValue('ancien_index_soir', 0);
+                    setValue('ancien_index_nuit', 0);
+                    break;
+            }
+        } else {
+            setValue('ancienIndex', 0);
+            setValue('mtf_ancien_index', 0);
+            setValue('ancien_index_jour', 0);
+            setValue('ancien_index_pointe', 0);
+            setValue('ancien_index_soir', 0);
+            setValue('ancien_index_nuit', 0);
         }
 
-    } else if (watchedValues.typeTension === "Moyen Tension Forfaitaire") {
-        const { consommation, montant } = calculateMoyenTensionForfait(watchedValues);
-        setValue("consumptionKWh", consommation);
-        setValue("amount", montant);
-    }
-  }, [watchedValues, setValue]);
+      }
 
+      // Calculation logic
+      if (values.typeTension === "Basse Tension") {
+          const { consommation, montant } = calculateBasseTension(values.ancienIndex, values.nouveauIndex, values.prix_unitaire_bt, values.redevances_fixes, values.tva_bt, values.ertt_bt);
+          if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
+          if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
+      } else if (values.typeTension === "Moyen Tension Tranche Horaire") {
+          const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(values);
+          if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
+          if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
+
+          if (!values.consommation_jour) setValue("consommation_jour", calcs.consommation_jour_calc);
+          if (!values.consommation_pointe) setValue("consommation_pointe", calcs.consommation_pointe_calc);
+          if (!values.consommation_soir) setValue("consommation_soir", calcs.consommation_soir_calc);
+          if (!values.consommation_nuit) setValue("consommation_nuit", calcs.consommation_nuit_calc);
+
+      } else if (values.typeTension === "Moyen Tension Forfaitaire") {
+          const { consommation, montant } = calculateMoyenTensionForfait(values);
+          if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
+          if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
+      }
+       if (name === "meterId") {
+            trigger("billDate");
+       } else if (name === "billDate") {
+            trigger("meterId");
+       }
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, setValue, getValues, trigger, isEditMode, previousBill, meters]);
+  
+  const selectedMeter = meters.find(m => m.id === watchedValues.meterId);
 
   const onSubmit = (values: FormValues) => {
     const [month, year] = values.billDate.split('/');
