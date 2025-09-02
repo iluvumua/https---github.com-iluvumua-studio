@@ -62,7 +62,7 @@ export default function BillingSettingsPage() {
     }, 500);
   }
 
-  const btFormula = "Montant Total = (Consommation kWh * Prix Unitaire) + TVA + Contribution ERTT";
+  const btFormula = "Montant Total = (Consommation kWh * Prix Unitaire) + Redevances Fixes + TVA + Contribution ERTT";
   const mthFormula = "Montant Total = (Σ (Conso Tranche * Coeff * PU)) + Redevances + Taxes";
   const mtfFormula = "Montant Total = ((Énergie Enregistrée + Pertes) * PU) + Prime Puissance + Taxes - Bonification +/- Avance";
 
@@ -92,6 +92,10 @@ export default function BillingSettingsPage() {
                 <div>
                     <Label htmlFor="bt_prix_unitaire">Prix Unitaire (kWh)</Label>
                     <Input id="bt_prix_unitaire" type="number" value={localSettings.basseTension.prix_unitaire_bt} onChange={(e) => handleInputChange('basseTension', 'prix_unitaire_bt', e.target.value)} disabled={isDisabled} />
+                </div>
+                 <div>
+                    <Label htmlFor="bt_redevances_fixes">Redevances Fixes</Label>
+                    <Input id="bt_redevances_fixes" type="number" value={localSettings.basseTension.redevances_fixes} onChange={(e) => handleInputChange('basseTension', 'redevances_fixes', e.target.value)} disabled={isDisabled} />
                 </div>
                  <div>
                     <Label htmlFor="bt_tva">TVA</Label>

@@ -5,6 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 const defaultSettings = {
   basseTension: {
     prix_unitaire_bt: 0.250,
+    redevances_fixes: 2.800,
     tva_bt: 5.320,
     ertt_bt: 0.000,
   },
