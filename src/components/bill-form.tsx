@@ -542,11 +542,11 @@ export function BillForm({ bill }: BillFormProps) {
         addBill(billData);
         toast({ title: "Facture ajoutée", description: "La nouvelle facture a été enregistrée avec succès." });
     }
-    router.push(`/dashboard/billing/${values.meterId}`);
+    router.push(`/dashboard/billing`);
   }
   
   const isCalculated = watchedValues.typeTension === 'Basse Tension' || watchedValues.typeTension === 'Moyen Tension Tranche Horaire' || watchedValues.typeTension === 'Moyen Tension Forfaitaire';
-  const cancelHref = isEditMode ? `/dashboard/billing/${bill.meterId}` : (meterId ? `/dashboard/billing/${meterId}` : '/dashboard/billing');
+  const cancelHref = '/dashboard/billing';
   
   const difference = (Number(watchedValues.montantSTEG) || 0) - (Number(watchedValues.amount) || 0);
   
