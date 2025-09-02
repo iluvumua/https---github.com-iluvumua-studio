@@ -4,8 +4,9 @@
 import { ReferenceFacteurForm } from "@/components/reference-facteur-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
+import { Suspense } from "react";
 
-export default function NewReferencePage() {
+function AddReferencePageContent() {
     const router = useRouter();
 
     return (
@@ -22,5 +23,15 @@ export default function NewReferencePage() {
         </Card>
     );
 }
+
+
+export default function NewReferencePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <AddReferencePageContent />
+        </Suspense>
+    )
+}
+    
 
     

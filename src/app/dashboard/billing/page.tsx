@@ -125,6 +125,8 @@ export default function BillingPage() {
     XLSX.writeFile(workbook, `facturation_compteurs_${district.toLowerCase().replace(/ /g, '_')}.xlsx`);
   };
 
+  const isSearchTermNumericAndNineDigits = searchTerm.length === 9 && /^\d+$/.test(searchTerm);
+
   return (
     <TooltipProvider>
     <div className="flex flex-col gap-4">
@@ -240,36 +242,59 @@ export default function BillingPage() {
                 </CardContent>
             </Card>
         ) : (
-            <div className="grid grid-cols-1 gap-6">
-                {districts.map(district => {
-                    const districtMeters = getMetersByDistrict(district);
-                    if (districtMeters.length === 0 && (searchTerm || tensionFilter !== 'all')) return null;
+            <>
+            {filteredMeters.length === 0 && isSearchTermNumericAndNineDigits ? (
+                 <Card>
+                    <CardContent>
+                        <div className="flex flex-col items-center justify-center py-10 text-center">
+                            <FileText className="h-12 w-12 text-muted-foreground" />
+                            <h3 className="mt-4 text-lg font-semibold">Aucun compteur trouvé pour "{searchTerm}"</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Voulez-vous ajouter une référence pour ce numéro de facture ?
+                            </p>
+                            <Button className="mt-4" asChild>
+                                <Link href={`/dashboard/billing/add-reference?numeroFacture=${searchTerm}`}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Ajouter ce Numéro Facture
+                                </Link>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid grid-cols-1 gap-6">
+                    {districts.map(district => {
+                        const districtMeters = getMetersByDistrict(district);
+                        if (districtMeters.length === 0 && (searchTerm || tensionFilter !== 'all')) return null;
 
-                    return (
-                        <Card key={district}>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg">{district}</CardTitle>
-                                     <div className="flex items-center gap-2">
-                                        <ImporterButton />
-                                        <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => handleExport(district)}>
-                                            <File className="h-3.5 w-3.5" />
-                                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Exporter</span>
-                                        </Button>
+                        return (
+                            <Card key={district}>
+                                <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-lg">{district}</CardTitle>
+                                        <div className="flex items-center gap-2">
+                                            <ImporterButton />
+                                            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => handleExport(district)}>
+                                                <File className="h-3.5 w-3.5" />
+                                                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Exporter</span>
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                               <MeterTable meters={districtMeters} />
-                            </CardContent>
-                        </Card>
-                    )
-                })}
-            </div>
+                                </CardHeader>
+                                <CardContent>
+                                <MeterTable meters={districtMeters} />
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
+                </div>
+            )}
+            </>
         )}
     </div>
     </TooltipProvider>
   );
 
     
+    
+
     

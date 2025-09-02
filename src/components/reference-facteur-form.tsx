@@ -14,7 +14,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import type { Meter } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Combobox } from "./combobox";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
@@ -38,12 +38,15 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
   const { equipment } = useEquipmentStore();
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const numeroFactureParam = searchParams.get('numeroFacture');
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       meterId: "",
-      referenceFacteur: "",
+      referenceFacteur: numeroFactureParam || "",
       billingAddress: "",
     }
   });
@@ -83,13 +86,15 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
 
   useEffect(() => {
     if (selectedMeter) {
-        form.setValue("referenceFacteur", selectedMeter.referenceFacteur || "");
+        if (!numeroFactureParam) {
+            form.setValue("referenceFacteur", selectedMeter.referenceFacteur || "");
+        }
         form.setValue("billingAddress", selectedMeter.description || "");
-    } else {
+    } else if (!numeroFactureParam) {
         form.setValue("referenceFacteur", "");
         form.setValue("billingAddress", "");
     }
-  }, [selectedMeter, form]);
+  }, [selectedMeter, form, numeroFactureParam]);
 
   const onSubmit = (values: FormValues) => {
     if (!selectedMeter) {
@@ -200,5 +205,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     </Form>
   );
 }
+
+    
 
     
