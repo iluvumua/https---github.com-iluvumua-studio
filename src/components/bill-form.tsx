@@ -284,7 +284,7 @@ export function BillForm({ bill }: BillFormProps) {
   const { settings } = useBillingSettingsStore();
   const { toast } = useToast();
   
-  const meterId = searchParams.get('meterId');
+  const meterIdParam = searchParams.get('meterId');
   const monthParam = searchParams.get('month');
   const yearParam = searchParams.get('year');
   
@@ -314,13 +314,16 @@ export function BillForm({ bill }: BillFormProps) {
         const year = getYear(now);
         billDate = `${(month === 0 ? 12 : month).toString().padStart(2, '0')}/${month === 0 ? year -1 : year}`;
     }
+    const initialMeterId = bill?.meterId || meterIdParam || "";
+    const selectedMeter = meters.find(m => m.id === initialMeterId);
+
      return {
         ...bill,
         reference: bill?.reference || "",
-        meterId: bill?.meterId || meterId || "",
+        meterId: initialMeterId,
         billDate,
         nombreMois: bill?.nombreMois || 1,
-        typeTension: bill?.typeTension || meters.find(m => m.id === (bill?.meterId || meterId))?.typeTension || "Basse Tension",
+        typeTension: bill?.typeTension || selectedMeter?.typeTension || "Basse Tension",
         convenableSTEG: bill?.convenableSTEG ?? true,
         consumptionKWh: bill?.consumptionKWh ?? 0,
         amount: bill?.amount ?? 0,
@@ -379,7 +382,7 @@ export function BillForm({ bill }: BillFormProps) {
         avance_consommation: bill?.avance_consommation ?? 0,
         bonification: bill?.bonification ?? 0,
      }
-  }, [isEditMode, bill, meterId, monthParam, yearParam, meters, settings]);
+  }, [isEditMode, bill, meterIdParam, monthParam, yearParam, meters, settings]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -421,11 +424,10 @@ export function BillForm({ bill }: BillFormProps) {
 
 
   useEffect(() => {
-    const meter = meters.find(m => m.id === watchedMeterId)
-    if (meter && watchedValues.typeTension !== meter.typeTension) {
-        setValue('typeTension', meter.typeTension);
+    if (selectedMeter && watchedValues.typeTension !== selectedMeter.typeTension) {
+        setValue('typeTension', selectedMeter.typeTension);
     }
-  }, [watchedMeterId, meters, setValue, watchedValues.typeTension]);
+  }, [selectedMeter, setValue, watchedValues.typeTension]);
 
   useEffect(() => {
     if (isEditMode) return; // Don't auto-fill in edit mode
@@ -445,8 +447,26 @@ export function BillForm({ bill }: BillFormProps) {
                 setValue('ancien_index_nuit', previousBill.nouveau_index_nuit);
                 break;
         }
+    } else if (selectedMeter && selectedMeter.indexDepart !== undefined) {
+        // If no previous bill, use the meter's starting index
+        const indexDepart = selectedMeter.indexDepart;
+        switch (selectedMeter.typeTension) {
+            case 'Basse Tension':
+                setValue('ancienIndex', indexDepart);
+                break;
+            case 'Moyen Tension Forfaitaire':
+                setValue('mtf_ancien_index', indexDepart);
+                break;
+            case 'Moyen Tension Tranche Horaire':
+                 // Assuming indexDepart is for 'jour' in MT. Adjust if needed.
+                setValue('ancien_index_jour', indexDepart);
+                setValue('ancien_index_pointe', 0);
+                setValue('ancien_index_soir', 0);
+                setValue('ancien_index_nuit', 0);
+                break;
+        }
     } else {
-        // If no previous bill, reset the ancien index fields
+        // If no previous bill and no starting index, reset the fields
         setValue('ancienIndex', 0);
         setValue('mtf_ancien_index', 0);
         setValue('ancien_index_jour', 0);
@@ -454,7 +474,7 @@ export function BillForm({ bill }: BillFormProps) {
         setValue('ancien_index_soir', 0);
         setValue('ancien_index_nuit', 0);
     }
-  }, [previousBill, setValue, isEditMode]);
+  }, [previousBill, selectedMeter, setValue, isEditMode]);
 
 
   useEffect(() => {
@@ -493,19 +513,7 @@ export function BillForm({ bill }: BillFormProps) {
         setValue("consumptionKWh", consommation);
         setValue("amount", montant);
     }
-  }, [
-    watchedValues.typeTension,
-    watchedValues.ancienIndex, watchedValues.nouveauIndex, watchedValues.prix_unitaire_bt, watchedValues.redevances_fixes, watchedValues.tva_bt, watchedValues.ertt_bt,
-    watchedValues.ancien_index_jour, watchedValues.nouveau_index_jour, watchedValues.coefficient_jour, watchedValues.prix_unitaire_jour, watchedValues.consommation_jour,
-    watchedValues.ancien_index_pointe, watchedValues.nouveau_index_pointe, watchedValues.coefficient_pointe, watchedValues.prix_unitaire_pointe, watchedValues.consommation_pointe,
-    watchedValues.ancien_index_soir, watchedValues.nouveau_index_soir, watchedValues.coefficient_soir, watchedValues.prix_unitaire_soir, watchedValues.consommation_soir,
-    watchedValues.ancien_index_nuit, watchedValues.nouveau_index_nuit, watchedValues.coefficient_nuit, watchedValues.prix_unitaire_nuit, watchedValues.consommation_nuit,
-    watchedValues.prime_puissance_mth, watchedValues.depassement_puissance, watchedValues.location_materiel, watchedValues.frais_intervention, watchedValues.frais_relance, watchedValues.frais_retard,
-    watchedValues.tva_consommation, watchedValues.tva_redevance, watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth,
-    watchedValues.mtf_ancien_index, watchedValues.mtf_nouveau_index, watchedValues.coefficient_multiplicateur, watchedValues.perte_en_charge, watchedValues.perte_a_vide, watchedValues.pu_consommation,
-    watchedValues.prime_puissance, watchedValues.tva_consommation_percent, watchedValues.tva_redevance_percent, watchedValues.contribution_rtt, watchedValues.surtaxe_municipale, watchedValues.avance_consommation, watchedValues.bonification,
-    setValue
-  ]);
+  }, [watchedValues, setValue]);
 
 
   const onSubmit = (values: FormValues) => {
@@ -633,7 +641,15 @@ export function BillForm({ bill }: BillFormProps) {
     watchedValues.contribution_rtt_mth, watchedValues.surtaxe_municipale_mth
   ]);
 
-  const isAncienIndexReadOnly = !isEditMode && !!previousBill;
+  const isAncienIndexReadOnly = useMemo(() => {
+    if (isEditMode) return false;
+    if (previousBill) return true;
+    if (selectedMeter && selectedMeter.indexDepart !== undefined) {
+      // It's the first bill and meter has a starting index
+      return true;
+    }
+    return false;
+  }, [isEditMode, previousBill, selectedMeter]);
 
   return (
     <Form {...form}>
@@ -646,13 +662,13 @@ export function BillForm({ bill }: BillFormProps) {
             ) : (
                 <div className="md:col-span-1 space-y-1">
                     <FormLabel>Id Facture (Auto)</FormLabel>
-                    <Input readOnly value={selectedMeter?.referenceFacteur && watchedValues.billDate ? `${selectedMeter.referenceFacteur}-${watchedValues.billDate.replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
+                    <Input readOnly value={selectedMeter?.referenceFacteur && watchedValues.billDate.length === 7 ? `${selectedMeter.referenceFacteur}-${watchedValues.billDate.replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
                 </div>
             )}
             
             <FormField control={form.control} name="meterId" render={({ field }) => (
                 <FormItem><FormLabel>N° Compteur</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterId || isEditMode}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterIdParam || isEditMode}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
                         <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id} - {meter.referenceFacteur}</SelectItem>))}</SelectContent>
                     </Select>
