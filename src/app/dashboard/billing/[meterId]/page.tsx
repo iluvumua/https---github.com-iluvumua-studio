@@ -278,21 +278,12 @@ export default function MeterBillingPage() {
                 <TableCell>
                   <div className="flex items-center justify-end">
                      {user.role === "Financier" && (
-                       <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                               <Link href={`/dashboard/billing/edit/${bill.id}`}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Modifier
-                                </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={`/dashboard/billing/edit/${bill.id}`}>
+                                <Pencil className="mr-2 h-3 w-3" />
+                                Modifier
+                            </Link>
+                        </Button>
                     )}
                   </div>
                 </TableCell>

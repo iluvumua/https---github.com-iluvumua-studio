@@ -66,34 +66,11 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                     </TableCell>
                     <TableCell>
                         <div className="flex items-center justify-end gap-1">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    {item.description && (
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                <Info className="mr-2 h-4 w-4" />
-                                                Détails
-                                            </DropdownMenuItem>
-                                        </PopoverTrigger>
-                                        <PopoverContent>
-                                            <p className="text-sm">{item.description}</p>
-                                        </PopoverContent>
-                                    </Popover>
-                                    )}
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/dashboard/billing/${item.id}`}>
-                                            <ChevronRight className="mr-2 h-4 w-4" />
-                                            Voir Factures
-                                        </Link>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link href={`/dashboard/billing/${item.id}`}>
+                                    Voir Factures
+                                </Link>
+                            </Button>
                         </div>
                     </TableCell>
                 </TableRow>
