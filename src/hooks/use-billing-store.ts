@@ -7,10 +7,19 @@ import { useBillingSettingsStore } from './use-billing-settings-store';
 import { parse } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+const monthNames = [
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+];
+
 interface BillingState {
   bills: Bill[];
   addBill: (bill: Bill) => void;
   updateBill: (updatedBill: Bill) => void;
+  selectedMonth: string;
+  selectedYear: string;
+  setSelectedMonth: (month: string) => void;
+  setSelectedYear: (year: string) => void;
 }
 
 const getMonthNumber = (monthName: string) => {
@@ -25,6 +34,10 @@ const getMonthNumber = (monthName: string) => {
 
 export const useBillingStore = create<BillingState>((set, get) => ({
   bills: billingData,
+  selectedMonth: monthNames[new Date().getMonth()],
+  selectedYear: new Date().getFullYear().toString(),
+  setSelectedMonth: (month) => set({ selectedMonth: month }),
+  setSelectedYear: (year) => set({ selectedYear: year }),
   addBill: (newBill) => {
     const allBills = get().bills;
     const { settings } = useBillingSettingsStore.getState();

@@ -45,14 +45,11 @@ export default function BillingPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
-  const { bills } = useBillingStore();
+  const { bills, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear } = useBillingStore();
   const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyen Tension Forfaitaire" | "Moyen Tension Tranche Horaire">("all");
   const { anomalies, markAsRead } = useAnomaliesStore();
-
-  const [selectedMonth, setSelectedMonth] = useState<string>(monthNames[new Date().getMonth()]);
-  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
 
   const unreadAnomalies = anomalies.filter(a => !a.isRead);
 
