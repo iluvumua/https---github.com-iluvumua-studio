@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Info, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Info, ChevronRight, MoreHorizontal, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -66,11 +66,27 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
                     </TableCell>
                     <TableCell>
                         <div className="flex items-center justify-end gap-1">
-                            <Button variant="outline" size="sm" asChild>
-                                <Link href={`/dashboard/billing/${item.id}`}>
-                                    Voir Factures
-                                </Link>
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                        <Link href={`/dashboard/billing/${item.id}`}>
+                                            <FileText className="mr-2 h-4 w-4" />
+                                            Voir Factures
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href={`/dashboard/billing/new?meterId=${item.id}`}>
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                            Ajouter Facture
+                                        </Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </TableCell>
                 </TableRow>
