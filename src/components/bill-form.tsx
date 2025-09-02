@@ -25,6 +25,17 @@ import { format, getYear, getMonth, parse } from "date-fns";
 import { fr } from 'date-fns/locale';
 import { Calendar } from "./ui/calendar";
 import { useBillingSettingsStore } from "@/hooks/use-billing-settings-store";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -802,10 +813,28 @@ export function BillForm({ bill }: BillFormProps) {
                 <Button type="button" variant="ghost" asChild>
                     <Link href={cancelHref}><X className="mr-2" /> Annuler</Link>
                 </Button>
-                <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2" /> Enregistrer
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button type="button" disabled={!form.formState.isValid || form.formState.isSubmitting}>
+                            {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Save className="mr-2" /> Enregistrer
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmation</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Êtes-vous sûr de vouloir enregistrer cette facture ?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Annuler</AlertDialogCancel>
+                            <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
+                                Confirmer
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </form>
     </Form>
