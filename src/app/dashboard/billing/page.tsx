@@ -259,12 +259,6 @@ export default function BillingPage() {
                             ))}
                         </SelectContent>
                     </Select>
-                     <Button size="sm" className="h-9 gap-1" disabled={!selectedMeter} asChild>
-                        <Link href={`/dashboard/billing/new?meterId=${selectedMeter?.id}&month=${selectedMonth}&year=${selectedYear}`}>
-                            <PlusCircle className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Ajouter Facture</span>
-                        </Link>
-                    </Button>
                 </div>
             </CardHeader>
         </Card>
