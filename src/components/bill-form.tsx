@@ -420,9 +420,9 @@ export function BillForm({ bill }: BillFormProps) {
     mode: 'onChange'
   });
   
-  const { setValue, watch, getValues, reset } = form;
+  const { setValue, getValues, reset, watch: watchForm } = form;
 
-  const watchedFields = watch();
+  const watchedFields = watchForm();
   const watchedMeterId = watchedFields.meterId;
   const watchedBillDate = watchedFields.billDate;
   const watchedTypeTension = watchedFields.typeTension;
@@ -447,13 +447,19 @@ export function BillForm({ bill }: BillFormProps) {
         .filter(b => b.meterId === watchedMeterId)
         .sort((a, b) => getMonthNumber(b.month) - getMonthNumber(a.month)); // sort descending
     
-    // Find the latest bill that is before the current bill's date
     const lastBill = meterBills.find(b => getMonthNumber(b.month) < currentBillDateNum);
 
     return lastBill || null;
   }, [watchedMeterId, watchedBillDate, bills, getMonthNumber]);
   
   const selectedMeter = useMemo(() => meters.find(m => m.id === watchedMeterId), [meters, watchedMeterId]);
+  
+  const isAncienIndexReadOnly = useMemo(() => {
+    if (isEditMode) return false;
+    // It's the first bill for this meter
+    if (!previousBill) return true;
+    return false;
+  }, [isEditMode, previousBill]);
 
   useEffect(() => {
     if (selectedMeter) {
@@ -461,45 +467,28 @@ export function BillForm({ bill }: BillFormProps) {
     }
   }, [selectedMeter, setValue]);
 
-  useEffect(() => {
+ useEffect(() => {
     if (isEditMode) return;
     
-    const prevBill = previousBill;
+    const setIndexValues = (prevBill: Bill | null, meter: any) => {
+        const type = meter?.typeTension;
 
-    if (prevBill) {
-        switch (prevBill.typeTension) {
-            case 'Basse Tension':
-                setValue('ancienIndex', prevBill.nouveauIndex ?? prevBill.ancienIndex); break;
-            case 'Moyen Tension Forfaitaire':
-                setValue('mtf_ancien_index', prevBill.mtf_nouveau_index ?? prevBill.mtf_ancien_index); break;
-            case 'Moyen Tension Tranche Horaire':
-                setValue('ancien_index_jour', prevBill.nouveau_index_jour ?? prevBill.ancien_index_jour);
-                setValue('ancien_index_pointe', prevBill.nouveau_index_pointe ?? prevBill.ancien_index_pointe);
-                setValue('ancien_index_soir', prevBill.nouveau_index_soir ?? prevBill.ancien_index_soir);
-                setValue('ancien_index_nuit', prevBill.nouveau_index_nuit ?? prevBill.ancien_index_nuit);
-                break;
+        if (type === 'Basse Tension') {
+            let index = prevBill?.nouveauIndex ?? prevBill?.ancienIndex ?? meter?.indexDepart;
+            setValue('ancienIndex', index ?? 0);
+        } else if (type === 'Moyen Tension Forfaitaire') {
+            let index = prevBill?.mtf_nouveau_index ?? prevBill?.mtf_ancien_index ?? meter?.indexDepart;
+            setValue('mtf_ancien_index', index ?? 0);
+        } else if (type === 'Moyen Tension Tranche Horaire') {
+            setValue('ancien_index_jour', prevBill?.nouveau_index_jour ?? prevBill?.ancien_index_jour ?? meter?.indexDepartJour ?? 0);
+            setValue('ancien_index_pointe', prevBill?.nouveau_index_pointe ?? prevBill?.ancien_index_pointe ?? meter?.indexDepartPointe ?? 0);
+            setValue('ancien_index_soir', prevBill?.nouveau_index_soir ?? prevBill?.ancien_index_soir ?? meter?.indexDepartSoir ?? 0);
+            setValue('ancien_index_nuit', prevBill?.nouveau_index_nuit ?? prevBill?.ancien_index_nuit ?? meter?.indexDepartNuit ?? 0);
         }
-    } else if (selectedMeter) {
-        switch (selectedMeter.typeTension) {
-            case 'Basse Tension':
-                setValue('ancienIndex', selectedMeter.indexDepart || 0); break;
-            case 'Moyen Tension Forfaitaire':
-                setValue('mtf_ancien_index', selectedMeter.indexDepart || 0); break;
-            case 'Moyen Tension Tranche Horaire':
-                setValue('ancien_index_jour', selectedMeter.indexDepartJour || 0);
-                setValue('ancien_index_pointe', selectedMeter.indexDepartPointe || 0);
-                setValue('ancien_index_soir', selectedMeter.indexDepartSoir || 0);
-                setValue('ancien_index_nuit', selectedMeter.indexDepartNuit || 0);
-                break;
-        }
-    } else {
-        setValue('ancienIndex', 0);
-        setValue('mtf_ancien_index', 0);
-        setValue('ancien_index_jour', 0);
-        setValue('ancien_index_pointe', 0);
-        setValue('ancien_index_soir', 0);
-        setValue('ancien_index_nuit', 0);
-    }
+    };
+
+    setIndexValues(previousBill, selectedMeter);
+
   }, [previousBill, selectedMeter, setValue, isEditMode]);
   
   const calculateAndSetValues = useCallback(() => {
@@ -635,7 +624,7 @@ useEffect(() => {
   const isCalculated = watchedTypeTension === 'Basse Tension' || watchedTypeTension === 'Moyen Tension Tranche Horaire' || watchedTypeTension === 'Moyen Tension Forfaitaire';
   const cancelHref = '/dashboard/billing';
   
-  const difference = (Number(watch("montantSTEG")) || 0) - (Number(watch("amount")) || 0);
+  const difference = (Number(watchForm("montantSTEG")) || 0) - (Number(watchForm("amount")) || 0);
   
   const availableMeters = meters.filter(m => m.status === 'En service');
   
@@ -661,16 +650,6 @@ useEffect(() => {
            (Number(values.surtaxe_municipale_mth) || 0);
   }, [getValues, watchedFields]);
 
-  const isAncienIndexReadOnly = useMemo(() => {
-    if (isEditMode) return false;
-    if (previousBill) return true;
-    if (selectedMeter && (selectedMeter.indexDepart !== undefined || selectedMeter.indexDepartJour !== undefined)) {
-      // It's the first bill and meter has a starting index
-      return true;
-    }
-    return false;
-  }, [isEditMode, previousBill, selectedMeter]);
-
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -682,7 +661,7 @@ useEffect(() => {
             ) : (
                 <div className="md:col-span-1 space-y-1">
                     <FormLabel>Id Facture (Auto)</FormLabel>
-                    <Input readOnly value={selectedMeter?.referenceFacteur && watch("billDate").length === 7 ? `${selectedMeter.referenceFacteur}-${watch("billDate").replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
+                    <Input readOnly value={selectedMeter?.referenceFacteur && watchForm("billDate").length === 7 ? `${selectedMeter.referenceFacteur}-${watchForm("billDate").replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
                 </div>
             )}
             
@@ -895,7 +874,7 @@ useEffect(() => {
                 )}
                 />
             
-            {!watch("convenableSTEG") && (
+            {!watchForm("convenableSTEG") && (
                 <div className="md:col-span-2 space-y-4">
                     <FormField control={form.control} name="montantSTEG" render={({ field }) => (
                         <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
@@ -905,7 +884,7 @@ useEffect(() => {
                             <FormMessage />
                         </FormItem>
                     )} />
-                    {typeof watch("montantSTEG") === 'number' && typeof watch("amount") === 'number' && (
+                    {typeof watchForm("montantSTEG") === 'number' && typeof watchForm("amount") === 'number' && (
                          <Alert variant={difference === 0 ? "default" : "destructive"}>
                             <AlertCircle className="h-4 w-4" />
                             <AlertTitle>Vérification de Montant</AlertTitle>
