@@ -395,6 +395,9 @@ export function BillForm({ bill }: BillFormProps) {
   const { setValue, watch, getValues, trigger } = form;
 
   const watchedValues = watch();
+  const watchedMeterId = watch("meterId");
+  const watchedBillDate = watch("billDate");
+  const watchedTypeTension = watch("typeTension");
 
   const getMonthNumber = useCallback((monthName: string) => {
     try {
@@ -407,100 +410,102 @@ export function BillForm({ bill }: BillFormProps) {
   }, []);
 
   const previousBill = useMemo(() => {
-    const { meterId, billDate } = getValues();
-    if (!meterId || !billDate || billDate.length < 7) return null;
+    if (!watchedMeterId || !watchedBillDate || watchedBillDate.length < 7) return null;
     
-    const [monthStr, yearStr] = billDate.split('/');
+    const [monthStr, yearStr] = watchedBillDate.split('/');
     const currentBillDateNum = parseInt(yearStr) * 100 + (parseInt(monthStr) - 1);
 
     const meterBills = bills
-        .filter(b => b.meterId === meterId)
+        .filter(b => b.meterId === watchedMeterId)
         .sort((a, b) => getMonthNumber(b.month) - getMonthNumber(a.month)); // sort descending
     
     // Find the latest bill that is before the current bill's date
     const lastBill = meterBills.find(b => getMonthNumber(b.month) < currentBillDateNum);
 
     return lastBill || null;
-  }, [getValues, bills, getMonthNumber]);
-
+  }, [watchedMeterId, watchedBillDate, bills, getMonthNumber]);
+  
+  const selectedMeter = meters.find(m => m.id === watchedMeterId);
 
   useEffect(() => {
-    const subscription = watch((values, { name, type }) => {
-      if (name === 'meterId' || name === 'billDate') {
-        const selectedMeter = meters.find(m => m.id === values.meterId);
+    const selectedMeter = meters.find(m => m.id === watchedMeterId);
+    if (selectedMeter) {
+        setValue('typeTension', selectedMeter.typeTension);
+    }
+  }, [watchedMeterId, meters, setValue]);
 
-        if (name === 'meterId' && selectedMeter) {
-            setValue('typeTension', selectedMeter.typeTension);
+  useEffect(() => {
+    if (isEditMode) return;
+    
+    const prevBill = previousBill;
+
+    if (prevBill) {
+        switch (prevBill.typeTension) {
+            case 'Basse Tension': setValue('ancienIndex', prevBill.nouveauIndex); break;
+            case 'Moyen Tension Forfaitaire': setValue('mtf_ancien_index', prevBill.mtf_nouveau_index); break;
+            case 'Moyen Tension Tranche Horaire':
+                setValue('ancien_index_jour', prevBill.nouveau_index_jour);
+                setValue('ancien_index_pointe', prevBill.nouveau_index_pointe);
+                setValue('ancien_index_soir', prevBill.nouveau_index_soir);
+                setValue('ancien_index_nuit', prevBill.nouveau_index_nuit);
+                break;
         }
-        
-        if (isEditMode) return;
-        
-        const prevBill = previousBill; // from useMemo
-
-        if (prevBill) {
-            switch (prevBill.typeTension) {
-                case 'Basse Tension': setValue('ancienIndex', prevBill.nouveauIndex); break;
-                case 'Moyen Tension Forfaitaire': setValue('mtf_ancien_index', prevBill.mtf_nouveau_index); break;
-                case 'Moyen Tension Tranche Horaire':
-                    setValue('ancien_index_jour', prevBill.nouveau_index_jour);
-                    setValue('ancien_index_pointe', prevBill.nouveau_index_pointe);
-                    setValue('ancien_index_soir', prevBill.nouveau_index_soir);
-                    setValue('ancien_index_nuit', prevBill.nouveau_index_nuit);
-                    break;
-            }
-        } else if (selectedMeter?.indexDepart !== undefined) {
-            switch (selectedMeter.typeTension) {
-                case 'Basse Tension': setValue('ancienIndex', selectedMeter.indexDepart); break;
-                case 'Moyen Tension Forfaitaire': setValue('mtf_ancien_index', selectedMeter.indexDepart); break;
-                case 'Moyen Tension Tranche Horaire':
-                    setValue('ancien_index_jour', selectedMeter.indexDepart);
-                    setValue('ancien_index_pointe', 0);
-                    setValue('ancien_index_soir', 0);
-                    setValue('ancien_index_nuit', 0);
-                    break;
-            }
-        } else {
-            setValue('ancienIndex', 0);
-            setValue('mtf_ancien_index', 0);
-            setValue('ancien_index_jour', 0);
-            setValue('ancien_index_pointe', 0);
-            setValue('ancien_index_soir', 0);
-            setValue('ancien_index_nuit', 0);
+    } else if (selectedMeter) {
+        switch (selectedMeter.typeTension) {
+            case 'Basse Tension':
+                setValue('ancienIndex', selectedMeter.indexDepart || 0); break;
+            case 'Moyen Tension Forfaitaire':
+                setValue('mtf_ancien_index', selectedMeter.indexDepart || 0); break;
+            case 'Moyen Tension Tranche Horaire':
+                setValue('ancien_index_jour', selectedMeter.indexDepartJour || 0);
+                setValue('ancien_index_pointe', selectedMeter.indexDepartPointe || 0);
+                setValue('ancien_index_soir', selectedMeter.indexDepartSoir || 0);
+                setValue('ancien_index_nuit', selectedMeter.indexDepartNuit || 0);
+                break;
         }
+    } else {
+        setValue('ancienIndex', 0);
+        setValue('mtf_ancien_index', 0);
+        setValue('ancien_index_jour', 0);
+        setValue('ancien_index_pointe', 0);
+        setValue('ancien_index_soir', 0);
+        setValue('ancien_index_nuit', 0);
+    }
+  }, [isEditMode, previousBill, selectedMeter, setValue]);
 
-      }
+  useEffect(() => {
+    const {
+        ancienIndex, nouveauIndex, prix_unitaire_bt, redevances_fixes, tva_bt, ertt_bt,
+        ancien_index_jour, nouveau_index_jour, coefficient_jour, prix_unitaire_jour, consommation_jour,
+        ancien_index_pointe, nouveau_index_pointe, coefficient_pointe, prix_unitaire_pointe, consommation_pointe,
+        ancien_index_soir, nouveau_index_soir, coefficient_soir, prix_unitaire_soir, consommation_soir,
+        ancien_index_nuit, nouveau_index_nuit, coefficient_nuit, prix_unitaire_nuit, consommation_nuit,
+        prime_puissance_mth, depassement_puissance, location_materiel, frais_intervention, frais_relance, frais_retard,
+        tva_consommation, tva_redevance, contribution_rtt_mth, surtaxe_municipale_mth,
+        mtf_ancien_index, mtf_nouveau_index, coefficient_multiplicateur, perte_en_charge, perte_a_vide,
+        pu_consommation, prime_puissance, tva_consommation_percent, tva_redevance_percent, contribution_rtt,
+        surtaxe_municipale, avance_consommation, bonification
+    } = getValues();
 
-      // Calculation logic
-      if (values.typeTension === "Basse Tension") {
-          const { consommation, montant } = calculateBasseTension(values.ancienIndex, values.nouveauIndex, values.prix_unitaire_bt, values.redevances_fixes, values.tva_bt, values.ertt_bt);
-          if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
-          if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
-      } else if (values.typeTension === "Moyen Tension Tranche Horaire") {
-          const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(values);
-          if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
-          if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
-
-          if (!values.consommation_jour) setValue("consommation_jour", calcs.consommation_jour_calc);
-          if (!values.consommation_pointe) setValue("consommation_pointe", calcs.consommation_pointe_calc);
-          if (!values.consommation_soir) setValue("consommation_soir", calcs.consommation_soir_calc);
-          if (!values.consommation_nuit) setValue("consommation_nuit", calcs.consommation_nuit_calc);
-
-      } else if (values.typeTension === "Moyen Tension Forfaitaire") {
-          const { consommation, montant } = calculateMoyenTensionForfait(values);
-          if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
-          if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
-      }
-       if (name === "meterId") {
-            trigger("billDate");
-       } else if (name === "billDate") {
-            trigger("meterId");
-       }
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, setValue, getValues, trigger, isEditMode, previousBill, meters]);
+    if (watchedTypeTension === "Basse Tension") {
+        const { consommation, montant } = calculateBasseTension(ancienIndex, nouveauIndex, prix_unitaire_bt, redevances_fixes, tva_bt, ertt_bt);
+        if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
+        if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
+    } else if (watchedTypeTension === "Moyen Tension Tranche Horaire") {
+        const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(getValues());
+        if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
+        if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
+        if (getValues("consommation_jour") !== calcs.consommation_jour_calc && !isEditMode) setValue("consommation_jour", calcs.consommation_jour_calc);
+        if (getValues("consommation_pointe") !== calcs.consommation_pointe_calc && !isEditMode) setValue("consommation_pointe", calcs.consommation_pointe_calc);
+        if (getValues("consommation_soir") !== calcs.consommation_soir_calc && !isEditMode) setValue("consommation_soir", calcs.consommation_soir_calc);
+        if (getValues("consommation_nuit") !== calcs.consommation_nuit_calc && !isEditMode) setValue("consommation_nuit", calcs.consommation_nuit_calc);
+    } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
+        const { consommation, montant } = calculateMoyenTensionForfait(getValues());
+        if (getValues("consumptionKWh") !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true });
+        if (getValues("amount") !== montant) setValue("amount", montant, { shouldValidate: true });
+    }
+  }, [watchedValues, watchedTypeTension, getValues, setValue, isEditMode]);
   
-  const selectedMeter = meters.find(m => m.id === watchedValues.meterId);
-
   const onSubmit = (values: FormValues) => {
     const [month, year] = values.billDate.split('/');
     const monthIndex = parseInt(month, 10) - 1;
@@ -593,7 +598,7 @@ export function BillForm({ bill }: BillFormProps) {
     router.push(`/dashboard/billing`);
   }
   
-  const isCalculated = watchedValues.typeTension === 'Basse Tension' || watchedValues.typeTension === 'Moyen Tension Tranche Horaire' || watchedValues.typeTension === 'Moyen Tension Forfaitaire';
+  const isCalculated = watchedTypeTension === 'Basse Tension' || watchedTypeTension === 'Moyen Tension Tranche Horaire' || watchedTypeTension === 'Moyen Tension Forfaitaire';
   const cancelHref = '/dashboard/billing';
   
   const difference = (Number(watchedValues.montantSTEG) || 0) - (Number(watchedValues.amount) || 0);
@@ -629,7 +634,7 @@ export function BillForm({ bill }: BillFormProps) {
   const isAncienIndexReadOnly = useMemo(() => {
     if (isEditMode) return false;
     if (previousBill) return true;
-    if (selectedMeter && selectedMeter.indexDepart !== undefined) {
+    if (selectedMeter && (selectedMeter.indexDepart !== undefined || selectedMeter.indexDepartJour !== undefined)) {
       // It's the first bill and meter has a starting index
       return true;
     }
@@ -739,10 +744,10 @@ export function BillForm({ bill }: BillFormProps) {
                     </div>
                     <Separator />
                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                        <FormField control={form.control} name="consommation_jour" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Jour:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="consommation_pointe" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Pointe:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="consommation_soir" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Soir:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="consommation_nuit" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Nuit:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_jour" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Jour:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_pointe" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Pointe:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_soir" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Soir:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="consommation_nuit" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Nuit:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" value={field.value ?? ''} /></FormControl></FormItem> )} />
                      </div>
                     <Separator />
                      <div className="space-y-4 rounded-md border p-4">

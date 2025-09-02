@@ -124,5 +124,9 @@ export type Meter = {
     amperage?: '16A' | '32A' | '63A' | 'Autre';
     amperageAutre?: string;
     indexDepart?: number;
+    indexDepartJour?: number;
+    indexDepartPointe?: number;
+    indexDepartSoir?: number;
+    indexDepartNuit?: number;
     associationHistory?: string[];
 }

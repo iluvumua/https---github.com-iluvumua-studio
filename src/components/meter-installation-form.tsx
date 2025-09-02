@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,18 +16,39 @@ import { format } from "date-fns";
 import { Calendar } from "./ui/calendar";
 import { Meter } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Separator } from "./ui/separator";
 
 const formSchema = z.object({
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   dateMiseEnService: z.date({ required_error: "La date de mise en service est requise." }),
-  indexDepart: z.coerce.number({ required_error: "L'index de départ est requis." }).min(0, "L'index doit être positif."),
+  indexDepart: z.coerce.number().optional(),
+  indexDepartJour: z.coerce.number().optional(),
+  indexDepartPointe: z.coerce.number().optional(),
+  indexDepartSoir: z.coerce.number().optional(),
+  indexDepartNuit: z.coerce.number().optional(),
+}).refine(data => {
+    const meterType = (data as any)._initialData?.typeTension;
+    if (meterType === 'Basse Tension' || meterType === 'Moyen Tension Forfaitaire') {
+        return data.indexDepart !== undefined && data.indexDepart >= 0;
+    }
+    return true;
+}, {
+    message: "L'index de départ est requis.",
+    path: ['indexDepart'],
+}).refine(data => {
+    const meterType = (data as any)._initialData?.typeTension;
+    if (meterType === 'Moyen Tension Tranche Horaire') {
+        return data.indexDepartJour !== undefined && data.indexDepartJour >= 0;
+    }
+    return true;
+}, {
+    message: "L'index de départ Jour est requis.",
+    path: ['indexDepartJour'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface MeterInstallationFormProps {
-    onFinished: (data: FormValues) => void;
+    onFinished: (data: Partial<Meter>) => void;
     isFinished?: boolean;
     meterId?: string;
     initialData?: Partial<Meter>;
@@ -42,18 +63,25 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId, initial
         meterId: "",
         dateMiseEnService: undefined,
         indexDepart: 0,
+        indexDepartJour: 0,
+        indexDepartPointe: 0,
+        indexDepartSoir: 0,
+        indexDepartNuit: 0,
     }
   });
   
-  useEffect(() => {
+  React.useEffect(() => {
     if (initialData) {
-        form.setValue("meterId", initialData.id?.startsWith('MTR-WIP-') ? '' : initialData.id || '');
-        if (initialData.dateMiseEnService) {
-            form.setValue("dateMiseEnService", new Date(initialData.dateMiseEnService));
-        }
-         if (initialData.indexDepart) {
-            form.setValue("indexDepart", initialData.indexDepart);
-        }
+        form.reset({
+            _initialData: initialData, // Store initial data for resolver context
+            meterId: initialData.id?.startsWith('MTR-WIP-') ? '' : initialData.id || '',
+            dateMiseEnService: initialData.dateMiseEnService ? new Date(initialData.dateMiseEnService) : undefined,
+            indexDepart: initialData.indexDepart || 0,
+            indexDepartJour: initialData.indexDepartJour || 0,
+            indexDepartPointe: initialData.indexDepartPointe || 0,
+            indexDepartSoir: initialData.indexDepartSoir || 0,
+            indexDepartNuit: initialData.indexDepartNuit || 0,
+        } as any);
     } else if (meterId && meterId.startsWith('MTR-WIP')) {
         form.setValue('meterId', '');
     } else if (meterId) {
@@ -63,11 +91,21 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId, initial
 
 
   const onSubmit = (values: FormValues) => {
-    // onFinished expects date as string
-    onFinished({
-      ...values,
-      dateMiseEnService: values.dateMiseEnService.toISOString().split('T')[0],
-    } as any);
+    const finalData: Partial<Meter> = {
+        id: values.meterId,
+        dateMiseEnService: values.dateMiseEnService.toISOString().split('T')[0],
+    };
+
+    if (initialData?.typeTension === 'Basse Tension' || initialData?.typeTension === 'Moyen Tension Forfaitaire') {
+        finalData.indexDepart = values.indexDepart;
+    } else if (initialData?.typeTension === 'Moyen Tension Tranche Horaire') {
+        finalData.indexDepartJour = values.indexDepartJour;
+        finalData.indexDepartPointe = values.indexDepartPointe;
+        finalData.indexDepartSoir = values.indexDepartSoir;
+        finalData.indexDepartNuit = values.indexDepartNuit;
+    }
+
+    onFinished(finalData);
     toast({ title: "Étape 2 Terminée", description: "Les informations du compteur ont été enregistrées." });
   }
 
@@ -83,6 +121,10 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId, initial
                     </CardHeader>
                     <CardContent className="text-sm space-y-1">
                         <div className="flex justify-between">
+                            <span className="font-medium text-muted-foreground">Type de tension:</span>
+                            <span>{initialData.typeTension || 'N/A'}</span>
+                        </div>
+                        <div className="flex justify-between">
                             <span className="font-medium text-muted-foreground">Phase:</span>
                             <span>{initialData.phase || 'N/A'}</span>
                         </div>
@@ -96,7 +138,19 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId, initial
 
             <FormField control={form.control} name="meterId" render={({ field }) => ( <FormItem><FormLabel>N° Compteur STEG</FormLabel><FormControl><Input placeholder="ex: 552200" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
            
-             <FormField control={form.control} name="indexDepart" render={({ field }) => ( <FormItem><FormLabel>Index de Départ</FormLabel><FormControl><Input type="number" placeholder="ex: 0" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+            {(initialData?.typeTension === 'Basse Tension' || initialData?.typeTension === 'Moyen Tension Forfaitaire') && (
+                <FormField control={form.control} name="indexDepart" render={({ field }) => ( <FormItem><FormLabel>Index de Départ</FormLabel><FormControl><Input type="number" placeholder="ex: 0" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+            )}
+
+            {initialData?.typeTension === 'Moyen Tension Tranche Horaire' && (
+                <div className="space-y-4 rounded-md border p-4">
+                     <FormLabel>Index de Départ</FormLabel>
+                     <FormField control={form.control} name="indexDepartJour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Jour</FormLabel><FormControl><Input type="number" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+                     <FormField control={form.control} name="indexDepartPointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Pointe</FormLabel><FormControl><Input type="number" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+                     <FormField control={form.control} name="indexDepartSoir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Soir</FormLabel><FormControl><Input type="number" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+                     <FormField control={form.control} name="indexDepartNuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nuit</FormLabel><FormControl><Input type="number" {...field} disabled={isFinished} /></FormControl><FormMessage /></FormItem> )} />
+                </div>
+            )}
 
 
             <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
