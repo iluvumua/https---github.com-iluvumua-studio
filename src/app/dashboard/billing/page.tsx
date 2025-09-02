@@ -125,7 +125,9 @@ export default function BillingPage() {
     XLSX.writeFile(workbook, `facturation_compteurs_${district.toLowerCase().replace(/ /g, '_')}.xlsx`);
   };
 
-  const isSearchTermNumericAndNineDigits = searchTerm.length === 9 && /^\d+$/.test(searchTerm);
+  const isNumeric = (str: string) => /^\d+$/.test(str);
+  const isValidNumFacture = isNumeric(searchTerm) && [8, 9, 12].includes(searchTerm.length);
+
 
   return (
     <TooltipProvider>
@@ -243,7 +245,7 @@ export default function BillingPage() {
             </Card>
         ) : (
             <>
-            {filteredMeters.length === 0 && isSearchTermNumericAndNineDigits ? (
+            {filteredMeters.length === 0 && isValidNumFacture ? (
                  <Card>
                     <CardContent>
                         <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -295,6 +297,8 @@ export default function BillingPage() {
   );
 
     
+    
+
     
 
     

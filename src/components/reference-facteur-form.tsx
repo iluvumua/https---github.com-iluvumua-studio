@@ -22,7 +22,9 @@ import { Textarea } from "./ui/textarea";
 
 const formSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
-  referenceFacteur: z.string().length(9, "Le Numéro Facture doit comporter 9 chiffres."),
+  referenceFacteur: z.string().refine(val => /^\d{8}$|^\d{9}$|^\d{12}$/.test(val), {
+    message: "Le Numéro Facture doit comporter 8, 9, ou 12 chiffres.",
+  }),
   billingAddress: z.string().optional(),
 });
 
@@ -174,7 +176,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                 
                  <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( 
                     <FormItem>
-                        <FormLabel>Numéro Facture (9 chiffres)</FormLabel>
+                        <FormLabel>Numéro Facture</FormLabel>
                         <FormControl>
                             <Input placeholder="ex: 378051249" {...field} />
                         </FormControl>
@@ -205,6 +207,8 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     </Form>
   );
 }
+
+    
 
     
 
