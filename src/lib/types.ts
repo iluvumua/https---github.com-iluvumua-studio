@@ -103,6 +103,11 @@ export type Bill = {
   surtaxe_municipale?: number;
   avance_consommation?: number;
   bonification?: number;
+  frais_location_mtf?: number;
+  frais_intervention_mtf?: number;
+  frais_relance_mtf?: number;
+  frais_retard_mtf?: number;
+  penalite_cos_phi_mtf?: number;
 };
 
 export type Meter = {

@@ -118,6 +118,11 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   surtaxe_municipale: z.coerce.number().optional(),
   avance_consommation: z.coerce.number().optional(),
   bonification: z.coerce.number().optional(),
+  frais_location_mtf: z.coerce.number().optional(),
+  frais_intervention_mtf: z.coerce.number().optional(),
+  frais_relance_mtf: z.coerce.number().optional(),
+  frais_retard_mtf: z.coerce.number().optional(),
+  penalite_cos_phi_mtf: z.coerce.number().optional(),
 
 }).refine(data => {
     if (data.typeTension === "Moyen Tension Forfaitaire" && data.amount === undefined && !data.pu_consommation) return false;
@@ -261,16 +266,28 @@ const calculateMoyenTensionForfait = (values: Partial<FormValues>) => {
     const surtaxe_municipale = Number(values.surtaxe_municipale) || 0;
     const avance_consommation = Number(values.avance_consommation) || 0;
     const bonification = Number(values.bonification) || 0;
+    const frais_location_mtf = Number(values.frais_location_mtf) || 0;
+    const frais_intervention_mtf = Number(values.frais_intervention_mtf) || 0;
+    const frais_relance_mtf = Number(values.frais_relance_mtf) || 0;
+    const frais_retard_mtf = Number(values.frais_retard_mtf) || 0;
+    const penalite_cos_phi_mtf = Number(values.penalite_cos_phi_mtf) || 0;
+
 
     const energie_enregistree = calculateConsumptionWithRollover(ancien_index, nouveau_index) * coefficient_multiplicateur;
     const consommation_a_facturer = energie_enregistree + perte_en_charge + perte_a_vide;
     const montant_consommation = consommation_a_facturer * pu_consommation;
     const sous_total_consommation = montant_consommation;
+
+    const totalFraisDivers = prime_puissance + frais_location_mtf + frais_intervention_mtf + frais_relance_mtf + frais_retard_mtf + penalite_cos_phi_mtf;
+    
     const total_1 = sous_total_consommation - bonification;
-    const total_2 = total_1 + prime_puissance;
+    const total_2 = total_1 + totalFraisDivers;
+    
     const tva_consommation = total_1 * (tva_consommation_percent / 100);
-    const tva_redevance = prime_puissance * (tva_redevance_percent / 100);
+    const tva_redevance = totalFraisDivers * (tva_redevance_percent / 100);
+
     const total_3 = total_2 + tva_consommation + tva_redevance + contribution_rtt + surtaxe_municipale;
+    
     const net_a_payer = total_3 + avance_consommation;
 
     return { consommation: consommation_a_facturer, montant: parseFloat(net_a_payer.toFixed(3)) };
@@ -389,6 +406,11 @@ export function BillForm({ bill }: BillFormProps) {
         surtaxe_municipale: bill?.surtaxe_municipale ?? 0,
         avance_consommation: bill?.avance_consommation ?? 0,
         bonification: bill?.bonification ?? 0,
+        frais_location_mtf: bill?.frais_location_mtf ?? 0,
+        frais_intervention_mtf: bill?.frais_intervention_mtf ?? 0,
+        frais_relance_mtf: bill?.frais_relance_mtf ?? 0,
+        frais_retard_mtf: bill?.frais_retard_mtf ?? 0,
+        penalite_cos_phi_mtf: bill?.penalite_cos_phi_mtf ?? 0,
      }
   }, [isEditMode, bill, meterIdParam, monthParam, yearParam, meters, settings]);
 
@@ -593,6 +615,11 @@ useEffect(() => {
         surtaxe_municipale: values.typeTension === "Moyen Tension Forfaitaire" ? values.surtaxe_municipale : undefined,
         avance_consommation: values.typeTension === "Moyen Tension Forfaitaire" ? values.avance_consommation : undefined,
         bonification: values.typeTension === "Moyen Tension Forfaitaire" ? values.bonification : undefined,
+        frais_location_mtf: values.typeTension === "Moyen Tension Forfaitaire" ? values.frais_location_mtf : undefined,
+        frais_intervention_mtf: values.typeTension === "Moyen Tension Forfaitaire" ? values.frais_intervention_mtf : undefined,
+        frais_relance_mtf: values.typeTension === "Moyen Tension Forfaitaire" ? values.frais_relance_mtf : undefined,
+        frais_retard_mtf: values.typeTension === "Moyen Tension Forfaitaire" ? values.frais_retard_mtf : undefined,
+        penalite_cos_phi_mtf: values.typeTension === "Moyen Tension Forfaitaire" ? values.penalite_cos_phi_mtf : undefined,
     };
 
     if (isEditMode) {
@@ -802,6 +829,11 @@ useEffect(() => {
                         <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="surtaxe_municipale" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="avance_consommation" render={({ field }) => ( <FormItem><FormLabel>Avance / Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_location_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Location</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_intervention_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_relance_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_retard_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="penalite_cos_phi_mtf" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                      </div>
                      <Separator />
                      <div className="grid grid-cols-2 gap-4">

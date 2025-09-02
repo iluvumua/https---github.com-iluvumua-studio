@@ -24,6 +24,11 @@ const formSchema = z.object({
     surtaxe_municipale: z.coerce.number().default(68.740),
     avance_consommation: z.coerce.number().default(31.134),
     bonification: z.coerce.number().default(100.017),
+    frais_location_mtf: z.coerce.number().default(0),
+    frais_intervention_mtf: z.coerce.number().default(0),
+    frais_relance_mtf: z.coerce.number().default(0),
+    frais_retard_mtf: z.coerce.number().default(0),
+    penalite_cos_phi_mtf: z.coerce.number().default(0),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -45,6 +50,11 @@ export function MoyenTensionForfaitForm() {
             surtaxe_municipale: 68.740,
             avance_consommation: 31.134,
             bonification: 100.017,
+            frais_location_mtf: 0,
+            frais_intervention_mtf: 0,
+            frais_relance_mtf: 0,
+            frais_retard_mtf: 0,
+            penalite_cos_phi_mtf: 0,
         },
     });
 
@@ -63,19 +73,26 @@ export function MoyenTensionForfaitForm() {
     const surtaxe_municipale = parseFloat(String(watchedValues.surtaxe_municipale)) || 0;
     const avance_consommation = parseFloat(String(watchedValues.avance_consommation)) || 0;
     const bonification = parseFloat(String(watchedValues.bonification)) || 0;
+    const frais_location_mtf = parseFloat(String(watchedValues.frais_location_mtf)) || 0;
+    const frais_intervention_mtf = parseFloat(String(watchedValues.frais_intervention_mtf)) || 0;
+    const frais_relance_mtf = parseFloat(String(watchedValues.frais_relance_mtf)) || 0;
+    const frais_retard_mtf = parseFloat(String(watchedValues.frais_retard_mtf)) || 0;
+    const penalite_cos_phi_mtf = parseFloat(String(watchedValues.penalite_cos_phi_mtf)) || 0;
     
 
     // Calculations
     const energie_enregistree = Math.max(0, nouveau_index - ancien_index) * coefficient_multiplicateur;
     const consommation_a_facturer = energie_enregistree + perte_en_charge + perte_a_vide;
     const montant_consommation = consommation_a_facturer * pu_consommation;
-    const sous_total_consommation = montant_consommation; // In this bill, it's just the consumption amount
+    const sous_total_consommation = montant_consommation;
+
+    const totalFraisDivers = prime_puissance + frais_location_mtf + frais_intervention_mtf + frais_relance_mtf + frais_retard_mtf + penalite_cos_phi_mtf;
     
     const total_1 = sous_total_consommation - bonification;
-    const total_2 = total_1 + prime_puissance;
+    const total_2 = total_1 + totalFraisDivers;
     
     const tva_consommation = total_1 * (tva_consommation_percent / 100);
-    const tva_redevance = prime_puissance * (tva_redevance_percent / 100);
+    const tva_redevance = totalFraisDivers * (tva_redevance_percent / 100);
 
     const total_3 = total_2 + tva_consommation + tva_redevance + contribution_rtt + surtaxe_municipale;
     
@@ -116,6 +133,11 @@ export function MoyenTensionForfaitForm() {
                             <FormField control={form.control} name="bonification" render={({ field }) => ( <FormItem><FormLabel>Bonification</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="surtaxe_municipale" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                             <FormField control={form.control} name="frais_location_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Location</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_intervention_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_relance_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_retard_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="penalite_cos_phi_mtf" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="avance_consommation" render={({ field }) => ( <FormItem><FormLabel>Avance / Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         </CardContent>
                     </Card>
@@ -130,7 +152,7 @@ export function MoyenTensionForfaitForm() {
                              <div className="flex justify-between items-center"><span>Bonification:</span><span className="font-mono text-green-500">-{formatDT(bonification)}</span></div>
                              <Separator />
                              <div className="flex justify-between items-center font-medium"><span>Total 1:</span><span className="font-mono">{formatDT(total_1)}</span></div>
-                             <div className="flex justify-between items-center"><span>Prime de Puissance:</span><span className="font-mono">{formatDT(prime_puissance)}</span></div>
+                             <div className="flex justify-between items-center"><span>Total Frais Divers:</span><span className="font-mono">{formatDT(totalFraisDivers)}</span></div>
                              <Separator />
                              <div className="flex justify-between items-center font-medium"><span>Total 2:</span><span className="font-mono">{formatDT(total_2)}</span></div>
                              <div className="flex justify-between items-center"><span>TVA/Consommation:</span><span className="font-mono">{formatDT(tva_consommation)}</span></div>
