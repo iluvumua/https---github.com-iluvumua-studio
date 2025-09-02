@@ -45,9 +45,8 @@ export default function BillingPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
-  const { bills, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear } = useBillingStore();
+  const { bills, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear, billingSearchTerm, setBillingSearchTerm } = useBillingStore();
   const { user } = useUser();
-  const [searchTerm, setSearchTerm] = useState("");
   const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyen Tension Forfaitaire" | "Moyen Tension Tranche Horaire">("all");
   const { anomalies, markAsRead } = useAnomaliesStore();
 
@@ -99,7 +98,7 @@ export default function BillingPage() {
 
   const filteredMeters = useMemo(() => {
     return meterBillingData.filter(item => {
-        const query = searchTerm.toLowerCase();
+        const query = billingSearchTerm.toLowerCase();
         const matchesSearch = 
             item.id.toLowerCase().includes(query) ||
             item.associationName.toLowerCase().includes(query) ||
@@ -111,14 +110,14 @@ export default function BillingPage() {
         
         return matchesSearch && matchesTension;
     });
-  }, [searchTerm, tensionFilter, meterBillingData]);
+  }, [billingSearchTerm, tensionFilter, meterBillingData]);
 
   const selectedMeter = useMemo(() => {
-    if (filteredMeters.length === 1 && searchTerm) {
+    if (filteredMeters.length === 1 && billingSearchTerm) {
         return filteredMeters[0];
     }
     return null;
-  }, [filteredMeters, searchTerm]);
+  }, [filteredMeters, billingSearchTerm]);
   
   const getMetersByDistrict = (district: string) => {
     return filteredMeters.filter(m => m.districtSteg === district);
@@ -140,7 +139,7 @@ export default function BillingPage() {
   };
 
   const isNumeric = (str: string) => /^\d+$/.test(str);
-  const isValidNumFacture = isNumeric(searchTerm) && [8, 9, 12].includes(searchTerm.length);
+  const isValidNumFacture = isNumeric(billingSearchTerm) && [8, 9, 12].includes(billingSearchTerm.length);
 
 
   return (
@@ -187,8 +186,8 @@ export default function BillingPage() {
                                 type="search"
                                 placeholder="Rechercher compteur..."
                                 className="pl-8 w-full sm:w-[200px] lg:w-[300px]"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                value={billingSearchTerm}
+                                onChange={(e) => setBillingSearchTerm(e.target.value)}
                             />
                         </div>
                         <Select value={tensionFilter} onValueChange={(value) => setTensionFilter(value as any)}>
@@ -286,12 +285,12 @@ export default function BillingPage() {
                     <CardContent>
                         <div className="flex flex-col items-center justify-center py-10 text-center">
                             <FileText className="h-12 w-12 text-muted-foreground" />
-                            <h3 className="mt-4 text-lg font-semibold">Aucun compteur trouvé pour "{searchTerm}"</h3>
+                            <h3 className="mt-4 text-lg font-semibold">Aucun compteur trouvé pour "{billingSearchTerm}"</h3>
                             <p className="mt-1 text-sm text-muted-foreground">
                                 Voulez-vous ajouter une référence pour ce numéro de facture ?
                             </p>
                             <Button className="mt-4" asChild>
-                                <Link href={`/dashboard/billing/add-reference?numeroFacture=${searchTerm}`}>
+                                <Link href={`/dashboard/billing/add-reference?numeroFacture=${billingSearchTerm}`}>
                                     <PlusCircle className="mr-2 h-4 w-4" /> Ajouter ce Numéro Facture
                                 </Link>
                             </Button>
@@ -302,7 +301,7 @@ export default function BillingPage() {
                 <div className="grid grid-cols-1 gap-6">
                     {districts.map(district => {
                         const districtMeters = getMetersByDistrict(district);
-                        if (districtMeters.length === 0 && (searchTerm || tensionFilter !== 'all')) return null;
+                        if (districtMeters.length === 0 && (billingSearchTerm || tensionFilter !== 'all')) return null;
 
                         return (
                             <Card key={district}>
@@ -332,6 +331,8 @@ export default function BillingPage() {
     </TooltipProvider>
   );
     
+    
+
     
 
     

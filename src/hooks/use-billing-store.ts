@@ -18,8 +18,10 @@ interface BillingState {
   updateBill: (updatedBill: Bill) => void;
   selectedMonth: string;
   selectedYear: string;
+  billingSearchTerm: string;
   setSelectedMonth: (month: string) => void;
   setSelectedYear: (year: string) => void;
+  setBillingSearchTerm: (term: string) => void;
 }
 
 const getMonthNumber = (monthName: string) => {
@@ -36,8 +38,10 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   bills: billingData,
   selectedMonth: monthNames[new Date().getMonth()],
   selectedYear: new Date().getFullYear().toString(),
+  billingSearchTerm: "",
   setSelectedMonth: (month) => set({ selectedMonth: month }),
   setSelectedYear: (year) => set({ selectedYear: year }),
+  setBillingSearchTerm: (term) => set({ billingSearchTerm: term }),
   addBill: (newBill) => {
     const allBills = get().bills;
     const { settings } = useBillingSettingsStore.getState();
@@ -94,3 +98,5 @@ export const useBillingStore = create<BillingState>((set, get) => ({
         ),
     })),
 }));
+
+    
