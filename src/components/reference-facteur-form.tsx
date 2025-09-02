@@ -19,6 +19,7 @@ import { Combobox } from "./combobox";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { Textarea } from "./ui/textarea";
+import { Separator } from "./ui/separator";
 
 const formSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
@@ -33,6 +34,34 @@ type FormValues = z.infer<typeof formSchema>;
 interface ReferenceFacteurFormProps {
     onFinished?: () => void;
 }
+
+const renderMeterIndex = (meter: Meter | undefined) => {
+    if (!meter) return null;
+
+    if (meter.typeTension === 'Basse Tension' || meter.typeTension === 'Moyen Tension Forfaitaire') {
+        return (
+            <div>
+                <p className="text-muted-foreground">Index de Départ</p>
+                <p className="font-mono">{meter.indexDepart ?? 'N/A'}</p>
+            </div>
+        )
+    }
+    if (meter.typeTension === 'Moyen Tension Tranche Horaire') {
+        return (
+            <div className="col-span-2">
+                <p className="text-muted-foreground">Index de Départ</p>
+                <div className="grid grid-cols-2 text-xs pl-2 font-mono">
+                    <span>Jour: {meter.indexDepartJour ?? 'N/A'}</span>
+                    <span>Pointe: {meter.indexDepartPointe ?? 'N/A'}</span>
+                    <span>Soir: {meter.indexDepartSoir ?? 'N/A'}</span>
+                    <span>Nuit: {meter.indexDepartNuit ?? 'N/A'}</span>
+                </div>
+            </div>
+        );
+    }
+    return null;
+}
+
 
 export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) {
   const { meters, updateMeter } = useMetersStore();
@@ -170,6 +199,8 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                                     <p>{meterAssociation.name}</p>
                                 </div>
                             </div>
+                            <Separator className="col-span-2" />
+                            {renderMeterIndex(selectedMeter)}
                         </div>
                     </div>
                 )}
@@ -207,11 +238,3 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     </Form>
   );
 }
-
-    
-
-    
-
-    
-
-    
