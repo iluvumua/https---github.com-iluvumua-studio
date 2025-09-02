@@ -11,9 +11,9 @@ export default function NewReferencePage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Ajouter/Modifier une référence de facturation</CardTitle>
+                <CardTitle>Ajouter/Modifier un numéro de facture</CardTitle>
                 <CardDescription>
-                    Recherchez un compteur, saisissez sa référence de facteur et son adresse de facturation.
+                    Recherchez un compteur, saisissez son numéro de facture et son adresse de facturation.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -22,3 +22,5 @@ export default function NewReferencePage() {
         </Card>
     );
 }
+
+    

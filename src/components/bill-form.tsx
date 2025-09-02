@@ -32,7 +32,7 @@ const monthNames = [
 ];
 
 const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
-  reference: z.string().length(13, "Le numéro de facture doit comporter 13 chiffres."),
+  reference: z.string().length(13, "L'Id Facture doit comporter 13 chiffres."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   billDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Le format doit être MM/AAAA."),
   nombreMois: z.coerce.number().optional(),
@@ -558,7 +558,7 @@ export function BillForm({ meterId, bill }: BillFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
             <FormField control={form.control} name="reference" render={({ field }) => (
-                <FormItem><FormLabel>N° Facture (13 chiffres)</FormLabel><FormControl><Input placeholder="ex: 2023080123456" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Id Facture (13 chiffres)</FormLabel><FormControl><Input placeholder="ex: 2023080123456" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             
             <FormField control={form.control} name="meterId" render={({ field }) => (
@@ -797,7 +797,5 @@ export function BillForm({ meterId, bill }: BillFormProps) {
     </Form>
   );
 }
-
-
 
     

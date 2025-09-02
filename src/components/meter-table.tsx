@@ -41,7 +41,7 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>Réf. Facteur</TableHead>
+                    <TableHead>Numéro Facture</TableHead>
                     <TableHead>N° Compteur</TableHead>
                     <TableHead>Type de Tension</TableHead>
                     <TableHead>Associé à</TableHead>
@@ -99,3 +99,5 @@ export const MeterTable = ({ meters }: MeterTableProps) => {
         </Table>
     );
 };
+
+    

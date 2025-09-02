@@ -166,7 +166,7 @@ export default function BillingStatisticsPage() {
         "Type Tension": item.typeTension,
         "Consommation (kWh)": item.consumptionKWh,
         "Coût Total (TND)": item.amount,
-        "N° Facture": item.reference,
+        "Id Facture": item.reference,
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -341,3 +341,5 @@ export default function BillingStatisticsPage() {
     </div>
   );
 }
+
+    

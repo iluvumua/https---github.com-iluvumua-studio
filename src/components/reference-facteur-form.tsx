@@ -22,7 +22,7 @@ import { Textarea } from "./ui/textarea";
 
 const formSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
-  referenceFacteur: z.string().length(9, "La Réf. Facteur doit comporter 9 chiffres."),
+  referenceFacteur: z.string().length(9, "Le Numéro Facture doit comporter 9 chiffres."),
   billingAddress: z.string().optional(),
 });
 
@@ -105,7 +105,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     };
 
     updateMeter(updatedMeter);
-    toast({ title: "Référence mise à jour", description: "La référence de facteur a été enregistrée avec succès." });
+    toast({ title: "Numéro Facture mis à jour", description: "Le numéro de facture a été enregistré avec succès." });
     
     if (onFinished) {
         onFinished();
@@ -169,7 +169,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                 
                  <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( 
                     <FormItem>
-                        <FormLabel>Réf. Facteur (9 chiffres)</FormLabel>
+                        <FormLabel>Numéro Facture (9 chiffres)</FormLabel>
                         <FormControl>
                             <Input placeholder="ex: 378051249" {...field} />
                         </FormControl>
@@ -200,3 +200,5 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     </Form>
   );
 }
+
+    
