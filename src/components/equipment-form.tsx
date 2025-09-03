@@ -103,6 +103,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const building = buildings.find(b => b.id === buildingIdParam);
 
   const equipmentTypes = useMemo(() => {
+    // BTS is available for both indoor and outdoor
     const baseTypes = buildingIdParam ? indoorEquipmentTypes : outdoorEquipmentTypes;
     return [...commonEquipmentTypes, ...baseTypes];
   }, [buildingIdParam]);
@@ -278,18 +279,13 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Localisation</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!building || (isEditMode && !canEditStatus)}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une localisation" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {localisations.map(l => (
-                            <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Combobox
+                        options={localisations}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Rechercher une localisation..."
+                        disabled={!!building || (isEditMode && !canEditStatus)}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
