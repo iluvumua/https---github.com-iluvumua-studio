@@ -142,7 +142,7 @@ export function CostBreakdownChart() {
                 </ResponsiveContainer>
             </ChartContainer>
             <div className="mt-4 text-center">
-                <p className="text-lg font-semibold">Consommation Annuelle Totale</p>
+                <p className="text-lg font-semibold">Consommation en DT</p>
                 <p className="text-2xl font-bold text-primary">{formatKWh(yearlyData.totalConsumption)}</p>
             </div>
         </>
