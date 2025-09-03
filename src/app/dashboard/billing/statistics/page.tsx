@@ -32,6 +32,7 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import * as XLSX from 'xlsx';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceLine, Line } from "recharts";
+import * as RechartsPrimitive from "recharts"
 import {
   ChartContainer,
   ChartTooltip,
