@@ -44,7 +44,6 @@ const indoorEquipmentTypes = [
 const outdoorEquipmentTypes = [
     { value: 'BTS', label: 'Site GSM' },
     { value: 'MSN', label: 'MSAN Outdoor' },
-    { value: 'FDT', label: 'SRO & FDT' },
 ];
 
 const formSchema = z.object({
