@@ -453,6 +453,11 @@ export function BillForm({ bill }: BillFormProps) {
   }, [watchedMeterId, watchedBillDate, bills, getMonthNumber]);
   
   const selectedMeter = useMemo(() => meters.find(m => m.id === watchedMeterId), [meters, watchedMeterId]);
+  
+  const hasAnyBillForMeter = useMemo(() => {
+    if (isEditMode) return true; // Don't run this logic in edit mode
+    return bills.some(b => b.meterId === watchedMeterId);
+  }, [bills, watchedMeterId, isEditMode]);
 
   useEffect(() => {
     if (selectedMeter) {
@@ -464,7 +469,7 @@ export function BillForm({ bill }: BillFormProps) {
 
  useEffect(() => {
     if (isEditMode) return;
-
+    
     if (previousBill) {
         const type = previousBill.typeTension;
         if (type === 'Basse Tension') {
@@ -477,7 +482,8 @@ export function BillForm({ bill }: BillFormProps) {
             setValue('ancien_index_soir', previousBill.nouveau_index_soir ?? previousBill.ancien_index_soir ?? 0);
             setValue('ancien_index_nuit', previousBill.nouveau_index_nuit ?? previousBill.ancien_index_nuit ?? 0);
         }
-    } else if (selectedMeter) {
+    } else if (selectedMeter && !hasAnyBillForMeter) {
+        // This is the first ever bill for this meter
         const type = selectedMeter.typeTension;
         if (type === 'Basse Tension') setValue('ancienIndex', selectedMeter.indexDepart ?? 0);
         if (type === 'Moyen Tension Forfaitaire') setValue('mtf_ancien_index', selectedMeter.indexDepart ?? 0);
@@ -488,7 +494,7 @@ export function BillForm({ bill }: BillFormProps) {
             setValue('ancien_index_nuit', selectedMeter.indexDepartNuit ?? 0);
         }
     }
-  }, [previousBill, selectedMeter, setValue, isEditMode]);
+  }, [previousBill, selectedMeter, setValue, isEditMode, hasAnyBillForMeter]);
   
   const calculateAndSetValues = useCallback(() => {
     const values = getValues();
@@ -652,13 +658,13 @@ useEffect(() => {
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-2">
+            <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-1">
             {isEditMode ? (
                 <FormField control={form.control} name="reference" render={({ field }) => (
                     <FormItem><FormLabel>Id Facture</FormLabel><FormControl><Input {...field} readOnly className="bg-muted" /></FormControl><FormMessage /></FormItem>
                 )} />
             ) : (
-                <div className="md:col-span-1 space-y-1">
+                <div className="space-y-1">
                     <FormLabel>Id Facture (Auto)</FormLabel>
                     <Input readOnly value={selectedMeter?.referenceFacteur && watchForm("billDate").length === 7 ? `${selectedMeter.referenceFacteur}-${watchForm("billDate").replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
                 </div>
@@ -687,8 +693,8 @@ useEffect(() => {
             )}
 
             {watchedTypeTension === 'Basse Tension' && (
-                <div className="space-y-4 rounded-md border p-4 md:col-span-2">
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4 rounded-md border p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="ancienIndex" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Ancien Index (Départ: {selectedMeter?.indexDepart ?? 'N/A'})</FormLabel>
@@ -704,57 +710,57 @@ useEffect(() => {
                     )} />
                     <Separator />
                     <h4 className="font-medium text-sm">Taxes et Redevances</h4>
-                     <div className="grid grid-cols-2 gap-4">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="redevances_fixes" render={({ field }) => (
-                            <FormItem><FormLabel>Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="tva_bt" render={({ field }) => (
-                            <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                          <FormField control={form.control} name="ertt_bt" render={({ field }) => (
-                            <FormItem><FormLabel>Contr. ERTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Contr. ERTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
                 </div>
             )}
 
             {watchedTypeTension === 'Moyen Tension Tranche Horaire' && (
-                <div className="space-y-4 rounded-md border p-4 md:col-span-2">
-                    <div className="grid grid-cols-4 gap-4">
-                        <FormLabel className="col-span-2">Index</FormLabel>
-                        <FormLabel>Coefficient</FormLabel>
-                        <FormLabel>P.U.</FormLabel>
+                <div className="space-y-4 rounded-md border p-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <FormLabel className="col-span-1 sm:col-span-2">Index</FormLabel>
+                        <FormLabel className="hidden sm:block">Coefficient</FormLabel>
+                        <FormLabel className="hidden sm:block">P.U.</FormLabel>
                     </div>
                     {/* Jour */}
-                    <div className="grid grid-cols-4 gap-4 items-end">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour (Départ: {selectedMeter?.indexDepartJour ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Jour</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Jour</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     {/* Pointe */}
-                     <div className="grid grid-cols-4 gap-4 items-end">
+                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe (Départ: {selectedMeter?.indexDepartPointe ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Pointe</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Pointe</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     {/* Soir */}
-                     <div className="grid grid-cols-4 gap-4 items-end">
+                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir (Départ: {selectedMeter?.indexDepartSoir ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Soir</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Soir</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     {/* Nuit */}
-                    <div className="grid grid-cols-4 gap-4 items-end">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit (Départ: {selectedMeter?.indexDepartNuit ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Nuit</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Nuit</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     <Separator />
-                     <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
                         <FormField control={form.control} name="consommation_jour" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Jour:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="consommation_pointe" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Pointe:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="consommation_soir" render={({ field }) => ( <FormItem className="flex items-center justify-between"><span>Conso. Soir:</span><FormControl><Input className="w-24 h-8 text-right" type="number" {...field} placeholder="Auto" value={field.value ?? ''} /></FormControl></FormItem> )} />
@@ -763,7 +769,7 @@ useEffect(() => {
                     <Separator />
                      <div className="space-y-4 rounded-md border p-4">
                         <h4 className="font-medium text-sm">Groupe 1: Redevances et Frais Divers</h4>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Frais Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
@@ -780,7 +786,7 @@ useEffect(() => {
                     </div>
                      <div className="space-y-4 rounded-md border p-4">
                         <h4 className="font-medium text-sm">Groupe 2: Taxes</h4>
-                         <div className="grid grid-cols-2 gap-4">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField control={form.control} name="tva_consommation" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="tva_redevance" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
@@ -797,8 +803,8 @@ useEffect(() => {
             )}
             
             {watchedTypeTension === 'Moyen Tension Forfaitaire' && (
-                <div className="md:col-span-2 space-y-4 rounded-md border p-4">
-                     <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4 rounded-md border p-4">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( 
                             <FormItem>
                                 <FormLabel>Ancien Index (Départ: {selectedMeter?.indexDepart ?? 'N/A'})</FormLabel>
@@ -806,10 +812,10 @@ useEffect(() => {
                             </FormItem> 
                         )} />
                         <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} readOnly /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} readOnly /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="bonification" render={({ field }) => ( <FormItem><FormLabel>Bonification</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
@@ -822,52 +828,52 @@ useEffect(() => {
                         <FormField control={form.control} name="penalite_cos_phi_mtf" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                      </div>
                      <Separator />
-                     <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="tva_consommation_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation (%)</FormLabel><FormControl><Input type="number" {...field} readOnly /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="tva_redevance_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance (%)</FormLabel><FormControl><Input type="number" {...field} readOnly /></FormControl></FormItem> )} />
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="tva_consommation_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="tva_redevance_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                     </div>
                 </div>
             )}
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField control={form.control} name="consumptionKWh" render={({ field }) => (
+                    <FormItem><FormLabel>Consommation (kWh)</FormLabel>
+                        <FormControl>
+                            <Input type="number" {...field} value={field.value ?? 0} readOnly={isCalculated} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
 
-            <FormField control={form.control} name="consumptionKWh" render={({ field }) => (
-                <FormItem><FormLabel>Consommation (kWh)</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} value={field.value ?? 0} readOnly={isCalculated} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-            )} />
+                <FormField control={form.control} name="amount" render={({ field }) => (
+                    <FormItem><FormLabel>Montant Calculé (TND)</FormLabel>
+                        <FormControl>
+                            <Input type="number" step="0.001" {...field} value={field.value ?? 0} readOnly={isCalculated}/>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
 
-            <FormField control={form.control} name="amount" render={({ field }) => (
-                <FormItem><FormLabel>Montant Calculé (TND)</FormLabel>
-                    <FormControl>
-                        <Input type="number" step="0.001" {...field} value={field.value ?? 0} readOnly={isCalculated}/>
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-            )} />
+                <FormField control={form.control} name="billDate" render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Mois Facture (MM/AAAA)</FormLabel>
+                        <FormControl>
+                            <Input placeholder="ex: 12/2024" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )} />
 
-            <FormField control={form.control} name="billDate" render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                    <FormLabel>Mois Facture (MM/AAAA)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="ex: 12/2024" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                </FormItem>
-            )} />
-
-            <FormField control={form.control} name="nombreMois" render={({ field }) => (
-                <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} /></FormControl><FormMessage /></FormItem>
-            )} />
-
+                <FormField control={form.control} name="nombreMois" render={({ field }) => (
+                    <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+            </div>
 
              <FormField
                 control={form.control}
                 name="convenableSTEG"
                 render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm md:col-span-2">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
                         <FormLabel>Convenable avec STEG</FormLabel>
                     </div>
@@ -882,7 +888,7 @@ useEffect(() => {
                 />
             
             {!watchForm("convenableSTEG") && (
-                <div className="md:col-span-2 space-y-4">
+                <div className="space-y-4">
                     <FormField control={form.control} name="montantSTEG" render={({ field }) => (
                         <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
                             <FormControl>
@@ -944,4 +950,3 @@ useEffect(() => {
     </Form>
   );
 }
-
