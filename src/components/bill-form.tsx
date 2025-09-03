@@ -157,42 +157,6 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
 
 type FormValues = z.infer<ReturnType<typeof createBillFormSchema>>;
 
-const calculateBasseTension = (
-    ancienIndex?: number, 
-    nouveauIndex?: number, 
-    prixUnitaire?: number,
-    redevancesFixes?: number,
-    tva?: number,
-    ertt?: number
-) => {
-    const numAncienIndex = Number(ancienIndex) || 0;
-    const numNouveauIndex = Number(nouveauIndex) || 0;
-    const numPrixUnitaire = Number(prixUnitaire) || 0;
-    const numRedevancesFixes = Number(redevancesFixes) || 0;
-    const numTva = Number(tva) || 0;
-    const numErtt = Number(ertt) || 0;
-
-    let consommation = 0;
-    if (numNouveauIndex >= numAncienIndex) {
-        consommation = numNouveauIndex - numAncienIndex;
-    } else {
-        const indexLength = String(numAncienIndex).length;
-        if (indexLength > 0) {
-            const maxValue = Number('9'.repeat(indexLength));
-            consommation = (maxValue - numAncienIndex) + numNouveauIndex + 1;
-        } else {
-            consommation = numNouveauIndex;
-        }
-    }
-    
-    const montant_consommation = consommation * numPrixUnitaire;
-    const total_taxes = numErtt + numTva;
-    const total_consommation = montant_consommation + numRedevancesFixes;
-    const montant_a_payer = total_consommation + total_taxes;
-    
-    return { consommation, montant: parseFloat(montant_a_payer.toFixed(3)) };
-}
-
 const calculateConsumptionWithRollover = (ancien?: number, nouveau?: number): number => {
     const numAncien = Number(ancien) || 0;
     const numNouveau = Number(nouveau) || 0;
@@ -205,94 +169,6 @@ const calculateConsumptionWithRollover = (ancien?: number, nouveau?: number): nu
     const maxValue = parseInt('9'.repeat(ancienStr.length), 10);
     return (maxValue - numAncien) + numNouveau + 1;
 };
-
-
-const calculateMoyenTensionHoraire = (values: Partial<FormValues>) => {
-    const consommation_jour_calc = calculateConsumptionWithRollover(values.ancien_index_jour, values.nouveau_index_jour);
-    const consommation_pointe_calc = calculateConsumptionWithRollover(values.ancien_index_pointe, values.nouveau_index_pointe);
-    const consommation_soir_calc = calculateConsumptionWithRollover(values.ancien_index_soir, values.nouveau_index_soir);
-    const consommation_nuit_calc = calculateConsumptionWithRollover(values.ancien_index_nuit, values.nouveau_index_nuit);
-    
-    const consommation_jour = (Number(values.consommation_jour) || consommation_jour_calc || 0) * (Number(values.coefficient_jour) || 1);
-    const consommation_pointe = (Number(values.consommation_pointe) || consommation_pointe_calc || 0) * (Number(values.coefficient_pointe) || 1);
-    const consommation_soir = (Number(values.consommation_soir) || consommation_soir_calc || 0) * (Number(values.coefficient_soir) || 1);
-    const consommation_nuit = (Number(values.consommation_nuit) || consommation_nuit_calc || 0) * (Number(values.coefficient_nuit) || 1);
-
-    const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
-
-    const montant_jour = consommation_jour * (Number(values.prix_unitaire_jour) || 0);
-    const montant_pointe = consommation_pointe * (Number(values.prix_unitaire_pointe) || 0);
-    const montant_soir = consommation_soir * (Number(values.prix_unitaire_soir) || 0);
-    const montant_nuit = consommation_nuit * (Number(values.prix_unitaire_nuit) || 0);
-    
-    const subtotal = montant_jour + montant_pointe + montant_soir + montant_nuit; 
-
-    const group1Total = (Number(values.prime_puissance_mth) || 0) +
-                        (Number(values.depassement_puissance) || 0) +
-                        (Number(values.location_materiel) || 0) +
-                        (Number(values.frais_intervention) || 0) +
-                        (Number(values.frais_relance) || 0) +
-                        (Number(values.frais_retard) || 0) +
-                        (Number(values.penalite_cos_phi) || 0);
-    
-    const group2Total = (Number(values.tva_consommation) || 0) +
-                        (Number(values.tva_redevance) || 0) +
-                        (Number(values.contribution_rtt_mth) || 0) +
-                        (Number(values.surtaxe_municipale_mth) || 0);
-    
-    const finalAmount = subtotal + group1Total + group2Total + (Number(values.avance_sur_consommation_mth) || 0);
-
-    return { 
-        consommation: totalConsumption, 
-        montant: parseFloat(finalAmount.toFixed(3)),
-        consommation_jour_calc,
-        consommation_pointe_calc,
-        consommation_soir_calc,
-        consommation_nuit_calc,
-    };
-}
-
-const calculateMoyenTensionForfait = (values: Partial<FormValues>) => {
-    const ancien_index = Number(values.mtf_ancien_index) || 0;
-    const nouveau_index = Number(values.mtf_nouveau_index) || 0;
-    const coefficient_multiplicateur = Number(values.coefficient_multiplicateur) || 0;
-    const perte_en_charge = Number(values.perte_en_charge) || 0;
-    const perte_a_vide = Number(values.perte_a_vide) || 0;
-    const pu_consommation = Number(values.pu_consommation) || 0;
-    const prime_puissance = Number(values.prime_puissance) || 0;
-    const tva_consommation_percent = Number(values.tva_consommation_percent) || 0;
-    const tva_redevance_percent = Number(values.tva_redevance_percent) || 0;
-    const contribution_rtt = Number(values.contribution_rtt) || 0;
-    const surtaxe_municipale = Number(values.surtaxe_municipale) || 0;
-    const avance_consommation = Number(values.avance_consommation) || 0;
-    const bonification = Number(values.bonification) || 0;
-    const frais_location_mtf = Number(values.frais_location_mtf) || 0;
-    const frais_intervention_mtf = Number(values.frais_intervention_mtf) || 0;
-    const frais_relance_mtf = Number(values.frais_relance_mtf) || 0;
-    const frais_retard_mtf = Number(values.frais_retard_mtf) || 0;
-    const penalite_cos_phi_mtf = Number(values.penalite_cos_phi_mtf) || 0;
-
-
-    const energie_enregistree = calculateConsumptionWithRollover(ancien_index, nouveau_index) * coefficient_multiplicateur;
-    const consommation_a_facturer = energie_enregistree + perte_en_charge + perte_a_vide;
-    const montant_consommation = consommation_a_facturer * pu_consommation;
-    const sous_total_consommation = montant_consommation;
-
-    const totalFraisDivers = prime_puissance + frais_location_mtf + frais_intervention_mtf + frais_relance_mtf + frais_retard_mtf + penalite_cos_phi_mtf;
-    
-    const total_1 = sous_total_consommation - bonification;
-    const total_2 = total_1 + totalFraisDivers;
-    
-    const tva_consommation = total_1 * (tva_consommation_percent / 100);
-    const tva_redevance = totalFraisDivers * (tva_redevance_percent / 100);
-
-    const total_3 = total_2 + tva_consommation + tva_redevance + contribution_rtt + surtaxe_municipale;
-    
-    const net_a_payer = total_3 + avance_consommation;
-
-    return { consommation: consommation_a_facturer, montant: parseFloat(net_a_payer.toFixed(3)) };
-}
-
 
 interface BillFormProps {
     bill?: Bill;
@@ -313,120 +189,6 @@ export function BillForm({ bill }: BillFormProps) {
   
   const formSchema = useMemo(() => createBillFormSchema(bills, isEditMode), [bills, isEditMode]);
 
-  const defaultValues = useMemo(() => {
-    let billDate = "";
-    if (isEditMode && bill?.month) {
-        try {
-            const parsedDate = parse(bill.month, "LLLL yyyy", new Date(), { locale: fr });
-            if (!isNaN(parsedDate.getTime())) {
-                const month = getMonth(parsedDate) + 1;
-                const year = getYear(parsedDate);
-                billDate = `${month.toString().padStart(2, '0')}/${year}`;
-            }
-        } catch(e) {
-            console.error("Error parsing date:", e);
-        }
-    } else if (monthParam && yearParam) {
-        const monthNumber = monthNameToNumber[monthParam];
-        if (monthNumber) {
-            billDate = `${monthNumber}/${yearParam}`;
-        }
-    } else {
-        const now = new Date();
-        const month = getMonth(now); // 0-indexed, so we add 1 later
-        const year = getYear(now);
-        billDate = `${(month === 0 ? 12 : month).toString().padStart(2, '0')}/${month === 0 ? year -1 : year}`;
-    }
-    const initialMeterId = bill?.meterId || meterIdParam || "";
-    const selectedMeter = meters.find(m => m.id === initialMeterId);
-
-     return {
-        ...bill,
-        reference: bill?.reference || "",
-        meterId: initialMeterId,
-        billDate,
-        nombreMois: bill?.nombreMois || 1,
-        typeTension: bill?.typeTension || selectedMeter?.typeTension || "Basse Tension",
-        convenableSTEG: bill?.convenableSTEG ?? true,
-        consumptionKWh: bill?.consumptionKWh ?? 0,
-        amount: bill?.amount ?? 0,
-        montantSTEG: bill?.montantSTEG ?? 0,
-        description: bill?.description || "",
-        // BT
-        ancienIndex: bill?.ancienIndex ?? 0,
-        nouveauIndex: bill?.nouveauIndex ?? 0,
-        prix_unitaire_bt: bill?.prix_unitaire_bt ?? settings.basseTension.prix_unitaire_bt,
-        redevances_fixes: bill?.redevances_fixes ?? settings.basseTension.redevances_fixes,
-        tva_bt: bill?.tva_bt ?? settings.basseTension.tva_bt,
-        ertt_bt: bill?.ertt_bt ?? settings.basseTension.ertt_bt,
-        // MT Horaire
-        ancien_index_jour: bill?.ancien_index_jour ?? 0,
-        nouveau_index_jour: bill?.nouveau_index_jour ?? 0,
-        ancien_index_pointe: bill?.ancien_index_pointe ?? 0,
-        nouveau_index_pointe: bill?.nouveau_index_pointe ?? 0,
-        ancien_index_soir: bill?.ancien_index_soir ?? 0,
-        nouveau_index_soir: bill?.nouveau_index_soir ?? 0,
-        ancien_index_nuit: bill?.ancien_index_nuit ?? 0,
-        nouveau_index_nuit: bill?.nouveau_index_nuit ?? 0,
-        coefficient_jour: bill?.coefficient_jour ?? settings.moyenTensionHoraire.coefficient_jour,
-        coefficient_pointe: bill?.coefficient_pointe ?? settings.moyenTensionHoraire.coefficient_pointe,
-        coefficient_soir: bill?.coefficient_soir ?? settings.moyenTensionHoraire.coefficient_soir,
-        coefficient_nuit: bill?.coefficient_nuit ?? settings.moyenTensionHoraire.coefficient_nuit,
-        prix_unitaire_jour: bill?.prix_unitaire_jour ?? settings.moyenTensionHoraire.prix_unitaire_jour,
-        prix_unitaire_pointe: bill?.prix_unitaire_pointe ?? settings.moyenTensionHoraire.prix_unitaire_pointe,
-        prix_unitaire_soir: bill?.prix_unitaire_soir ?? settings.moyenTensionHoraire.prix_unitaire_soir,
-        prix_unitaire_nuit: bill?.prix_unitaire_nuit ?? settings.moyenTensionHoraire.prix_unitaire_nuit,
-        consommation_jour: bill?.consommation_jour ?? 0,
-        consommation_pointe: bill?.consommation_pointe ?? 0,
-        consommation_soir: bill?.consommation_soir ?? 0,
-        consommation_nuit: bill?.consommation_nuit ?? 0,
-        prime_puissance_mth: bill?.prime_puissance_mth ?? 0,
-        depassement_puissance: bill?.depassement_puissance ?? 0,
-        location_materiel: bill?.location_materiel ?? 0,
-        frais_intervention: bill?.frais_intervention ?? 0,
-        frais_relance: bill?.frais_relance ?? 0,
-        frais_retard: bill?.frais_retard ?? 0,
-        tva_consommation: bill?.tva_consommation ?? 0,
-        tva_redevance: bill?.tva_redevance ?? 0,
-        contribution_rtt_mth: bill?.contribution_rtt_mth ?? 0,
-        surtaxe_municipale_mth: bill?.surtaxe_municipale_mth ?? 0,
-        avance_sur_consommation_mth: bill?.avance_sur_consommation_mth ?? 0,
-        penalite_cos_phi: bill?.penalite_cos_phi ?? 0,
-        // MT Forfait
-        mtf_ancien_index: bill?.mtf_ancien_index ?? 0,
-        mtf_nouveau_index: bill?.mtf_nouveau_index ?? 0,
-        coefficient_multiplicateur: bill?.coefficient_multiplicateur ?? settings.moyenTensionForfait.coefficient_multiplicateur,
-        perte_en_charge: bill?.perte_en_charge ?? 0,
-        perte_a_vide: bill?.perte_a_vide ?? 0,
-        pu_consommation: bill?.pu_consommation ?? settings.moyenTensionForfait.pu_consommation,
-        prime_puissance: bill?.prime_puissance ?? 0,
-        tva_consommation_percent: bill?.tva_consommation_percent ?? settings.moyenTensionForfait.tva_consommation_percent,
-        tva_redevance_percent: bill?.tva_redevance_percent ?? settings.moyenTensionForfait.tva_redevance_percent,
-        contribution_rtt: bill?.contribution_rtt ?? 0,
-        surtaxe_municipale: bill?.surtaxe_municipale ?? 0,
-        avance_consommation: bill?.avance_consommation ?? 0,
-        bonification: bill?.bonification ?? 0,
-        frais_location_mtf: bill?.frais_location_mtf ?? 0,
-        frais_intervention_mtf: bill?.frais_intervention_mtf ?? 0,
-        frais_relance_mtf: bill?.frais_relance_mtf ?? 0,
-        frais_retard_mtf: bill?.frais_retard_mtf ?? 0,
-        penalite_cos_phi_mtf: bill?.penalite_cos_phi_mtf ?? 0,
-     }
-  }, [isEditMode, bill, meterIdParam, monthParam, yearParam, meters, settings]);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues,
-    mode: 'onChange'
-  });
-  
-  const { setValue, getValues, reset, watch: watchForm, formState: { dirtyFields } } = form;
-
-  const watchedFields = watchForm();
-  const watchedMeterId = watchedFields.meterId;
-  const watchedBillDate = watchedFields.billDate;
-  const watchedTypeTension = watchedFields.typeTension;
-
   const getMonthNumber = useCallback((monthName: string) => {
     try {
         const date = parse(monthName, "LLLL yyyy", new Date(), { locale: fr });
@@ -436,6 +198,18 @@ export function BillForm({ bill }: BillFormProps) {
     } catch(e) {}
     return 0;
   }, []);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    mode: 'onChange'
+  });
+  
+  const { setValue, getValues, reset, watch: watchForm, formState: { dirtyFields } } = form;
+
+  const watchedFields = watchForm();
+  const watchedMeterId = watchedFields.meterId;
+  const watchedBillDate = watchedFields.billDate;
+  const watchedTypeTension = watchedFields.typeTension;
 
   const previousBill = useMemo(() => {
     if (!watchedMeterId || !watchedBillDate || watchedBillDate.length < 7) return null;
@@ -455,9 +229,83 @@ export function BillForm({ bill }: BillFormProps) {
   const selectedMeter = useMemo(() => meters.find(m => m.id === watchedMeterId), [meters, watchedMeterId]);
   
   const hasAnyBillForMeter = useMemo(() => {
-    if (isEditMode) return true; // Don't run this logic in edit mode
     return bills.some(b => b.meterId === watchedMeterId);
-  }, [bills, watchedMeterId, isEditMode]);
+  }, [bills, watchedMeterId]);
+
+  const defaultValues = useMemo(() => {
+    let billDate = "";
+    if (isEditMode && bill?.month) {
+        try {
+            const parsedDate = parse(bill.month, "LLLL yyyy", new Date(), { locale: fr });
+            if (!isNaN(parsedDate.getTime())) {
+                const month = getMonth(parsedDate) + 1;
+                const year = getYear(parsedDate);
+                billDate = `${month.toString().padStart(2, '0')}/${year}`;
+            }
+        } catch(e) {}
+    } else if (monthParam && yearParam) {
+        const monthNumber = monthNameToNumber[monthParam];
+        if (monthNumber) {
+            billDate = `${monthNumber}/${yearParam}`;
+        }
+    } else {
+        const now = new Date();
+        const month = getMonth(now);
+        const year = getYear(now);
+        billDate = `${(month === 0 ? 12 : month).toString().padStart(2, '0')}/${month === 0 ? year -1 : year}`;
+    }
+    const initialMeterId = bill?.meterId || meterIdParam || "";
+    const selectedMeterForDefaults = meters.find(m => m.id === initialMeterId);
+
+     return {
+        ...bill,
+        reference: bill?.reference || "",
+        meterId: initialMeterId,
+        billDate,
+        nombreMois: bill?.nombreMois || 1,
+        typeTension: bill?.typeTension || selectedMeterForDefaults?.typeTension || "Basse Tension",
+        convenableSTEG: bill?.convenableSTEG ?? true,
+        consumptionKWh: bill?.consumptionKWh ?? 0,
+        amount: bill?.amount ?? 0,
+        montantSTEG: bill?.montantSTEG ?? 0,
+        description: bill?.description || "",
+        // BT
+        prix_unitaire_bt: bill?.prix_unitaire_bt ?? settings.basseTension.prix_unitaire_bt,
+        redevances_fixes: bill?.redevances_fixes ?? settings.basseTension.redevances_fixes,
+        tva_bt: bill?.tva_bt ?? settings.basseTension.tva_bt,
+        ertt_bt: bill?.ertt_bt ?? settings.basseTension.ertt_bt,
+        // MT Horaire
+        coefficient_jour: bill?.coefficient_jour ?? settings.moyenTensionHoraire.coefficient_jour,
+        coefficient_pointe: bill?.coefficient_pointe ?? settings.moyenTensionHoraire.coefficient_pointe,
+        coefficient_soir: bill?.coefficient_soir ?? settings.moyenTensionHoraire.coefficient_soir,
+        coefficient_nuit: bill?.coefficient_nuit ?? settings.moyenTensionHoraire.coefficient_nuit,
+        prix_unitaire_jour: bill?.prix_unitaire_jour ?? settings.moyenTensionHoraire.prix_unitaire_jour,
+        prix_unitaire_pointe: bill?.prix_unitaire_pointe ?? settings.moyenTensionHoraire.prix_unitaire_pointe,
+        prix_unitaire_soir: bill?.prix_unitaire_soir ?? settings.moyenTensionHoraire.prix_unitaire_soir,
+        prix_unitaire_nuit: bill?.prix_unitaire_nuit ?? settings.moyenTensionHoraire.prix_unitaire_nuit,
+        prime_puissance_mth: bill?.prime_puissance_mth ?? 0,
+        depassement_puissance: bill?.depassement_puissance ?? 0,
+        location_materiel: bill?.location_materiel ?? 0,
+        frais_intervention: bill?.frais_intervention ?? 0,
+        frais_relance: bill?.frais_relance ?? 0,
+        frais_retard: bill?.frais_retard ?? 0,
+        tva_consommation: bill?.tva_consommation ?? 0,
+        tva_redevance: bill?.tva_redevance ?? 0,
+        contribution_rtt_mth: bill?.contribution_rtt_mth ?? 0,
+        surtaxe_municipale_mth: bill?.surtaxe_municipale_mth ?? 0,
+        avance_sur_consommation_mth: bill?.avance_sur_consommation_mth ?? 0,
+        penalite_cos_phi: bill?.penalite_cos_phi ?? 0,
+        // MT Forfait
+        coefficient_multiplicateur: bill?.coefficient_multiplicateur ?? settings.moyenTensionForfait.coefficient_multiplicateur,
+        pu_consommation: bill?.pu_consommation ?? settings.moyenTensionForfait.pu_consommation,
+        tva_consommation_percent: bill?.tva_consommation_percent ?? settings.moyenTensionForfait.tva_consommation_percent,
+        tva_redevance_percent: bill?.tva_redevance_percent ?? settings.moyenTensionForfait.tva_redevance_percent,
+     }
+  }, [isEditMode, bill, meterIdParam, monthParam, yearParam, meters, settings]);
+
+  useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
 
   useEffect(() => {
     if (selectedMeter) {
@@ -467,16 +315,14 @@ export function BillForm({ bill }: BillFormProps) {
     }
   }, [selectedMeter, setValue, dirtyFields.typeTension]);
 
- useEffect(() => {
+  useEffect(() => {
     if (isEditMode) return;
     
     if (previousBill) {
         const type = previousBill.typeTension;
-        if (type === 'Basse Tension') {
-            setValue('ancienIndex', previousBill.nouveauIndex ?? previousBill.ancienIndex ?? 0);
-        } else if (type === 'Moyen Tension Forfaitaire') {
-            setValue('mtf_ancien_index', previousBill.mtf_nouveau_index ?? previousBill.mtf_ancien_index ?? 0);
-        } else if (type === 'Moyen Tension Tranche Horaire') {
+        if (type === 'Basse Tension') setValue('ancienIndex', previousBill.nouveauIndex ?? previousBill.ancienIndex ?? 0);
+        if (type === 'Moyen Tension Forfaitaire') setValue('mtf_ancien_index', previousBill.mtf_nouveau_index ?? previousBill.mtf_ancien_index ?? 0);
+        if (type === 'Moyen Tension Tranche Horaire') {
             setValue('ancien_index_jour', previousBill.nouveau_index_jour ?? previousBill.ancien_index_jour ?? 0);
             setValue('ancien_index_pointe', previousBill.nouveau_index_pointe ?? previousBill.ancien_index_pointe ?? 0);
             setValue('ancien_index_soir', previousBill.nouveau_index_soir ?? previousBill.ancien_index_soir ?? 0);
@@ -495,36 +341,77 @@ export function BillForm({ bill }: BillFormProps) {
         }
     }
   }, [previousBill, selectedMeter, setValue, isEditMode, hasAnyBillForMeter]);
-  
-  const calculateAndSetValues = useCallback(() => {
-    const values = getValues();
-    if (values.typeTension === "Basse Tension") {
-        const { consommation, montant } = calculateBasseTension(values.ancienIndex, values.nouveauIndex, values.prix_unitaire_bt, values.redevances_fixes, values.tva_bt, values.ertt_bt);
-        if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
-        if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
-    } else if (values.typeTension === "Moyen Tension Tranche Horaire") {
-        const { consommation, montant, ...calcs } = calculateMoyenTensionHoraire(values);
-        if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
-        if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
-        if (values.consommation_jour !== calcs.consommation_jour_calc && !dirtyFields.consommation_jour) setValue("consommation_jour", calcs.consommation_jour_calc);
-        if (values.consommation_pointe !== calcs.consommation_pointe_calc && !dirtyFields.consommation_pointe) setValue("consommation_pointe", calcs.consommation_pointe_calc);
-        if (values.consommation_soir !== calcs.consommation_soir_calc && !dirtyFields.consommation_soir) setValue("consommation_soir", calcs.consommation_soir_calc);
-        if (values.consommation_nuit !== calcs.consommation_nuit_calc && !dirtyFields.consommation_nuit) setValue("consommation_nuit", calcs.consommation_nuit_calc);
-    } else if (values.typeTension === "Moyen Tension Forfaitaire") {
-        const { consommation, montant } = calculateMoyenTensionForfait(values);
-        if (values.consumptionKWh !== consommation) setValue("consumptionKWh", consommation, { shouldValidate: true, shouldDirty: true });
-        if (values.amount !== montant) setValue("amount", montant, { shouldValidate: true, shouldDirty: true });
+
+
+  const { amount, consumptionKWh } = useMemo(() => {
+        let consumption = 0;
+        let finalAmount = 0;
+
+        if (watchedTypeTension === "Basse Tension") {
+            const numAncienIndex = Number(watchedFields.ancienIndex) || 0;
+            const numNouveauIndex = Number(watchedFields.nouveauIndex) || 0;
+            consumption = calculateConsumptionWithRollover(numAncienIndex, numNouveauIndex);
+            
+            const montant_consommation = consumption * (Number(watchedFields.prix_unitaire_bt) || 0);
+            const total_taxes = (Number(watchedFields.ertt_bt) || 0) + (Number(watchedFields.tva_bt) || 0);
+            const total_consommation = montant_consommation + (Number(watchedFields.redevances_fixes) || 0);
+            finalAmount = total_consommation + total_taxes;
+
+        } else if (watchedTypeTension === "Moyen Tension Tranche Horaire") {
+            const consoJour = calculateConsumptionWithRollover(watchedFields.ancien_index_jour, watchedFields.nouveau_index_jour);
+            const consoPointe = calculateConsumptionWithRollover(watchedFields.ancien_index_pointe, watchedFields.nouveau_index_pointe);
+            const consoSoir = calculateConsumptionWithRollover(watchedFields.ancien_index_soir, watchedFields.nouveau_index_soir);
+            const consoNuit = calculateConsumptionWithRollover(watchedFields.ancien_index_nuit, watchedFields.nouveau_index_nuit);
+
+            const totalConsumption = (consoJour * (Number(watchedFields.coefficient_jour) || 1)) +
+                                     (consoPointe * (Number(watchedFields.coefficient_pointe) || 1)) +
+                                     (consoSoir * (Number(watchedFields.coefficient_soir) || 1)) +
+                                     (consoNuit * (Number(watchedFields.coefficient_nuit) || 1));
+            consumption = totalConsumption;
+            
+            const montantJour = (consoJour * (Number(watchedFields.coefficient_jour) || 1)) * (Number(watchedFields.prix_unitaire_jour) || 0);
+            const montantPointe = (consoPointe * (Number(watchedFields.coefficient_pointe) || 1)) * (Number(watchedFields.prix_unitaire_pointe) || 0);
+            const montantSoir = (consoSoir * (Number(watchedFields.coefficient_soir) || 1)) * (Number(watchedFields.prix_unitaire_soir) || 0);
+            const montantNuit = (consoNuit * (Number(watchedFields.coefficient_nuit) || 1)) * (Number(watchedFields.prix_unitaire_nuit) || 0);
+
+            const subtotal = montantJour + montantPointe + montantSoir + montantNuit;
+            
+            const group1Total = (Number(watchedFields.prime_puissance_mth) || 0) + (Number(watchedFields.depassement_puissance) || 0) + (Number(watchedFields.location_materiel) || 0) + (Number(watchedFields.frais_intervention) || 0) + (Number(watchedFields.frais_relance) || 0) + (Number(watchedFields.frais_retard) || 0) + (Number(watchedFields.penalite_cos_phi) || 0);
+            const group2Total = (Number(watchedFields.tva_consommation) || 0) + (Number(watchedFields.tva_redevance) || 0) + (Number(watchedFields.contribution_rtt_mth) || 0) + (Number(watchedFields.surtaxe_municipale_mth) || 0);
+            
+            finalAmount = subtotal + group1Total + group2Total + (Number(watchedFields.avance_sur_consommation_mth) || 0);
+
+        } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
+            const energie_enregistree = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index) * (Number(watchedFields.coefficient_multiplicateur) || 0);
+            const consommation_a_facturer = energie_enregistree + (Number(watchedFields.perte_en_charge) || 0) + (Number(watchedFields.perte_a_vide) || 0);
+            consumption = consommation_a_facturer;
+
+            const montant_consommation = consommation_a_facturer * (Number(watchedFields.pu_consommation) || 0);
+            const sous_total_consommation = montant_consommation;
+            const totalFraisDivers = (Number(watchedFields.prime_puissance) || 0) + (Number(watchedFields.frais_location_mtf) || 0) + (Number(watchedFields.frais_intervention_mtf) || 0) + (Number(watchedFields.frais_relance_mtf) || 0) + (Number(watchedFields.frais_retard_mtf) || 0) + (Number(watchedFields.penalite_cos_phi_mtf) || 0);
+            const total_1 = sous_total_consommation - (Number(watchedFields.bonification) || 0);
+            const total_2 = total_1 + totalFraisDivers;
+            const tva_consommation = total_1 * ((Number(watchedFields.tva_consommation_percent) || 0) / 100);
+            const tva_redevance = totalFraisDivers * ((Number(watchedFields.tva_redevance_percent) || 0) / 100);
+            const total_3 = total_2 + tva_consommation + tva_redevance + (Number(watchedFields.contribution_rtt) || 0) + (Number(watchedFields.surtaxe_municipale) || 0);
+            finalAmount = total_3 + (Number(watchedFields.avance_consommation) || 0);
+        }
+
+        return { amount: parseFloat(finalAmount.toFixed(3)), consumptionKWh: consumption };
+  }, [watchedFields, watchedTypeTension]);
+
+
+  useEffect(() => {
+    if (!dirtyFields.consumptionKWh) {
+      setValue('consumptionKWh', consumptionKWh);
     }
-}, [getValues, setValue, dirtyFields]);
+  }, [consumptionKWh, setValue, dirtyFields.consumptionKWh]);
 
-// Re-calculate when any relevant field changes
-useEffect(() => {
-    calculateAndSetValues();
-}, [watchedFields, calculateAndSetValues]);
-
-useEffect(() => {
-    reset(defaultValues);
-}, [defaultValues, reset]);
+  useEffect(() => {
+    if (!dirtyFields.amount) {
+      setValue('amount', amount);
+    }
+  }, [amount, setValue, dirtyFields.amount]);
 
 
   const onSubmit = (values: FormValues) => {
@@ -951,3 +838,4 @@ useEffect(() => {
   );
 }
 
+    
