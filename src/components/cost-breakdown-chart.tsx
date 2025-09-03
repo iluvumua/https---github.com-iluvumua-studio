@@ -101,13 +101,12 @@ export function CostBreakdownChart() {
       { name: 'Autres', value: otherCost },
     ].filter(d => d.value > 0);
 
-    const totalConsumption = annualBills.reduce((acc, bill) => acc + bill.consumptionKWh, 0);
+    const totalCost = annualBills.reduce((acc, bill) => acc + bill.amount, 0);
     
-    return { chartData, totalConsumption, year: yearToDisplay };
+    return { chartData, totalCost, year: yearToDisplay };
   }, [bills, equipment, meters, buildings]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
-  const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' kWh';
 
   return (
     <Card>
@@ -143,7 +142,7 @@ export function CostBreakdownChart() {
             </ChartContainer>
             <div className="mt-4 text-center">
                 <p className="text-lg font-semibold">Consommation en DT</p>
-                <p className="text-2xl font-bold text-primary">{formatKWh(yearlyData.totalConsumption)}</p>
+                <p className="text-2xl font-bold text-primary">{formatCurrency(yearlyData.totalCost)}</p>
             </div>
         </>
         ) : (
