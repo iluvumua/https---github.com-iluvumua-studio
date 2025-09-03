@@ -17,11 +17,12 @@ import {
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useMetersStore } from "@/hooks/use-meters-store";
+import { useBuildingsStore } from "@/hooks/use-buildings-store";
 
 const chartConfig = {
-  msan: { label: "MSAN", color: "hsl(var(--chart-1))" },
-  gsm: { label: "GSM", color: "hsl(var(--chart-2))" },
-  mt: { label: "MT", color: "hsl(var(--chart-3))" },
+  msan_gsm: { label: "MSAN & GSM", color: "hsl(var(--chart-1))" },
+  mt_equip: { label: "Équipements MT", color: "hsl(var(--chart-2))" },
+  building_only: { label: "Bâtiments Seuls", color: "hsl(var(--chart-3))" },
   other: { label: "Autres", color: "hsl(var(--chart-4))" },
 };
 
@@ -31,6 +32,7 @@ export function CostBreakdownChart() {
   const { bills } = useBillingStore();
   const { equipment } = useEquipmentStore();
   const { meters } = useMetersStore();
+  const { buildings } = useBuildingsStore();
 
   const yearlyData = useMemo(() => {
     const latestYear = bills.reduce((maxYear, bill) => {
@@ -42,46 +44,67 @@ export function CostBreakdownChart() {
 
     const annualBills = bills.filter(bill => bill.month.endsWith(yearToDisplay.toString()));
 
-    let msanCost = 0;
-    let gsmCost = 0;
-    let mtCost = 0;
+    let msanGsmCost = 0;
+    let mtEquipCost = 0;
+    let buildingOnlyCost = 0;
     let otherCost = 0;
 
-    const msanMeterIds = new Set(equipment.filter(e => e.type === 'MSI' || e.type === 'MSN').map(e => e.compteurId));
-    const gsmMeterIds = new Set(equipment.filter(e => e.type === 'BTS').map(e => e.compteurId));
-    const mtMeterIds = new Set(meters.filter(m => m.typeTension.includes('Moyen Tension')).map(m => m.id));
+    const equipmentMetersMSAN = new Set<string>();
+    equipment.forEach(e => {
+        if (e.compteurId && (e.type.includes('MSAN') || e.type.includes('MSN') || e.type.includes('MSI') || e.type.includes('BTS'))) {
+            equipmentMetersMSAN.add(e.compteurId);
+        }
+    });
+
+    const mtMeters = new Set(meters.filter(m => m.typeTension.includes('Moyen Tension')).map(m => m.id));
+    const equipmentMetersMT = new Set<string>();
+    equipment.forEach(e => {
+        if (e.compteurId && mtMeters.has(e.compteurId)) {
+            equipmentMetersMT.add(e.compteurId);
+        }
+    });
+    
+    const buildingMeterIds = new Set(buildings.map(b => b.meterId).filter(Boolean));
+    const metersWithEquipment = new Set(equipment.map(e => e.compteurId).filter(Boolean));
+    const buildingOnlyMeters = new Set<string>();
+    buildingMeterIds.forEach(meterId => {
+        if (!metersWithEquipment.has(meterId as string)) {
+            buildingOnlyMeters.add(meterId as string);
+        }
+    });
     
     annualBills.forEach(bill => {
       let categorized = false;
-      if (msanMeterIds.has(bill.meterId)) {
-        msanCost += bill.amount;
+      if (equipmentMetersMSAN.has(bill.meterId)) {
+        msanGsmCost += bill.amount;
         categorized = true;
       }
-      if (gsmMeterIds.has(bill.meterId)) {
-        gsmCost += bill.amount;
+      // Use else-if to avoid double counting for equipment that is both MSAN/GSM and MT
+      else if (equipmentMetersMT.has(bill.meterId)) {
+        mtEquipCost += bill.amount;
         categorized = true;
       }
-      // A meter can be MT and also be associated with MSAN/GSM, avoid double counting.
-      if (mtMeterIds.has(bill.meterId) && !categorized) {
-        mtCost += bill.amount;
+      else if (buildingOnlyMeters.has(bill.meterId)) {
+        buildingOnlyCost += bill.amount;
         categorized = true;
       }
+      
       if (!categorized) {
         otherCost += bill.amount;
       }
     });
 
     const chartData = [
-      { name: 'MSAN', value: msanCost },
-      { name: 'GSM', value: gsmCost },
-      { name: 'MT', value: mtCost },
+      { name: 'MSAN & GSM', value: msanGsmCost },
+      { name: 'Équipements MT', value: mtEquipCost },
+      { name: 'Bâtiments Seuls', value: buildingOnlyCost },
       { name: 'Autres', value: otherCost },
     ].filter(d => d.value > 0);
 
     const totalConsumption = annualBills.reduce((acc, bill) => acc + bill.consumptionKWh, 0);
     
     return { chartData, totalConsumption, year: yearToDisplay };
-  }, [bills, equipment, meters]);
+  }, [bills, equipment, meters, buildings]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
   const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' kWh';
