@@ -453,19 +453,6 @@ export function BillForm({ bill }: BillFormProps) {
   }, [watchedMeterId, watchedBillDate, bills, getMonthNumber]);
   
   const selectedMeter = useMemo(() => meters.find(m => m.id === watchedMeterId), [meters, watchedMeterId]);
-  
-  const hasAnyBillForMeter = useMemo(() => {
-      if (!watchedMeterId) return false;
-      return bills.some(b => b.meterId === watchedMeterId);
-  }, [watchedMeterId, bills]);
-
-  const isAncienIndexReadOnly = useMemo(() => {
-    if (isEditMode) return false; // Always editable in edit mode
-    if (!selectedMeter) return true; // Cannot determine, so lock
-    if (!hasAnyBillForMeter) return true; // First bill for this meter, locked to Index de Départ
-    return false; // Subsequent bills, user might need to override
-  }, [isEditMode, hasAnyBillForMeter, selectedMeter]);
-
 
   useEffect(() => {
     if (selectedMeter) {
@@ -476,39 +463,32 @@ export function BillForm({ bill }: BillFormProps) {
   }, [selectedMeter, setValue, dirtyFields.typeTension]);
 
  useEffect(() => {
-    if (isEditMode || !selectedMeter) return;
+    if (isEditMode) return;
 
-    const isFirstBillEver = !bills.some(b => b.meterId === selectedMeter.id);
-    
-    const setIndexValues = (prevBill: Bill | null) => {
-        const type = selectedMeter.typeTension;
-        
-        if (isFirstBillEver) {
-            if (type === 'Basse Tension') setValue('ancienIndex', selectedMeter.indexDepart ?? 0);
-            if (type === 'Moyen Tension Forfaitaire') setValue('mtf_ancien_index', selectedMeter.indexDepart ?? 0);
-            if (type === 'Moyen Tension Tranche Horaire') {
-                setValue('ancien_index_jour', selectedMeter.indexDepartJour ?? 0);
-                setValue('ancien_index_pointe', selectedMeter.indexDepartPointe ?? 0);
-                setValue('ancien_index_soir', selectedMeter.indexDepartSoir ?? 0);
-                setValue('ancien_index_nuit', selectedMeter.indexDepartNuit ?? 0);
-            }
-        } else if (prevBill) {
-            if (type === 'Basse Tension') {
-                setValue('ancienIndex', prevBill.nouveauIndex ?? prevBill.ancienIndex ?? 0);
-            } else if (type === 'Moyen Tension Forfaitaire') {
-                setValue('mtf_ancien_index', prevBill.mtf_nouveau_index ?? prevBill.mtf_ancien_index ?? 0);
-            } else if (type === 'Moyen Tension Tranche Horaire') {
-                setValue('ancien_index_jour', prevBill.nouveau_index_jour ?? prevBill.ancien_index_jour ?? 0);
-                setValue('ancien_index_pointe', prevBill.nouveau_index_pointe ?? prevBill.ancien_index_pointe ?? 0);
-                setValue('ancien_index_soir', prevBill.nouveau_index_soir ?? prevBill.ancien_index_soir ?? 0);
-                setValue('ancien_index_nuit', prevBill.nouveau_index_nuit ?? prevBill.ancien_index_nuit ?? 0);
-            }
+    if (previousBill) {
+        const type = previousBill.typeTension;
+        if (type === 'Basse Tension') {
+            setValue('ancienIndex', previousBill.nouveauIndex ?? previousBill.ancienIndex ?? 0);
+        } else if (type === 'Moyen Tension Forfaitaire') {
+            setValue('mtf_ancien_index', previousBill.mtf_nouveau_index ?? previousBill.mtf_ancien_index ?? 0);
+        } else if (type === 'Moyen Tension Tranche Horaire') {
+            setValue('ancien_index_jour', previousBill.nouveau_index_jour ?? previousBill.ancien_index_jour ?? 0);
+            setValue('ancien_index_pointe', previousBill.nouveau_index_pointe ?? previousBill.ancien_index_pointe ?? 0);
+            setValue('ancien_index_soir', previousBill.nouveau_index_soir ?? previousBill.ancien_index_soir ?? 0);
+            setValue('ancien_index_nuit', previousBill.nouveau_index_nuit ?? previousBill.ancien_index_nuit ?? 0);
         }
-    };
-    
-    setIndexValues(previousBill);
-
-  }, [previousBill, selectedMeter, setValue, isEditMode, bills]);
+    } else if (selectedMeter) {
+        const type = selectedMeter.typeTension;
+        if (type === 'Basse Tension') setValue('ancienIndex', selectedMeter.indexDepart ?? 0);
+        if (type === 'Moyen Tension Forfaitaire') setValue('mtf_ancien_index', selectedMeter.indexDepart ?? 0);
+        if (type === 'Moyen Tension Tranche Horaire') {
+            setValue('ancien_index_jour', selectedMeter.indexDepartJour ?? 0);
+            setValue('ancien_index_pointe', selectedMeter.indexDepartPointe ?? 0);
+            setValue('ancien_index_soir', selectedMeter.indexDepartSoir ?? 0);
+            setValue('ancien_index_nuit', selectedMeter.indexDepartNuit ?? 0);
+        }
+    }
+  }, [previousBill, selectedMeter, setValue, isEditMode]);
   
   const calculateAndSetValues = useCallback(() => {
     const values = getValues();
@@ -712,7 +692,7 @@ useEffect(() => {
                         <FormField control={form.control} name="ancienIndex" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Ancien Index (Départ: {selectedMeter?.indexDepart ?? 'N/A'})</FormLabel>
-                                <FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl><FormMessage />
+                                <FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage />
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
@@ -747,28 +727,28 @@ useEffect(() => {
                     </div>
                     {/* Jour */}
                     <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour (Départ: {selectedMeter?.indexDepartJour ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour (Départ: {selectedMeter?.indexDepartJour ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Pointe */}
                      <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe (Départ: {selectedMeter?.indexDepartPointe ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe (Départ: {selectedMeter?.indexDepartPointe ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Soir */}
                      <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir (Départ: {selectedMeter?.indexDepartSoir ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir (Départ: {selectedMeter?.indexDepartSoir ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                     </div>
                     {/* Nuit */}
                     <div className="grid grid-cols-4 gap-4 items-end">
-                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit (Départ: {selectedMeter?.indexDepartNuit ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly={isAncienIndexReadOnly} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit (Départ: {selectedMeter?.indexDepartNuit ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl></FormItem> )} />
@@ -822,7 +802,7 @@ useEffect(() => {
                         <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( 
                             <FormItem>
                                 <FormLabel>Ancien Index (Départ: {selectedMeter?.indexDepart ?? 'N/A'})</FormLabel>
-                                <FormControl><Input type="number" {...field} readOnly={isAncienIndexReadOnly} /></FormControl>
+                                <FormControl><Input type="number" {...field} /></FormControl>
                             </FormItem> 
                         )} />
                         <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
@@ -964,3 +944,4 @@ useEffect(() => {
     </Form>
   );
 }
+
