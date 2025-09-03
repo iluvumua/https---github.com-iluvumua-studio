@@ -25,13 +25,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { BarChart as BarChartIcon, File, FileText } from "lucide-react";
+import { BarChart as BarChartIcon, File, FileText, LineChart } from "lucide-react";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import * as XLSX from 'xlsx';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceLine } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceLine, Line } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -211,18 +211,18 @@ export default function BillingStatisticsPage() {
             </CardHeader>
             <CardContent>
                  <ChartContainer config={{...chartConfig, Coût: { label: "Coût", color: "hsl(var(--chart-2))" }, Consommation: { label: "Consommation", color: "hsl(var(--chart-1))" }}} className="min-h-[300px] w-full">
-                    <BarChart data={annualChartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
+                    <RechartsPrimitive.LineChart data={annualChartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
                         <YAxis yAxisId="left" stroke="var(--color-Consommation)" tickFormatter={(val) => `${val/1000}k`} />
                         <YAxis yAxisId="right" orientation="right" stroke="var(--color-Coût)" tickFormatter={(val) => `${new Intl.NumberFormat('fr-TN', { notation: 'compact', compactDisplay: 'short' }).format(val)}`} />
                         <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
                         <Legend />
-                        <Bar yAxisId="left" dataKey="Consommation" fill="var(--color-Consommation)" radius={4} />
-                        <Bar yAxisId="right" dataKey="Coût" fill="var(--color-Coût)" radius={4} />
+                        <Line yAxisId="left" dataKey="Consommation" type="monotone" stroke="var(--color-Consommation)" strokeWidth={2} dot={false} />
+                        <Line yAxisId="right" dataKey="Coût" type="monotone" stroke="var(--color-Coût)" strokeWidth={2} dot={false} />
                         <ReferenceLine yAxisId="left" y={annualAverages.averageConsumption} label="Moyenne Conso" stroke="var(--color-averageConsumption)" strokeDasharray="3 3" />
                         <ReferenceLine yAxisId="right" y={annualAverages.averageCost} label="Moyenne Coût" stroke="var(--color-averageCost)" strokeDasharray="3 3" />
-                    </BarChart>
+                    </RechartsPrimitive.LineChart>
                 </ChartContainer>
             </CardContent>
         </Card>
@@ -272,7 +272,7 @@ export default function BillingStatisticsPage() {
                     </Select>
                 </div>
               <ChartContainer config={activeChartConfig} className="min-h-[300px] w-full">
-                <BarChart data={filteredData} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
+                <RechartsPrimitive.LineChart data={filteredData} margin={{ top: 20, right: 20, bottom: 40, left: 20 }}>
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="meterId"
@@ -294,14 +294,20 @@ export default function BillingStatisticsPage() {
                         indicator="dot"
                     />}
                   />
-                  <Bar 
+                  <Line 
                     yAxisId="left" 
+                    type="monotone"
                     dataKey={chartMetric}
-                    fill={chartMetric === 'consumption' ? "var(--color-consumption)" : "var(--color-cost)"}
-                    radius={[4, 4, 0, 0]} 
+                    stroke={chartMetric === 'consumption' ? "var(--color-consumption)" : "var(--color-cost)"}
+                    strokeWidth={2}
+                    dot={{
+                      r: 4,
+                      fill: "var(--background)",
+                      stroke: chartMetric === 'consumption' ? "var(--color-consumption)" : "var(--color-cost)",
+                    }}
                     name={chartMetric === 'consumption' ? "Consommation" : "Coût"}
                     />
-                </BarChart>
+                </RechartsPrimitive.LineChart>
               </ChartContainer>
 
               <Table>
@@ -341,5 +347,3 @@ export default function BillingStatisticsPage() {
     </div>
   );
 }
-
-    
