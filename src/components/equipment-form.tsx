@@ -20,6 +20,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
+import { Combobox } from "./combobox";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -35,11 +36,14 @@ const localisations = locationsData.map(loc => ({
     abbreviation: loc.abbreviation,
 }));
 
+const commonEquipmentTypes = [
+    { value: 'BTS', label: 'Site GSM' },
+];
+
 const indoorEquipmentTypes = [
     { value: 'MSI', label: 'MSAN Indoor' },
     { value: 'EXC', label: 'Central Téléphonique' },
     { value: 'OLT', label: 'OLT' },
-    { value: 'BTS', label: 'Site GSM' },
 ];
 
 const outdoorEquipmentTypes = [
@@ -53,8 +57,8 @@ const formSchema = z.object({
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
   designation: z.string().optional(),
-  coordX: z.coerce.number().optional(),
-  coordY: z.coerce.number().optional(),
+  coordX: z.coerce.number({required_error: "La coordonnée X est requise."}),
+  coordY: z.coerce.number({required_error: "La coordonnée Y est requise."}),
   buildingId: z.string().optional(),
   googleMapsUrl: z.string().optional(),
 });
@@ -68,6 +72,7 @@ interface EquipmentFormProps {
 const extractDesignationFromName = (name: string, type: string, typeChassis: string): string => {
     if (!name || !type || !typeChassis) return "";
 
+    // The designation is between the type+counter and the chassis
     const chassisIndex = name.lastIndexOf(`_${typeChassis}`);
     if (chassisIndex === -1) return "";
 
@@ -98,7 +103,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const building = buildings.find(b => b.id === buildingIdParam);
 
   const equipmentTypes = useMemo(() => {
-    return buildingIdParam ? indoorEquipmentTypes : outdoorEquipmentTypes;
+    const baseTypes = buildingIdParam ? indoorEquipmentTypes : outdoorEquipmentTypes;
+    return [...commonEquipmentTypes, ...baseTypes];
   }, [buildingIdParam]);
 
   const form = useForm<FormValues>({
@@ -109,8 +115,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       localisation: initialEquipment?.location || building?.code || "",
       typeChassis: initialEquipment?.typeChassis || "",
       designation: initialEquipment ? extractDesignationFromName(initialEquipment.name, initialEquipment.type, initialEquipment.typeChassis) : (building?.name || ""),
-      coordX: initialEquipment?.coordX ?? building?.coordX ?? 0,
-      coordY: initialEquipment?.coordY ?? building?.coordY ?? 0,
+      coordX: initialEquipment?.coordX,
+      coordY: initialEquipment?.coordY,
       buildingId: initialEquipment?.buildingId || buildingIdParam || "",
       googleMapsUrl: '',
     },
@@ -253,7 +259,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode && !canEditStatus}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le type" />
+                          <SelectValue placeholder="Sélectionner un fournisseur" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -275,7 +281,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!building || (isEditMode && !canEditStatus)}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le type" />
+                          <SelectValue placeholder="Sélectionner une localisation" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -294,18 +300,13 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode && !canEditStatus}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {equipmentTypes.map(type => (
-                            <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Combobox
+                        options={equipmentTypes}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Rechercher un type..."
+                        disabled={isEditMode && !canEditStatus}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -348,8 +349,12 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     </div>
                      <FormField control={form.control} name="googleMapsUrl" render={({ field }) => ( <FormItem><FormLabel>Lien Google Maps</FormLabel><FormControl><Input placeholder="Coller le lien Google Maps ici..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <div className="grid grid-cols-2 gap-2">
-                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>
-                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem>
+                            <FormLabel>X (Longitude)</FormLabel>
+                            <FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>
+                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem>
+                            <FormLabel>Y (Latitude)</FormLabel>
+                            <FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
               
