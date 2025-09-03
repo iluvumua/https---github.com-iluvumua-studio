@@ -39,10 +39,10 @@ const indoorEquipmentTypes = [
     { value: 'MSI', label: 'MSAN Indoor' },
     { value: 'EXC', label: 'Central Téléphonique' },
     { value: 'OLT', label: 'OLT' },
+    { value: 'BTS', label: 'Site GSM' },
 ];
 
 const outdoorEquipmentTypes = [
-    { value: 'BTS', label: 'Site GSM' },
     { value: 'MSN', label: 'MSAN Outdoor' },
 ];
 
@@ -63,6 +63,24 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface EquipmentFormProps {
     equipment?: Equipment;
+}
+
+const extractDesignationFromName = (name: string, type: string, typeChassis: string): string => {
+    if (!name || !type || !typeChassis) return "";
+
+    const chassisIndex = name.lastIndexOf(`_${typeChassis}`);
+    if (chassisIndex === -1) return "";
+
+    // Find the type with its counter (e.g., MSI11, MSN01)
+    const typeRegex = new RegExp(`_${type}\\d+`);
+    const typeMatch = name.match(typeRegex);
+    if (!typeMatch || typeof typeMatch.index === 'undefined') return "";
+    
+    const designationStartIndex = typeMatch.index + typeMatch[0].length + 1; // +1 for the underscore
+
+    if (designationStartIndex >= chassisIndex) return "";
+
+    return name.substring(designationStartIndex, chassisIndex);
 }
 
 export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProps) {
@@ -90,7 +108,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       fournisseur: initialEquipment?.fournisseur || "",
       localisation: initialEquipment?.location || building?.code || "",
       typeChassis: initialEquipment?.typeChassis || "",
-      designation: initialEquipment?.designation || building?.name || "",
+      designation: initialEquipment ? extractDesignationFromName(initialEquipment.name, initialEquipment.type, initialEquipment.typeChassis) : (building?.name || ""),
       coordX: initialEquipment?.coordX ?? building?.coordX ?? 0,
       coordY: initialEquipment?.coordY ?? building?.coordY ?? 0,
       buildingId: initialEquipment?.buildingId || buildingIdParam || "",
