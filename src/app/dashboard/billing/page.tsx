@@ -330,13 +330,4 @@ export default function BillingPage() {
     </div>
     </TooltipProvider>
   );
-    
-    
-
-    
-
-    
-
-    
-
-    
+}
