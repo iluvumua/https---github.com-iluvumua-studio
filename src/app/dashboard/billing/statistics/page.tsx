@@ -20,7 +20,7 @@ import { useBillingStore } from "@/hooks/use-billing-store";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
-import { CartesianGrid, XAxis, YAxis, Tooltip, Legend, ReferenceLine, Line, LineChart as RechartsLineChart } from "recharts";
+import { CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, LineChart as RechartsLineChart } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -34,49 +34,12 @@ const monthNames = [
 ];
 
 const chartConfig = {
-  cost: {
-    label: "Coût (TND)",
-    color: "hsl(var(--chart-2))",
-  },
-  averageCost: {
-    label: "Coût Moyen",
-    color: "hsl(var(--chart-4))",
-  },
+  total: { label: "Total", color: "hsl(var(--chart-1))" },
+  msan_gsm: { label: "MSAN & GSM", color: "hsl(var(--chart-2))" },
+  mt_equip: { label: "Équipements MT", color: "hsl(var(--chart-3))" },
+  building_only: { label: "Bâtiments Seuls", color: "hsl(var(--chart-4))" },
 };
 
-
-const AnnualCostChart = ({ title, description, chartData }: { title: string, description: string, chartData: any[] }) => {
-    const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
-    const yAxisFormatter = (value: number) => `${new Intl.NumberFormat('fr-TN', { notation: 'compact', compactDisplay: 'short' }).format(value)}`;
-    
-    const annualAverages = useMemo(() => {
-        const totalCost = chartData.reduce((acc, data) => acc + data.Coût, 0);
-        const monthsWithData = chartData.filter(d => d.Coût > 0).length || 1;
-        return { averageCost: totalCost / monthsWithData };
-    }, [chartData]);
-    
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ChartContainer config={{...chartConfig, Coût: { label: "Coût", color: "hsl(var(--chart-2))" }}} className="min-h-[300px] w-full">
-                    <RechartsLineChart data={chartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
-                        <YAxis tickFormatter={yAxisFormatter} />
-                        <ChartTooltip content={<ChartTooltipContent indicator="dot" formatter={(val) => formatCurrency(val as number)} />} />
-                        <Legend />
-                        <Line dataKey="Coût" type="monotone" stroke="var(--color-cost)" strokeWidth={2} dot={false} />
-                        <ReferenceLine y={annualAverages.averageCost} label="Moyenne" stroke="var(--color-averageCost)" strokeDasharray="3 3" />
-                    </RechartsLineChart>
-                </ChartContainer>
-            </CardContent>
-        </Card>
-    )
-}
 
 export default function BillingStatisticsPage() {
   const { bills } = useBillingStore();
@@ -91,53 +54,29 @@ export default function BillingStatisticsPage() {
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [bills]);
 
-  const calculateAnnualChartData = (filteredBills: Bill[]) => {
-    const yearBills = filteredBills.filter(bill => bill.month.endsWith(selectedYear));
-    const monthlyData: { [key: string]: { cost: number } } = {};
+  const annualChartData = useMemo(() => {
+    const yearBills = bills.filter(bill => bill.month.endsWith(selectedYear));
+    const monthlyData: { [key: string]: { [key in keyof typeof chartConfig]: number } } = {};
 
     monthNames.forEach(month => {
-        monthlyData[month] = { cost: 0 };
+        monthlyData[month] = { total: 0, msan_gsm: 0, mt_equip: 0, building_only: 0 };
     });
-
-    yearBills.forEach(bill => {
-        const monthName = bill.month.split(' ')[0];
-        if (monthlyData[monthName]) {
-            monthlyData[monthName].cost += bill.amount;
-        }
-    });
-
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month: month.slice(0, 3),
-      Coût: data.cost,
-    }));
-  };
-  
-  const allMetersChartData = useMemo(() => calculateAnnualChartData(bills), [bills, selectedYear]);
-
-  const msanGsmChartData = useMemo(() => {
-    const equipmentMeters = new Set<string>();
+    
+    const equipmentMetersMSAN = new Set<string>();
     equipment.forEach(e => {
         if (e.compteurId && (e.type.includes('MSAN') || e.type.includes('MSN') || e.type.includes('MSI') || e.type.includes('BTS'))) {
-            equipmentMeters.add(e.compteurId);
+            equipmentMetersMSAN.add(e.compteurId);
         }
     });
-    const filtered = bills.filter(bill => equipmentMeters.has(bill.meterId));
-    return calculateAnnualChartData(filtered);
-  }, [bills, equipment, selectedYear]);
 
-  const mtEquipmentChartData = useMemo(() => {
     const mtMeters = new Set(meters.filter(m => m.typeTension.includes('Moyen Tension')).map(m => m.id));
-    const equipmentMeters = new Set<string>();
+    const equipmentMetersMT = new Set<string>();
     equipment.forEach(e => {
         if (e.compteurId && mtMeters.has(e.compteurId)) {
-            equipmentMeters.add(e.compteurId);
+            equipmentMetersMT.add(e.compteurId);
         }
     });
-    const filtered = bills.filter(bill => equipmentMeters.has(bill.meterId));
-    return calculateAnnualChartData(filtered);
-  }, [bills, equipment, meters, selectedYear]);
-  
-  const buildingOnlyChartData = useMemo(() => {
+    
     const buildingMeterIds = new Set(buildings.map(b => b.meterId).filter(Boolean));
     const metersWithEquipment = new Set(equipment.map(e => e.compteurId).filter(Boolean));
     const buildingOnlyMeters = new Set<string>();
@@ -146,11 +85,33 @@ export default function BillingStatisticsPage() {
             buildingOnlyMeters.add(meterId as string);
         }
     });
-    const filtered = bills.filter(bill => buildingOnlyMeters.has(bill.meterId));
-    return calculateAnnualChartData(filtered);
-  }, [bills, buildings, equipment, selectedYear]);
 
 
+    yearBills.forEach(bill => {
+        const monthName = bill.month.split(' ')[0];
+        if (monthlyData[monthName]) {
+            monthlyData[monthName].total += bill.amount;
+            if (equipmentMetersMSAN.has(bill.meterId)) {
+                monthlyData[monthName].msan_gsm += bill.amount;
+            }
+            if (equipmentMetersMT.has(bill.meterId)) {
+                monthlyData[monthName].mt_equip += bill.amount;
+            }
+            if (buildingOnlyMeters.has(bill.meterId)) {
+                monthlyData[monthName].building_only += bill.amount;
+            }
+        }
+    });
+    
+    return Object.entries(monthlyData).map(([month, data]) => ({
+      month: month.slice(0, 3),
+      ...data
+    }));
+  }, [bills, equipment, meters, buildings, selectedYear]);
+
+  const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
+  const yAxisFormatter = (value: number) => `${new Intl.NumberFormat('fr-TN', { notation: 'compact', compactDisplay: 'short' }).format(value)}`;
+  
   return (
     <div className="grid gap-6">
        <Card>
@@ -174,30 +135,22 @@ export default function BillingStatisticsPage() {
                      </div>
                 </div>
             </CardHeader>
+             <CardContent>
+                <ChartContainer config={chartConfig} className="min-h-[400px] w-full">
+                    <RechartsLineChart data={annualChartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+                        <YAxis tickFormatter={yAxisFormatter} />
+                        <ChartTooltip content={<ChartTooltipContent indicator="dot" formatter={(val) => formatCurrency(val as number)} />} />
+                        <Legend />
+                        <Line dataKey="total" type="monotone" stroke="var(--color-total)" strokeWidth={2} dot={false} name="Total"/>
+                        <Line dataKey="msan_gsm" type="monotone" stroke="var(--color-msan_gsm)" strokeWidth={2} dot={false} name="MSAN & GSM" />
+                        <Line dataKey="mt_equip" type="monotone" stroke="var(--color-mt_equip)" strokeWidth={2} dot={false} name="Équipements MT" />
+                        <Line dataKey="building_only" type="monotone" stroke="var(--color-building_only)" strokeWidth={2} dot={false} name="Bâtiments Seuls" />
+                    </RechartsLineChart>
+                </ChartContainer>
+            </CardContent>
         </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <AnnualCostChart 
-                title="Coût Total (Tous les Compteurs)"
-                description="Coût total de toutes les factures enregistrées."
-                chartData={allMetersChartData}
-            />
-             <AnnualCostChart 
-                title="Coût Équipement (MSAN & Site GSM)"
-                description="Coût total pour les équipements de type MSAN, MSN, MSI, et BTS."
-                chartData={msanGsmChartData}
-            />
-             <AnnualCostChart 
-                title="Coût Équipement (Compteurs MT)"
-                description="Coût total pour les équipements alimentés par des compteurs Moyenne Tension."
-                chartData={mtEquipmentChartData}
-            />
-             <AnnualCostChart 
-                title="Coût (Bâtiments Uniquement)"
-                description="Coût pour les compteurs de bâtiments qui n'alimentent pas d'équipement spécifique."
-                chartData={buildingOnlyChartData}
-            />
-        </div>
     </div>
   );
 }
