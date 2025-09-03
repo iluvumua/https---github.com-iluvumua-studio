@@ -3,7 +3,6 @@
 
 import { Building2, Network, FileText, Gauge, FileWarning, TrendingUp, Calculator } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EnergyConsumptionChart } from "@/components/energy-consumption-chart";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useBillingStore } from "@/hooks/use-billing-store";
@@ -12,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
+import { CostBreakdownChart } from "@/components/cost-breakdown-chart";
 
 export default function DashboardPage() {
   const { equipment } = useEquipmentStore();
@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const { bills } = useBillingStore();
   const { meters } = useMetersStore();
 
-  const activeEquipmentCount = equipment.filter(e => e.status === 'Active').length;
+  const activeEquipmentCount = equipment.filter(e => e.status === 'En service').length;
   const buildingsCount = buildings.length;
   const metersCount = meters.length;
 
@@ -131,7 +131,7 @@ export default function DashboardPage() {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7 md:gap-8">
         <div className="lg:col-span-4">
-            <EnergyConsumptionChart />
+            <CostBreakdownChart />
         </div>
          <div className="lg:col-span-3">
              <Card>
