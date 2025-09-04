@@ -83,7 +83,7 @@ export function CostBreakdownChart() {
       } else if (buildingMeters.has(meter.id)) {
         costsByCategory['Bâtiments Seuls'] = (costsByCategory['Bâtiments Seuls'] || 0) + bill.amount;
       } else {
-        costsByCategory['Autres'] = (costsByCategory['Autres'] || 0) + bill.amount;
+        costsByCategory['Compteurs non-associés'] = (costsByCategory['Compteurs non-associés'] || 0) + bill.amount;
       }
     });
 
