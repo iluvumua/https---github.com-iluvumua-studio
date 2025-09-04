@@ -41,7 +41,7 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style
 
 const RADIAN = Math.PI / 180;
 const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, fill }: any) => {
-    const radius = outerRadius + 20; // Position label outside the slice
+    const radius = outerRadius + 25;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const percentage = (percent * 100).toFixed(0);
@@ -217,7 +217,7 @@ export function CostBreakdownChart() {
                             cy="50%"
                             labelLine={false}
                             label={<CustomLabel />}
-                            outerRadius={80}
+                            outerRadius={100}
                             fill="#8884d8"
                             dataKey="value"
                             nameKey="name"
