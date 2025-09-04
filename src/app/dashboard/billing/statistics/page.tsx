@@ -20,12 +20,16 @@ import { useBillingStore } from "@/hooks/use-billing-store";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
-import { CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line, LineChart as RechartsLineChart } from "recharts";
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import type { Bill, Meter } from "@/lib/types";
 import { RecapCard, RecapData } from "@/components/recap-card";
 import { Separator } from "@/components/ui/separator";
@@ -34,14 +38,6 @@ const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
-
-const chartConfig = {
-  total: { label: "Total", color: "hsl(var(--chart-1))" },
-  msan_gsm: { label: "MSAN & GSM", color: "hsl(var(--chart-2))" },
-  mt_equip: { label: "Équipements MT", color: "hsl(var(--chart-3))" },
-  building_only: { label: "Bâtiments Seuls", color: "hsl(var(--chart-4))" },
-};
-
 
 export default function BillingStatisticsPage() {
   const { bills } = useBillingStore();
@@ -123,10 +119,10 @@ export default function BillingStatisticsPage() {
 
   const annualChartData = useMemo(() => {
     const yearBills = bills.filter(bill => bill.month.endsWith(selectedYear));
-    const monthlyData: { [key: string]: { [key in keyof typeof chartConfig]: number } } = {};
+    const monthlyData: { [key: string]: { [key: string]: number } } = {};
 
     monthNames.forEach(month => {
-        monthlyData[month] = { total: 0, msan_gsm: 0, mt_equip: 0, building_only: 0 };
+        monthlyData[month] = { total: 0, "MSAN & GSM": 0, "Équipements MT": 0, "Bâtiments Seuls": 0 };
     });
     
     const equipmentMetersMSAN = new Set<string>();
@@ -159,13 +155,13 @@ export default function BillingStatisticsPage() {
         if (monthlyData[monthName]) {
             monthlyData[monthName].total += bill.amount;
             if (equipmentMetersMSAN.has(bill.meterId)) {
-                monthlyData[monthName].msan_gsm += bill.amount;
+                monthlyData[monthName]["MSAN & GSM"] += bill.amount;
             }
             if (equipmentMetersMT.has(bill.meterId)) {
-                monthlyData[monthName].mt_equip += bill.amount;
+                monthlyData[monthName]["Équipements MT"] += bill.amount;
             }
             if (buildingOnlyMeters.has(bill.meterId)) {
-                monthlyData[monthName].building_only += bill.amount;
+                monthlyData[monthName]["Bâtiments Seuls"] += bill.amount;
             }
         }
     });
@@ -203,19 +199,19 @@ export default function BillingStatisticsPage() {
                 </div>
             </CardHeader>
              <CardContent>
-                <ChartContainer config={chartConfig} className="min-h-[400px] w-full">
-                    <RechartsLineChart data={annualChartData} margin={{ top: 20, right: 20, bottom: 5, left: 0 }}>
-                        <CartesianGrid vertical={false} />
-                        <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+                <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={annualChartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
                         <YAxis tickFormatter={yAxisFormatter} />
-                        <ChartTooltip content={<ChartTooltipContent indicator="dot" formatter={(val) => formatCurrency(val as number)} />} />
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
                         <Legend />
-                        <Line dataKey="total" type="monotone" stroke="var(--color-total)" strokeWidth={2} dot={false} name="Total"/>
-                        <Line dataKey="msan_gsm" type="monotone" stroke="var(--color-msan_gsm)" strokeWidth={2} dot={false} name="MSAN & GSM" />
-                        <Line dataKey="mt_equip" type="monotone" stroke="var(--color-mt_equip)" strokeWidth={2} dot={false} name="Équipements MT" />
-                        <Line dataKey="building_only" type="monotone" stroke="var(--color-building_only)" strokeWidth={2} dot={false} name="Bâtiments Seuls" />
-                    </RechartsLineChart>
-                </ChartContainer>
+                        <Line type="monotone" dataKey="total" stroke="#8884d8" name="Total" strokeWidth={2} />
+                        <Line type="monotone" dataKey="MSAN & GSM" stroke="#82ca9d" name="MSAN & GSM" />
+                        <Line type="monotone" dataKey="Équipements MT" stroke="#ffc658" name="Équipements MT" />
+                        <Line type="monotone" dataKey="Bâtiments Seuls" stroke="#ff8042" name="Bâtiments Seuls" />
+                    </LineChart>
+                </ResponsiveContainer>
             </CardContent>
         </Card>
         
