@@ -36,15 +36,17 @@ const BASE_COLORS = [
 const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
 
 const RADIAN = Math.PI / 180;
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload }: any) => {
+const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload, percent }: any) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 1.25;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    const percentage = (percent * 100).toFixed(2);
 
     return (
         <text x={x} y={y} fill="currentColor" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs">
-            <tspan x={x} dy="-0.5em">{payload.name}</tspan>
+            <tspan x={x} dy="-1.2em">{payload.name}</tspan>
             <tspan x={x} dy="1.2em" className="font-semibold">{formatCurrency(payload.value)}</tspan>
+            <tspan x={x} dy="1.2em" className="text-muted-foreground">{` (${percentage}%)`}</tspan>
         </text>
     );
 };
@@ -68,36 +70,41 @@ export function CostBreakdownChart() {
 
     const costsByCategory: { [key: string]: number } = {};
     const metersById = new Map(meters.map(m => [m.id, m]));
-    const equipmentById = new Map(equipment.map(e => [e.id, e]));
-    const buildingsById = new Map(buildings.map(b => [b.id, b]));
-
-    const meterToParents = new Map<string, string[]>();
-    equipment.forEach(e => {
-        if (e.compteurId) {
-            if (!meterToParents.has(e.compteurId)) meterToParents.set(e.compteurId, []);
-            meterToParents.get(e.compteurId)!.push(e.id);
-        }
-    });
+    
+    const meterToParents = new Map<string, (Equipment | Building)[]>();
+    
+    // Map meters to buildings
     buildings.forEach(b => {
         if (b.meterId) {
             if (!meterToParents.has(b.meterId)) meterToParents.set(b.meterId, []);
-            meterToParents.get(b.meterId)!.push(b.id);
+            meterToParents.get(b.meterId)!.push(b);
         }
     });
 
-    annualBills.forEach(bill => {
-        const parentsIds = meterToParents.get(bill.meterId);
-        const meter = metersById.get(bill.meterId);
-        const tensionLabel = meter?.typeTension?.includes('Basse') ? 'BT' : 'MT';
+    // Map meters to equipment
+    equipment.forEach(e => {
+        if (e.compteurId) {
+             if (!meterToParents.has(e.compteurId)) meterToParents.set(e.compteurId, []);
+             // Avoid double-counting if equipment is in a building that is already mapped
+             const buildingParentExists = meterToParents.get(e.compteurId)!.some(p => 'code' in p && p.id === e.buildingId);
+             if (!buildingParentExists) {
+                meterToParents.get(e.compteurId)!.push(e);
+             }
+        }
+    });
 
-        if (parentsIds && parentsIds.length > 0) {
-            const costPerParent = bill.amount / parentsIds.length;
-            parentsIds.forEach(parentId => {
-                const parentEq = equipmentById.get(parentId);
-                const parentBldg = buildingsById.get(parentId);
-                
+
+    annualBills.forEach(bill => {
+        const parents = meterToParents.get(bill.meterId);
+        const meter = metersById.get(bill.meterId);
+        
+        if (parents && parents.length > 0) {
+            const costPerParent = bill.amount / parents.length;
+            parents.forEach(parent => {
+                const tensionLabel = meter?.typeTension?.includes('Basse') ? 'BT' : 'MT';
                 let categoryKey = 'Inconnu';
-                if(parentEq) {
+
+                if ('type' in parent) { // It's an Equipment
                     const typeMap: { [key: string]: string } = {
                         'MSI': 'MSAN Indoor',
                         'MSN': 'MSAN Outdoor',
@@ -105,10 +112,18 @@ export function CostBreakdownChart() {
                         'EXC': 'Central Téléphonique',
                         'OLT': 'OLT',
                     };
-                    const descriptiveType = typeMap[parentEq.type] || parentEq.type;
+                    const descriptiveType = typeMap[parent.type] || parent.type;
                     categoryKey = `${descriptiveType} (${tensionLabel})`;
-                } else if(parentBldg) {
-                     categoryKey = 'Bâtiments Seuls';
+                } else if ('code' in parent) { // It's a Building
+                     // Check if any active equipment is associated with this building's meter
+                     const equipmentOnSameMeter = equipment.some(e => e.compteurId === parent.meterId && e.status !== 'switched off');
+                     if (!equipmentOnSameMeter) {
+                        categoryKey = 'Bâtiments Seuls';
+                     } else {
+                        // Cost is already distributed to equipment, so we can skip this building parent
+                        // to avoid double counting or mis-attribution.
+                        return; 
+                     }
                 }
                 
                 costsByCategory[categoryKey] = (costsByCategory[categoryKey] || 0) + costPerParent;
@@ -187,4 +202,3 @@ export function CostBreakdownChart() {
     </Card>
   );
 }
-
