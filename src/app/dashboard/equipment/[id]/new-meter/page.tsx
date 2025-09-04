@@ -254,16 +254,14 @@ export default function NewMeterWorkflowPage() {
         setCurrentStep(2);
     }
     
-    const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string, indexDepart: number }) => {
+    const handleStep2Finish = (data: Partial<Meter>) => {
         if (wipMeter && equipmentItem) {
             const tempId = wipMeter.id;
             const updatedWipMeter: Meter = {
                 ...(wipMeter as Meter),
-                id: data.meterId,
-                dateMiseEnService: data.dateMiseEnService,
-                indexDepart: data.indexDepart,
+                ...data,
                 lastUpdate: new Date().toISOString().split('T')[0],
-                status: 'En cours', // Remain 'En cours'
+                status: 'En cours',
             };
             
             updateMeter(updatedWipMeter, tempId);
@@ -271,8 +269,8 @@ export default function NewMeterWorkflowPage() {
             if (equipmentItem.compteurId === tempId) {
                  updateEquipment({
                     ...equipmentItem,
-                    compteurId: data.meterId,
-                    status: 'En cours', // Remain 'En cours'
+                    compteurId: updatedWipMeter.id,
+                    status: 'En cours',
                     lastUpdate: new Date().toISOString().split('T')[0],
                 });
             }
@@ -284,7 +282,6 @@ export default function NewMeterWorkflowPage() {
 
     const handleStep3Finish = (data: { dateMiseEnService: string }) => {
         if(wipMeter && equipmentItem) {
-            // Update meter status to "En service"
             const finalMeterId = wipMeter.id;
             if (finalMeterId && !finalMeterId.startsWith('MTR-WIP-')) {
                  const meterToUpdate = meters.find(m => m.id === finalMeterId);
@@ -297,11 +294,11 @@ export default function NewMeterWorkflowPage() {
                  }
             }
 
-            // Update equipment status
             updateEquipment({
                 ...equipmentItem,
                 status: 'En service',
                 dateMiseEnService: data.dateMiseEnService,
+                compteurId: finalMeterId,
                 lastUpdate: new Date().toISOString().split('T')[0],
             });
             
@@ -435,5 +432,3 @@ export default function NewMeterWorkflowPage() {
         </div>
     )
 }
-
-    
