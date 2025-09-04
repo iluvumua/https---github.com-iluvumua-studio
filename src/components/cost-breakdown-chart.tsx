@@ -41,7 +41,8 @@ export function CostBreakdownChart() {
 
   const { chartData, totalCost, year, chartConfig } = useMemo(() => {
     const latestYear = bills.reduce((maxYear, bill) => {
-        const year = parseInt(bill.month.split(' ')[1]);
+        const yearMatch = bill.month.match(/\d{4}$/);
+        const year = yearMatch ? parseInt(yearMatch[0]) : 0;
         return isNaN(year) ? maxYear : Math.max(maxYear, year);
     }, 0);
     
@@ -49,42 +50,52 @@ export function CostBreakdownChart() {
     const annualBills = bills.filter(bill => bill.month.endsWith(yearToDisplay.toString()));
 
     const costsByCategory: { [key: string]: number } = {};
-
     const metersById = new Map(meters.map(m => [m.id, m]));
-    const equipmentByMeter = new Map<string, typeof equipment>();
+
+    // Step 1: Create a map of meterId to its "parents" (equipment or building)
+    const meterToParents = new Map<string, { type: 'equipment' | 'building', obj: any }[]>();
+
     equipment.forEach(e => {
         if (e.compteurId) {
-            if (!equipmentByMeter.has(e.compteurId)) {
-                equipmentByMeter.set(e.compteurId, []);
+            if (!meterToParents.has(e.compteurId)) {
+                meterToParents.set(e.compteurId, []);
             }
-            equipmentByMeter.get(e.compteurId)!.push(e);
+            meterToParents.get(e.compteurId)!.push({ type: 'equipment', obj: e });
         }
     });
-    
-    const buildingMeters = new Set(buildings.map(b => b.meterId).filter(Boolean));
 
+    buildings.forEach(b => {
+        if (b.meterId) {
+            if (!meterToParents.has(b.meterId)) {
+                meterToParents.set(b.meterId, []);
+            }
+            // Add building only if there's no equipment on the same meter
+            if (!meterToParents.get(b.meterId)!.some(p => p.type === 'equipment')) {
+                 meterToParents.get(b.meterId)!.push({ type: 'building', obj: b });
+            }
+        }
+    });
+
+    // Step 2: Categorize costs based on the meter-to-parent map
     annualBills.forEach(bill => {
-      const meter = metersById.get(bill.meterId);
-      if (!meter) {
-        costsByCategory['Autres'] = (costsByCategory['Autres'] || 0) + bill.amount;
-        return;
-      }
-      
-      const tensionLabel = meter.typeTension.includes('Basse') ? 'BT' : 'MT';
-      const associatedEquipment = equipmentByMeter.get(meter.id) || [];
+        const parents = meterToParents.get(bill.meterId);
+        const meter = metersById.get(bill.meterId);
+        const tensionLabel = meter?.typeTension?.includes('Basse') ? 'BT' : 'MT';
 
-      if (associatedEquipment.length > 0) {
-        // Distribute cost among equipment on the same meter
-        const costPerEquipment = bill.amount / associatedEquipment.length;
-        associatedEquipment.forEach(eq => {
-          const categoryKey = `${eq.type} (${tensionLabel})`;
-          costsByCategory[categoryKey] = (costsByCategory[categoryKey] || 0) + costPerEquipment;
-        });
-      } else if (buildingMeters.has(meter.id)) {
-        costsByCategory['Bâtiments Seuls'] = (costsByCategory['Bâtiments Seuls'] || 0) + bill.amount;
-      } else {
-        costsByCategory['Compteurs non-associés'] = (costsByCategory['Compteurs non-associés'] || 0) + bill.amount;
-      }
+        if (parents && parents.length > 0) {
+            const costPerParent = bill.amount / parents.length;
+            parents.forEach(parent => {
+                let categoryKey = 'Inconnu';
+                if (parent.type === 'equipment') {
+                    categoryKey = `${parent.obj.type} (${tensionLabel})`;
+                } else if (parent.type === 'building') {
+                    categoryKey = 'Bâtiments Seuls';
+                }
+                costsByCategory[categoryKey] = (costsByCategory[categoryKey] || 0) + costPerParent;
+            });
+        } else {
+            costsByCategory['Compteurs non-associés'] = (costsByCategory['Compteurs non-associés'] || 0) + bill.amount;
+        }
     });
 
     const finalChartData = Object.entries(costsByCategory).map(([name, value]) => ({
