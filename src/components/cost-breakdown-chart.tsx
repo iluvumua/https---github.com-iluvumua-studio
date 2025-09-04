@@ -40,6 +40,7 @@ const BASE_COLORS = [
 const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(value);
 
 const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, fill }: any) => {
+    const RADIAN = Math.PI / 180;
     const radius = outerRadius * 1.2; // Adjust this value to position the label
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -230,8 +231,7 @@ export function CostBreakdownChart() {
                             cy="50%"
                             labelLine={false}
                             label={renderCustomizedLabel}
-                            outerRadius={110}
-                            innerRadius={60}
+                            outerRadius={100}
                             fill="#8884d8"
                             dataKey="value"
                             nameKey="name"
