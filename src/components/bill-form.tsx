@@ -124,6 +124,26 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   frais_retard_mtf: z.coerce.number().optional(),
   penalite_cos_phi_mtf: z.coerce.number().optional(),
 
+}).superRefine((data, ctx) => {
+    if (isEditMode && data.reference) {
+        if (data.typeTension === "Basse Tension") {
+            if (data.reference.length !== 8) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Le N° de facture BT doit comporter 8 chiffres.",
+                    path: ["reference"],
+                });
+            }
+        } else if (data.typeTension.includes("Moyen Tension")) {
+            if (data.reference.length !== 12) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "Le N° de facture MT doit comporter 12 chiffres.",
+                    path: ["reference"],
+                });
+            }
+        }
+    }
 }).refine(data => {
     if (data.typeTension === "Moyen Tension Forfaitaire" && data.amount === undefined && !data.pu_consommation) return false;
     return true;
@@ -421,7 +441,8 @@ export function BillForm({ bill }: BillFormProps) {
     const formattedMonth = `${monthName} ${year}`;
     
     let reference = values.reference;
-    if (!isEditMode && selectedMeter?.referenceFacteur) {
+    // Auto-generate reference only if in create mode and no reference is provided manually.
+    if (!isEditMode && !values.reference && selectedMeter?.referenceFacteur) {
         const dateCode = `${month.padStart(2, '0')}${year.slice(2)}`;
         reference = `${selectedMeter.referenceFacteur}-${dateCode}`;
     }
@@ -548,7 +569,7 @@ export function BillForm({ bill }: BillFormProps) {
             <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-1">
             {isEditMode ? (
                 <FormField control={form.control} name="reference" render={({ field }) => (
-                    <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input {...field} inputMode="numeric" pattern="[0-9]*" readOnly={!isEditMode} className={isEditMode ? "" : "bg-muted"} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input {...field} inputMode="numeric" pattern="[0-9]*" /></FormControl><FormMessage /></FormItem>
                 )} />
             ) : (
                 <div className="space-y-1">
