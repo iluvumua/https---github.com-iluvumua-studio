@@ -39,15 +39,17 @@ export const billingData: Bill[] = [
     { id: 'BILL-1023-02', reference: '2023100000002', meterId: '587687455', month: 'Octobre 2023', amount: 5100.00, consumptionKWh: 22800, typeTension: 'Moyen Tension Forfaitaire', convenableSTEG: true, nombreMois: 2 },
     { id: 'BILL-0723-01', reference: '2023070000001', meterId: '552200', month: 'Juillet 2023', amount: 9200.00, consumptionKWh: 26000, typeTension: 'Moyen Tension Tranche Horaire', convenableSTEG: true, nombreMois: 12 },
     { id: 'BILL-0723-02', reference: '2023070000002', meterId: '542300', month: 'Juillet 2023', amount: 4800.00, consumptionKWh: 14000, typeTension: 'Moyen Tension Tranche Horaire', convenableSTEG: true, nombreMois: 12 },
-    { id: 'BILL-0623-01', reference: '2023060000001', meterId: '537400', month: 'Juin 2023', amount: 1500.00, consumptionKWh: 4500, typeTension: 'Moyen Tension Forfaitaire', convenableSTEG: false, montantSTEG: 1550.00, nombreMois: 2 },
+    { id: 'BILL-0623-01', reference: '2023060000001', meterId: '537400', month: 'Juin 2023', amount: 1500.00, consumptionKWh: 4500, typeTension: 'Moyen Tension Forfaitaire', convenableSTEG: false, montantSTEG: 1550.00, nombreMois: 2, description: "DEMANDE DE RESILIATION" },
     { id: 'BILL-0623-02', reference: '2023060000002', meterId: '548710', month: 'Juin 2023', amount: 3200.00, consumptionKWh: 9000, typeTension: 'Moyen Tension Tranche Horaire', convenableSTEG: true, nombreMois: 12 },
     { id: 'BILL-1123-01', reference: '2023110000001', meterId: '597878951', month: 'Novembre 2023', amount: 1350.00, consumptionKWh: 5500, typeTension: 'Basse Tension', convenableSTEG: true, nombreMois: 2 },
     { id: 'BILL-1123-02', reference: '2023110000002', meterId: '552200', month: 'Novembre 2023', amount: 8500.00, consumptionKWh: 24000, typeTension: 'Moyen Tension Tranche Horaire', convenableSTEG: true, nombreMois: 12 },
     { id: 'BILL-1223-01', reference: '2023120000001', meterId: '542300', month: 'Décembre 2023', amount: 5500.00, consumptionKWh: 15500, typeTension: 'Moyen Tension Tranche Horaire', convenableSTEG: true, nombreMois: 12 },
     { id: 'BILL-1223-02', reference: '2023120000002', meterId: '545040', month: 'Décembre 2023', amount: 48000.00, consumptionKWh: 140000, typeTension: 'Moyen Tension Tranche Horaire', convenableSTEG: true, nombreMois: 12 },
-    { id: 'BILL-0124-01', reference: '2024010000001', meterId: '537400', month: 'Janvier 2024', amount: 1800.00, consumptionKWh: 5000, typeTension: 'Moyen Tension Forfaitaire', convenableSTEG: false, montantSTEG: 1800.00, nombreMois: 2 },
-    { id: 'BILL-0224-01', reference: '2024020000001', meterId: '597878951', month: 'Février 2024', amount: 1400.00, consumptionKWh: 5800, typeTension: 'Basse Tension', convenableSTEG: true, nombreMois: 2 },
+    { id: 'BILL-0124-01', reference: '2024010000001', meterId: '537400', month: 'Janvier 2024', amount: 1800.00, consumptionKWh: 5000, typeTension: 'Moyen Tension Forfaitaire', convenableSTEG: false, montantSTEG: 1800.00, nombreMois: 2, description: "NON PARVENUE" },
+    { id: 'BILL-0224-01', reference: '2024020000002', meterId: '597878951', month: 'Février 2024', amount: 1400.00, consumptionKWh: 5800, typeTension: 'Basse Tension', convenableSTEG: true, nombreMois: 2 },
     { id: 'BILL-0324-01', reference: '2024030000001', meterId: '542440', month: 'Mars 2024', amount: 2800.00, consumptionKWh: 8000, typeTension: 'Moyen Tension Tranche Horaire', convenableSTEG: true, nombreMois: 12 },
+    { id: 'BILL-0424-01', reference: '614706350', meterId: '537400', month: 'Avril 2024', amount: 16673.415, consumptionKWh: 8000, typeTension: 'Moyen Tension Forfaitaire', convenableSTEG: false, montantSTEG: 17000, nombreMois: 2, description: "PRIX UNITAIRE" },
+
 ];
 
 export const metersData: Meter[] = [
@@ -62,7 +64,7 @@ export const metersData: Meter[] = [
     { id: '552200', policeNumber: '25-552200-99', referenceFacteur: '378051249', buildingId: '1', typeTension: 'Moyen Tension Tranche Horaire', status: 'En service', dateMiseEnService: '2022-03-10', description: 'Compteur principal du Complexe Sousse République.', lastUpdate: '2023-10-15', districtSteg: 'SOUSSE CENTRE', indexDepartJour: 1000, indexDepartPointe: 2000, indexDepartSoir: 3000, indexDepartNuit: 4000 },
     { id: '58768472354', policeNumber: '25-600001-99', typeTension: 'Basse Tension', status: 'En service', dateMiseEnService: '2024-01-10', description: 'Nouveau compteur pour équipement NSN à Ksiba', lastUpdate: '2024-01-10', districtSteg: 'SOUSSE CENTRE', indexDepart: 50 },
     { id: '236415276', policeNumber: '25-600002-99', typeTension: 'Moyen Tension Tranche Horaire', status: 'En service', dateMiseEnService: '2024-02-15', description: 'Nouveau compteur pour équipement ALU à Sahloul', lastUpdate: '2024-02-15', districtSteg: 'SOUSSE CENTRE', indexDepartJour: 100, indexDepartPointe: 200, indexDepartSoir: 300, indexDepartNuit: 400 },
-    { id: '236415277', policeNumber: '25-600003-99', typeTension: 'Basse Tension', status: 'En service', dateMiseEnService: '2024-03-01', description: 'Compteur pour BTS Huawei à Enfidha', lastUpdate: '2024-03-01', districtSteg: 'SOUSSE NORD', indexDepart: 0 },
+    { id: '236415277', policeNumber: '25-600003-99', typeTension: 'Basse Tension', status: 'En service', dateMiseEnService: '2024-03-01', description: 'Compteur pour BTS Huawei à Enfidha', lastUpdate: '2024-03-01', districtSteg: 'ENFIDHA', indexDepart: 0 },
     { id: '236415278', policeNumber: '25-600004-99', referenceFacteur: '378051250', buildingId: '4', typeTension: 'Moyen Tension Tranche Horaire', status: 'En service', dateMiseEnService: '2024-05-20', description: 'Compteur pour OLT à Sahloul', lastUpdate: '2024-05-20', districtSteg: 'SOUSSE CENTRE', indexDepartJour: 500, indexDepartPointe: 100, indexDepartSoir: 250, indexDepartNuit: 700 },
 ];
 
@@ -79,3 +81,4 @@ export const energyConsumptionData = [
     
 
     
+
