@@ -33,6 +33,23 @@ const BASE_COLORS = [
   "hsl(var(--chart-5) / 0.7)",
 ];
 
+const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
+
+const RADIAN = Math.PI / 180;
+const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.25;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+        <text x={x} y={y} fill="currentColor" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs">
+            <tspan x={x} dy="-0.5em">{payload.name}</tspan>
+            <tspan x={x} dy="1.2em" className="font-semibold">{formatCurrency(payload.value)}</tspan>
+        </text>
+    );
+};
+
+
 export function CostBreakdownChart() {
   const { bills } = useBillingStore();
   const { equipment } = useEquipmentStore();
@@ -51,43 +68,36 @@ export function CostBreakdownChart() {
 
     const costsByCategory: { [key: string]: number } = {};
     const metersById = new Map(meters.map(m => [m.id, m]));
+    const equipmentById = new Map(equipment.map(e => [e.id, e]));
+    const buildingsById = new Map(buildings.map(b => [b.id, b]));
 
-    // Step 1: Create a map of meterId to its "parents" (equipment or building)
-    const meterToParents = new Map<string, { type: 'equipment' | 'building', obj: any }[]>();
-
+    const meterToParents = new Map<string, string[]>();
     equipment.forEach(e => {
         if (e.compteurId) {
-            if (!meterToParents.has(e.compteurId)) {
-                meterToParents.set(e.compteurId, []);
-            }
-            meterToParents.get(e.compteurId)!.push({ type: 'equipment', obj: e });
+            if (!meterToParents.has(e.compteurId)) meterToParents.set(e.compteurId, []);
+            meterToParents.get(e.compteurId)!.push(e.id);
         }
     });
-
     buildings.forEach(b => {
         if (b.meterId) {
-            if (!meterToParents.has(b.meterId)) {
-                meterToParents.set(b.meterId, []);
-            }
-            // Add building only if there's no equipment on the same meter
-            if (!meterToParents.get(b.meterId)!.some(p => p.type === 'equipment')) {
-                 meterToParents.get(b.meterId)!.push({ type: 'building', obj: b });
-            }
+            if (!meterToParents.has(b.meterId)) meterToParents.set(b.meterId, []);
+            meterToParents.get(b.meterId)!.push(b.id);
         }
     });
 
-    // Step 2: Categorize costs based on the meter-to-parent map
     annualBills.forEach(bill => {
-        const parents = meterToParents.get(bill.meterId);
+        const parentsIds = meterToParents.get(bill.meterId);
         const meter = metersById.get(bill.meterId);
         const tensionLabel = meter?.typeTension?.includes('Basse') ? 'BT' : 'MT';
 
-        if (parents && parents.length > 0) {
-            const costPerParent = bill.amount / parents.length;
-            parents.forEach(parent => {
+        if (parentsIds && parentsIds.length > 0) {
+            const costPerParent = bill.amount / parentsIds.length;
+            parentsIds.forEach(parentId => {
+                const parentEq = equipmentById.get(parentId);
+                const parentBldg = buildingsById.get(parentId);
+                
                 let categoryKey = 'Inconnu';
-                if (parent.type === 'equipment') {
-                    const eqType = parent.obj.type;
+                if(parentEq) {
                     const typeMap: { [key: string]: string } = {
                         'MSI': 'MSAN Indoor',
                         'MSN': 'MSAN Outdoor',
@@ -95,17 +105,19 @@ export function CostBreakdownChart() {
                         'EXC': 'Central Téléphonique',
                         'OLT': 'OLT',
                     };
-                    const descriptiveType = typeMap[eqType] || eqType;
+                    const descriptiveType = typeMap[parentEq.type] || parentEq.type;
                     categoryKey = `${descriptiveType} (${tensionLabel})`;
-                } else if (parent.type === 'building') {
-                    categoryKey = 'Bâtiments Seuls';
+                } else if(parentBldg) {
+                     categoryKey = 'Bâtiments Seuls';
                 }
+                
                 costsByCategory[categoryKey] = (costsByCategory[categoryKey] || 0) + costPerParent;
             });
         } else {
             costsByCategory['Compteurs non-associés'] = (costsByCategory['Compteurs non-associés'] || 0) + bill.amount;
         }
     });
+
 
     const finalChartData = Object.entries(costsByCategory).map(([name, value]) => ({
       name,
@@ -126,8 +138,6 @@ export function CostBreakdownChart() {
     return { chartData: finalChartData, totalCost, year: yearToDisplay, chartConfig: dynamicChartConfig };
   }, [bills, equipment, meters, buildings]);
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
-
   const COLORS = useMemo(() => Object.values(chartConfig).map(c => c.color), [chartConfig]);
 
   return (
@@ -147,11 +157,11 @@ export function CostBreakdownChart() {
                             cx="50%"
                             cy="50%"
                             labelLine={false}
-                            outerRadius={100}
+                            label={<CustomLabel />}
+                            outerRadius={80}
                             fill="#8884d8"
                             dataKey="value"
                             nameKey="name"
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         >
                             {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -177,3 +187,4 @@ export function CostBreakdownChart() {
     </Card>
   );
 }
+
