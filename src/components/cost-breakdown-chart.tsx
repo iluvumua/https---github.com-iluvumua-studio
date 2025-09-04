@@ -41,9 +41,6 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style
 
 const RADIAN = Math.PI / 180;
 const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, fill }: any) => {
-    if (percent < 0.03) {
-        return null;
-    }
     const radius = outerRadius + 20; // Position label outside the slice
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
