@@ -12,7 +12,7 @@ function AddReferencePageContent() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Ajouter/Modifier une référence facture</CardTitle>
+                <CardTitle>Ajouter/Modifier une Référence Facture</CardTitle>
                 <CardDescription>
                     Recherchez un compteur, saisissez sa référence facture et son adresse de facturation.
                 </CardDescription>

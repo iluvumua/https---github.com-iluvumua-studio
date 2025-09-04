@@ -49,7 +49,7 @@ const monthNameToNumber: { [key: string]: string } = {
 };
 
 const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
-  reference: z.string().regex(/^[0-9]*$/, "Le N° de facture ne doit contenir que des chiffres.").optional(),
+  reference: z.string().regex(/^[0-9]*$/, "Le N° de facture ne doit contenir que des chiffres.").min(1, "Le N° de facture est requis."),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   billDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Le format doit être MM/AAAA."),
   nombreMois: z.coerce.number().optional(),
@@ -274,21 +274,21 @@ export function BillForm({ bill }: BillFormProps) {
         const year = getYear(now);
         billDate = `${(month === 0 ? 12 : month).toString().padStart(2, '0')}/${month === 0 ? year -1 : year}`;
     }
-    const initialMeterId = bill?.meterId || meterIdParam || "";
+    const initialMeterId = bill?.meterId ?? meterIdParam ?? "";
     const selectedMeterForDefaults = meters.find(m => m.id === initialMeterId);
 
      return {
         ...bill,
-        reference: bill?.reference || "",
+        reference: bill?.reference ?? "",
         meterId: initialMeterId,
         billDate,
-        nombreMois: bill?.nombreMois || 1,
-        typeTension: bill?.typeTension || selectedMeterForDefaults?.typeTension || "Basse Tension",
+        nombreMois: bill?.nombreMois ?? 1,
+        typeTension: bill?.typeTension ?? selectedMeterForDefaults?.typeTension ?? "Basse Tension",
         convenableSTEG: bill?.convenableSTEG ?? true,
         consumptionKWh: bill?.consumptionKWh ?? 0,
         amount: bill?.amount ?? 0,
         montantSTEG: bill?.montantSTEG ?? 0,
-        description: bill?.description || "",
+        description: bill?.description ?? "",
         // BT
         ancienIndex: bill?.ancienIndex ?? 0,
         nouveauIndex: bill?.nouveauIndex ?? 0,
@@ -469,15 +469,10 @@ export function BillForm({ bill }: BillFormProps) {
     const formattedMonth = `${monthName} ${year}`;
     
     let reference = values.reference;
-    // Auto-generate reference only if in create mode and no reference is provided manually.
-    if (!isEditMode && !values.reference && selectedMeter?.referenceFacteur) {
-        const dateCode = `${month.padStart(2, '0')}${year.slice(2)}`;
-        reference = `${selectedMeter.referenceFacteur}-${dateCode}`;
-    }
 
     const billData: Bill = {
         id: isEditMode ? bill.id : `BILL-${Date.now()}`,
-        reference: reference || `UNKNOWN-${Date.now()}`,
+        reference: reference,
         meterId: values.meterId,
         month: formattedMonth,
         nombreMois: values.nombreMois,
@@ -600,7 +595,7 @@ export function BillForm({ bill }: BillFormProps) {
                 <FormItem>
                   <FormLabel>N° Facture</FormLabel>
                   <FormControl>
-                    <Input {...field} value={field.value ?? ''} inputMode="numeric" pattern="[0-9]*" placeholder={isEditMode ? '' : 'Auto-généré si non fourni'}/>
+                    <Input {...field} value={field.value ?? ''} inputMode="numeric" pattern="[0-9]*" placeholder={'Entrez le N° de facture'}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -608,7 +603,7 @@ export function BillForm({ bill }: BillFormProps) {
             
             
             <FormField control={form.control} name="meterId" render={({ field }) => (
-                <FormItem><FormLabel>N° Compteur</FormLabel>
+                <FormItem><FormLabel>N° Compteur (Référence Facture: {selectedMeter?.referenceFacteur || 'N/A'})</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterIdParam || isEditMode}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
                         <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id} - {meter.referenceFacteur}</SelectItem>))}</SelectContent>

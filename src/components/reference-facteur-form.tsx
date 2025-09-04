@@ -207,7 +207,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                     <FormItem>
                         <FormLabel>Référence Facture</FormLabel>
                         <FormControl>
-                            <Input placeholder="8 chiffres (BT) ou 12 chiffres (MT)" {...field} inputMode="numeric" pattern="[0-9]*" />
+                            <Input placeholder="Entrez la référence facture" {...field} inputMode="numeric" pattern="[0-9]*" />
                         </FormControl>
                         <FormMessage />
                     </FormItem> 
