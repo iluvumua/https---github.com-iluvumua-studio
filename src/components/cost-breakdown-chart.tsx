@@ -40,19 +40,24 @@ const BASE_COLORS = [
 const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
 
 const RADIAN = Math.PI / 180;
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-    // Do not render label for small slices to avoid overlap
+const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, fill }: any) => {
     if (percent < 0.03) {
         return null;
     }
-
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const radius = outerRadius + 20; // Position label outside the slice
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const percentage = (percent * 100).toFixed(0);
 
     return (
-        <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-bold">
+        <text
+            x={x}
+            y={y}
+            fill={fill}
+            textAnchor={x > cx ? 'start' : 'end'}
+            dominantBaseline="central"
+            className="text-sm font-bold"
+        >
             {`${percentage}%`}
         </text>
     );
@@ -105,7 +110,7 @@ export function CostBreakdownChart() {
             const costPerParent = bill.amount / parents.length;
             parents.forEach(parent => {
                 const tensionLabel = meter?.typeTension?.includes('Basse') ? 'BT' : 'MT';
-                let categoryKey = 'Inconnu';
+                 let categoryKey = 'Inconnu';
 
                 if ('type' in parent) { // It's an Equipment
                     const type = parent.type;
@@ -215,7 +220,7 @@ export function CostBreakdownChart() {
                             cy="50%"
                             labelLine={false}
                             label={<CustomLabel />}
-                            outerRadius={110}
+                            outerRadius={80}
                             fill="#8884d8"
                             dataKey="value"
                             nameKey="name"
