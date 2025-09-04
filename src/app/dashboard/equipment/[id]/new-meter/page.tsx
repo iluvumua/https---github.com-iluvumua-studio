@@ -226,7 +226,7 @@ export default function NewMeterWorkflowPage() {
         setWorkflowChoice('new');
     }
     
-    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension Tranche Horaire' | 'Moyen Tension Forfaitaire' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
+    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyen Tension Tranche Horaire' | 'Moyen Tension Forfaitaire' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
         const newMeter: Partial<Meter> = {
             id: `MTR-WIP-${Date.now()}`,
             status: 'En cours',
@@ -283,22 +283,28 @@ export default function NewMeterWorkflowPage() {
     }
 
     const handleStep3Finish = (data: { dateMiseEnService: string }) => {
-        if(wipMeter) {
-            // Only update meter status if it's not already in service
-            if (wipMeter.status !== 'En service') {
-                updateMeter({
-                    ...(wipMeter as Meter),
-                    status: 'En service',
-                    lastUpdate: new Date().toISOString().split('T')[0],
-                }, wipMeter.id as string);
+        if(wipMeter && equipmentItem) {
+            // Update meter status to "En service"
+            const finalMeterId = wipMeter.id;
+            if (finalMeterId && !finalMeterId.startsWith('MTR-WIP-')) {
+                 const meterToUpdate = meters.find(m => m.id === finalMeterId);
+                 if (meterToUpdate && meterToUpdate.status !== 'En service') {
+                    updateMeter({
+                        ...meterToUpdate,
+                        status: 'En service',
+                        lastUpdate: new Date().toISOString().split('T')[0],
+                    });
+                 }
             }
 
+            // Update equipment status
             updateEquipment({
                 ...equipmentItem,
                 status: 'En service',
                 dateMiseEnService: data.dateMiseEnService,
                 lastUpdate: new Date().toISOString().split('T')[0],
             });
+            
             router.push('/dashboard/equipment');
         }
     }
@@ -429,3 +435,5 @@ export default function NewMeterWorkflowPage() {
         </div>
     )
 }
+
+    
