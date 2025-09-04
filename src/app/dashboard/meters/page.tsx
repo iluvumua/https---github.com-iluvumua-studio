@@ -86,15 +86,13 @@ function MetersPageComponent() {
 
   const filteredMeters = metersWithAlerts.filter(meter => {
       if (!meter.id) return false;
-      const associationName = getAssociationName(meter).toLowerCase();
-      const meterId = meter.id.toLowerCase();
-      const policeNumber = meter.policeNumber?.toLowerCase() || '';
       const query = searchTerm.toLowerCase();
-      
-      const matchesSearch = meterId.includes(query) || 
-                            associationName.includes(query) || 
-                            policeNumber.includes(query) ||
-                            (meter.description && meter.description.toLowerCase().includes(query));
+
+      const matchesSearch = 
+          meter.id.toLowerCase().includes(query) ||
+          getAssociationName(meter).toLowerCase().includes(query) || 
+          (meter.policeNumber || '').toLowerCase().includes(query) ||
+          (meter.description || '').toLowerCase().includes(query);
 
       if (!matchesSearch) return false;
 
