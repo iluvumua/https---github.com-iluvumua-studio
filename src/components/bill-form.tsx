@@ -616,7 +616,7 @@ export function BillForm({ bill }: BillFormProps) {
                     <FormItem>
                         <FormLabel>Type Tension</FormLabel>
                         <FormControl>
-                            <Input {...field} readOnly className="bg-muted" />
+                            <Input {...field} value={field.value ?? ''} readOnly className="bg-muted" />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -789,7 +789,7 @@ export function BillForm({ bill }: BillFormProps) {
                     <FormItem>
                         <FormLabel>Mois Facture (MM/AAAA)</FormLabel>
                         <FormControl>
-                            <Input placeholder="ex: 12/2024" {...field} />
+                            <Input placeholder="ex: 12/2024" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -881,3 +881,5 @@ export function BillForm({ bill }: BillFormProps) {
     </Form>
   );
 }
+
+    
