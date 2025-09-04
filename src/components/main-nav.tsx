@@ -71,7 +71,7 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
         </Link>
       ))}
       <ImporterButton asChild>
-        <button className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
+        <button className={cn("flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary w-full text-left")}>
             <Upload className="h-4 w-4" />
             Importer Données
         </button>
