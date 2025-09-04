@@ -134,7 +134,7 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
                     path: ["reference"],
                 });
             }
-        } else if (data.typeTension.includes("Moyen Tension")) {
+        } else if (data.typeTension?.includes("Moyen Tension")) {
             if (data.reference.length !== 12) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
@@ -278,7 +278,6 @@ export function BillForm({ bill }: BillFormProps) {
     const selectedMeterForDefaults = meters.find(m => m.id === initialMeterId);
 
      return {
-        ...bill,
         reference: bill?.reference ?? "",
         meterId: initialMeterId,
         billDate,
@@ -841,7 +840,7 @@ export function BillForm({ bill }: BillFormProps) {
                      <FormField control={form.control} name="description" render={({ field }) => (
                         <FormItem><FormLabel>Description</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Expliquez la raison de la non-conformité..." {...field} />
+                                <Textarea placeholder="Expliquez la raison de la non-conformité..." {...field} value={field.value ?? ''} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
