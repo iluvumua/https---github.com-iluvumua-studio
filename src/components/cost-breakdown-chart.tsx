@@ -87,7 +87,16 @@ export function CostBreakdownChart() {
             parents.forEach(parent => {
                 let categoryKey = 'Inconnu';
                 if (parent.type === 'equipment') {
-                    categoryKey = `${parent.obj.type} (${tensionLabel})`;
+                    const eqType = parent.obj.type;
+                    const typeMap: { [key: string]: string } = {
+                        'MSI': 'MSAN Indoor',
+                        'MSN': 'MSAN Outdoor',
+                        'BTS': 'BTS',
+                        'EXC': 'Central Téléphonique',
+                        'OLT': 'OLT',
+                    };
+                    const descriptiveType = typeMap[eqType] || eqType;
+                    categoryKey = `${descriptiveType} (${tensionLabel})`;
                 } else if (parent.type === 'building') {
                     categoryKey = 'Bâtiments Seuls';
                 }
