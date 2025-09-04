@@ -13,6 +13,8 @@ import {
 import {
   ChartContainer,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent as ChartLegendContentPrimitive,
 } from "@/components/ui/chart";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
@@ -20,6 +22,8 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Equipment, Building } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import type {Payload} from 'recharts/types/component/DefaultLegendContent';
+import { cn } from "@/lib/utils";
 
 // Base colors for dynamic generation
 const BASE_COLORS = [
@@ -154,6 +158,32 @@ export function CostBreakdownChart() {
   }, [bills, equipment, meters, buildings, selectedYear]);
 
   const COLORS = useMemo(() => Object.values(chartConfig).map(c => c.color), [chartConfig]);
+  
+  const ChartLegendContent = React.useCallback(
+    (props: { payload?: Payload[] }) => {
+      return (
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-xs">
+          {props.payload?.map((item) => {
+             const { value, color, payload } = item;
+             const cost = (payload as any)?.value;
+            return (
+              <div key={value} className="flex items-center gap-1.5">
+                <div
+                  className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                  style={{ backgroundColor: color }}
+                />
+                <div className="flex-1 space-x-1">
+                    <span>{value}</span>
+                    <span className="font-medium text-muted-foreground">{formatCurrency(cost)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    },
+    []
+  );
 
   return (
     <Card>
@@ -197,7 +227,7 @@ export function CostBreakdownChart() {
                             ))}
                         </Pie>
                         <Tooltip content={<ChartTooltipContent formatter={(val) => formatCurrency(val as number)} />} />
-                        <Legend />
+                        <Legend content={<ChartLegendContent />} />
                     </PieChart>
                 </ResponsiveContainer>
             </ChartContainer>
