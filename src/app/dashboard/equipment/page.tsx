@@ -236,8 +236,8 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                         {associatedMeter ? (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                             <div>
-                                <span className="font-medium text-muted-foreground">N° Compteur:</span> 
                                 <div className="flex items-center gap-2">
+                                        <span className="font-medium text-muted-foreground">N° Compteur:</span> 
                                         <span className="font-mono">{associatedMeter.id}</span>
                                         {item.status === 'switched off' && (
                                             <TooltipProvider>
@@ -437,4 +437,3 @@ export default function EquipmentPage() {
     </div>
   );
 }
-
