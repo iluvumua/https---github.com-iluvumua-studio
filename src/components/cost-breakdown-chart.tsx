@@ -38,24 +38,20 @@ const BASE_COLORS = [
 const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
 
 const RADIAN = Math.PI / 180;
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload, percent }: any) => {
+const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     // Do not render label for small slices to avoid overlap
     if (percent < 0.03) {
         return null;
     }
 
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.6;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    const percentage = (percent * 100).toFixed(2);
-    const textAnchor = x > cx ? 'start' : 'end';
-    const lineHeight = 16; 
+    const percentage = (percent * 100).toFixed(0);
 
     return (
-        <text x={x} y={y} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-xs">
-            <tspan x={x} y={y - lineHeight}>{payload.name}</tspan>
-            <tspan x={x} y={y} className="font-semibold">{formatCurrency(payload.value)}</tspan>
-            <tspan x={x} y={y + lineHeight} className="text-muted-foreground">{`(${percentage}%)`}</tspan>
+        <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-bold">
+            {`${percentage}%`}
         </text>
     );
 };
@@ -191,7 +187,7 @@ export function CostBreakdownChart() {
                             cy="50%"
                             labelLine={false}
                             label={<CustomLabel />}
-                            outerRadius={80}
+                            outerRadius={110}
                             fill="#8884d8"
                             dataKey="value"
                             nameKey="name"
