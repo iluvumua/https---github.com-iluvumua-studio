@@ -22,6 +22,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 const existingMeterSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
@@ -64,8 +65,8 @@ const AssignExistingMeterForm = ({ equipmentId }: { equipmentId: string }) => {
                 ...equipmentItem,
                 compteurId: values.meterId,
                 status: 'En service',
-                dateMiseEnService: new Date().toISOString().split('T')[0],
-                lastUpdate: new Date().toISOString().split('T')[0],
+                dateMiseEnService: format(new Date(), 'yyyy-MM-dd'),
+                lastUpdate: format(new Date(), 'yyyy-MM-dd'),
             });
             toast({
                 title: "Compteur Assigné",
@@ -154,7 +155,7 @@ export default function NewMeterWorkflowPage() {
                         compteurId: parentBuilding.meterId,
                         coordX: parentBuilding.coordX,
                         coordY: parentBuilding.coordY,
-                        lastUpdate: new Date().toISOString().split('T')[0],
+                        lastUpdate: format(new Date(), 'yyyy-MM-dd'),
                     });
                 }
             }
@@ -232,8 +233,8 @@ export default function NewMeterWorkflowPage() {
             status: 'En cours',
             typeTension: data.typeTension,
             policeNumber: data.policeNumber,
-            dateDemandeInstallation: data.dateDemandeInstallation.toISOString().split('T')[0],
-            lastUpdate: new Date().toISOString().split('T')[0],
+            dateDemandeInstallation: format(data.dateDemandeInstallation, 'yyyy-MM-dd'),
+            lastUpdate: format(new Date(), 'yyyy-MM-dd'),
             districtSteg: data.districtSteg,
             description: `Demande pour équipement ${equipmentItem.name}`,
             phase: data.phase,
@@ -247,7 +248,7 @@ export default function NewMeterWorkflowPage() {
             compteurId: newMeter.id,
             coordX: data.coordX,
             coordY: data.coordY,
-            lastUpdate: new Date().toISOString().split('T')[0],
+            lastUpdate: format(new Date(), 'yyyy-MM-dd'),
         });
         
         setWipMeter(newMeter);
@@ -256,24 +257,23 @@ export default function NewMeterWorkflowPage() {
     
     const handleStep2Finish = (data: Partial<Meter>) => {
         if (wipMeter && equipmentItem) {
-            const tempId = wipMeter.id;
-            const updatedWipMeter: Meter = {
+            const tempId = wipMeter.id!;
+             const updatedWipMeter: Meter = {
                 ...(wipMeter as Meter),
                 ...data,
-                lastUpdate: new Date().toISOString().split('T')[0],
+                id: data.id!, // Ensure the new ID from the form is used
+                lastUpdate: format(new Date(), 'yyyy-MM-dd'),
                 status: 'En cours',
             };
             
             updateMeter(updatedWipMeter, tempId);
 
-            if (equipmentItem.compteurId === tempId) {
-                 updateEquipment({
-                    ...equipmentItem,
-                    compteurId: updatedWipMeter.id,
-                    status: 'En cours',
-                    lastUpdate: new Date().toISOString().split('T')[0],
-                });
-            }
+            updateEquipment({
+                ...equipmentItem,
+                compteurId: updatedWipMeter.id, // Update equipment with the NEW meter ID
+                status: 'En cours',
+                lastUpdate: format(new Date(), 'yyyy-MM-dd'),
+            });
             
             setWipMeter(updatedWipMeter);
             setCurrentStep(3);
@@ -289,7 +289,7 @@ export default function NewMeterWorkflowPage() {
                     updateMeter({
                         ...meterToUpdate,
                         status: 'En service',
-                        lastUpdate: new Date().toISOString().split('T')[0],
+                        lastUpdate: format(new Date(), 'yyyy-MM-dd'),
                     });
                  }
             }
@@ -299,7 +299,7 @@ export default function NewMeterWorkflowPage() {
                 status: 'En service',
                 dateMiseEnService: data.dateMiseEnService,
                 compteurId: finalMeterId,
-                lastUpdate: new Date().toISOString().split('T')[0],
+                lastUpdate: format(new Date(), 'yyyy-MM-dd'),
             });
             
             router.push('/dashboard/equipment');

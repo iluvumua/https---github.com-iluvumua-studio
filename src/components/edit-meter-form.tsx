@@ -55,7 +55,7 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
     updateMeter({
         ...meter,
         ...values,
-        lastUpdate: new Date().toISOString().split('T')[0],
+        lastUpdate: format(new Date(), 'yyyy-MM-dd'),
     });
     toast({ title: "Compteur Mis à Jour", description: `Le compteur ${meter.id} a été modifié.` });
     router.push('/dashboard/meters');

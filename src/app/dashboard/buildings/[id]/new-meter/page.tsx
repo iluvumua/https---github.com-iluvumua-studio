@@ -16,6 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function NewMeterWorkflowPage() {
     const params = useParams();
@@ -66,8 +67,8 @@ export default function NewMeterWorkflowPage() {
             status: 'En cours',
             typeTension: data.typeTension,
             policeNumber: data.policeNumber,
-            dateDemandeInstallation: data.dateDemandeInstallation.toISOString().split('T')[0],
-            lastUpdate: new Date().toISOString().split('T')[0],
+            dateDemandeInstallation: format(data.dateDemandeInstallation, 'yyyy-MM-dd'),
+            lastUpdate: format(new Date(), 'yyyy-MM-dd'),
             buildingId: buildingItem.id,
             districtSteg: data.districtSteg,
             description: `Demande pour bâtiment ${buildingItem.name}`,
@@ -97,7 +98,7 @@ export default function NewMeterWorkflowPage() {
                 id: data.meterId,
                 dateMiseEnService: data.dateMiseEnService,
                 indexDepart: data.indexDepart,
-                lastUpdate: new Date().toISOString().split('T')[0],
+                lastUpdate: format(new Date(), 'yyyy-MM-dd'),
                 status: 'En cours',
             };
             
@@ -120,7 +121,7 @@ export default function NewMeterWorkflowPage() {
             updateMeter({
                 ...(wipMeter as Meter),
                 status: 'En service',
-                lastUpdate: new Date().toISOString().split('T')[0],
+                lastUpdate: format(new Date(), 'yyyy-MM-dd'),
             }, wipMeter.id);
             router.push('/dashboard/buildings');
         }

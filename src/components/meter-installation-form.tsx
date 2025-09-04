@@ -93,7 +93,7 @@ export function MeterInstallationForm({ onFinished, isFinished, meterId, initial
   const onSubmit = (values: FormValues) => {
     const finalData: Partial<Meter> = {
         id: values.meterId,
-        dateMiseEnService: values.dateMiseEnService.toISOString().split('T')[0],
+        dateMiseEnService: format(values.dateMiseEnService, 'yyyy-MM-dd'),
     };
 
     if (initialData?.typeTension === 'Basse Tension' || initialData?.typeTension === 'Moyen Tension Forfaitaire') {

@@ -55,7 +55,7 @@ export function EquipmentCommissioningForm({ equipment, onFinished, isFinished }
 
   const onSubmit = (values: FormValues) => {
     onFinished({
-      dateMiseEnService: values.dateMiseEnService.toISOString().split('T')[0],
+      dateMiseEnService: format(values.dateMiseEnService, 'yyyy-MM-dd'),
     });
     toast({ title: "Étape 3 Terminée", description: "L'équipement a été mis en service." });
   }

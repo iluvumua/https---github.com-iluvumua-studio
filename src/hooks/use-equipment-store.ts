@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { equipmentData } from '@/lib/data';
 import type { Equipment } from '@/lib/types';
+import { format } from 'date-fns';
 
 interface EquipmentState {
   equipment: Equipment[];
@@ -18,7 +19,7 @@ export const useEquipmentStore = create<EquipmentState>((set) => ({
   updateEquipment: (updatedEquipment) =>
     set((state) => ({
         equipment: state.equipment.map((item) =>
-            item.id === updatedEquipment.id ? { ...item, ...updatedEquipment } : item
+            item.id === updatedEquipment.id ? { ...item, ...updatedEquipment, lastUpdate: format(new Date(), 'yyyy-MM-dd') } : item
         ),
     })),
 }));

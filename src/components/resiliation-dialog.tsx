@@ -114,14 +114,14 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
         updateEquipment({
             ...equipment,
             status: newStatus,
-            dateDemandeResiliation: values.dateDemandeResiliationEquipement?.toISOString().split('T')[0],
-            dateResiliationEquipement: values.dateResiliationEquipement?.toISOString().split('T')[0],
-            lastUpdate: new Date().toISOString().split('T')[0],
+            dateDemandeResiliation: values.dateDemandeResiliationEquipement ? format(values.dateDemandeResiliationEquipement, 'yyyy-MM-dd') : undefined,
+            dateResiliationEquipement: values.dateResiliationEquipement ? format(values.dateResiliationEquipement, 'yyyy-MM-dd') : undefined,
+            lastUpdate: format(new Date(), 'yyyy-MM-dd'),
             associationHistory: history,
         });
         
         if (meterStatusUpdate) {
-            updateMeter({ ...meters.find(m => m.id === meterStatusUpdate!.id)!, ...meterStatusUpdate, lastUpdate: new Date().toISOString().split('T')[0] });
+            updateMeter({ ...meters.find(m => m.id === meterStatusUpdate!.id)!, ...meterStatusUpdate, lastUpdate: format(new Date(), 'yyyy-MM-dd') });
         }
 
         toast({ title: "Équipement Mis à Jour", description: `La demande de résiliation pour ${equipment.name} a été enregistrée.` });
@@ -152,15 +152,15 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
         const associatedEquips = allEquipment.filter(e => e.compteurId === meter.id);
         associatedEquips.forEach(eq => {
             // When meter is switched off, equipment becomes "En cours"
-            updateEquipment({ ...eq, status: 'En cours', compteurId: undefined, lastUpdate: new Date().toISOString().split('T')[0] });
+            updateEquipment({ ...eq, status: 'En cours', compteurId: undefined, lastUpdate: format(new Date(), 'yyyy-MM-dd') });
         });
         
         updateMeter({
             ...meter,
             status: newStatus,
-            dateDemandeResiliation: values.dateDemandeResiliation?.toISOString().split('T')[0],
-            dateResiliation: values.dateResiliation?.toISOString().split('T')[0],
-            lastUpdate: new Date().toISOString().split('T')[0],
+            dateDemandeResiliation: values.dateDemandeResiliation ? format(values.dateDemandeResiliation, 'yyyy-MM-dd') : undefined,
+            dateResiliation: values.dateResiliation ? format(values.dateResiliation, 'yyyy-MM-dd') : undefined,
+            lastUpdate: format(new Date(), 'yyyy-MM-dd'),
             associationHistory: history,
         });
         
