@@ -19,6 +19,7 @@ import Link from 'next/link';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { locationsData } from '@/lib/locations';
+import { Combobox } from './combobox';
 
 const formSchema = z.object({
   code: z.string().min(1, "Le code est requis."),
@@ -30,8 +31,8 @@ const formSchema = z.object({
   nature: z.array(z.string()).refine((value) => value.some((item) => item), {
     message: "Vous devez sélectionner au moins une nature.",
   }),
-  coordX: z.coerce.number().optional(),
-  coordY: z.coerce.number().optional(),
+  coordX: z.coerce.number({ required_error: "La coordonnée X est requise." }),
+  coordY: z.coerce.number({ required_error: "La coordonnée Y est requise." }),
   googleMapsUrl: z.string().optional(),
 });
 
@@ -65,8 +66,8 @@ export function BuildingForm() {
         address: '',
         propriete: '',
         nature: [],
-        coordX: 0,
-        coordY: 0,
+        coordX: undefined,
+        coordY: undefined,
         googleMapsUrl: '',
     }
   });
@@ -114,21 +115,18 @@ export function BuildingForm() {
                 <FormField control={form.control} name="code" render={({ field }) => ( <FormItem><FormLabel>Code Bâtiment</FormLabel><FormControl><Input placeholder="ex: SO01" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Nom du Site</FormLabel><FormControl><Input placeholder="ex: Complexe Sousse République" {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="commune" render={({ field }) => ( <FormItem><FormLabel>Commune</FormLabel><FormControl><Input placeholder="ex: Sousse" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                <FormField control={form.control} name="localisation" render={({ field }) => (
+                <FormField
+                    control={form.control}
+                    name="localisation"
+                    render={({ field }) => (
                     <FormItem>
                         <FormLabel>Localisation</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                                <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner une localisation" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {localisations.map(l => (
-                                    <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Combobox
+                            options={localisations}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Rechercher une localisation..."
+                        />
                         <FormMessage />
                     </FormItem>
                 )} />
@@ -190,8 +188,8 @@ export function BuildingForm() {
                     </div>
                      <FormField control={form.control} name="googleMapsUrl" render={({ field }) => ( <FormItem><FormLabel>Lien Google Maps</FormLabel><FormControl><Input placeholder="Coller le lien Google Maps ici..." {...field} /></FormControl><FormMessage /></FormItem> )} />
                     <div className="grid grid-cols-2 gap-4">
-                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormLabel>X (Longitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 10.638617" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 35.829169" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem><FormLabel>X (Longitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 10.638617" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem><FormLabel>Y (Latitude)</FormLabel><FormControl><Input type="number" step="any" placeholder="ex: 35.829169" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem> )} />
                     </div>
                 </div>
             </div>
