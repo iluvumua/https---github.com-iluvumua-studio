@@ -49,50 +49,57 @@ export function CostBreakdownChart() {
     let buildingOnlyCost = 0;
     let otherCost = 0;
 
-    const equipmentMetersMSAN = new Set<string>();
+    const metersById = new Map(meters.map(m => [m.id, m]));
+    
+    // Create sets for easy lookup
+    const equipmentMeterIds = new Set(equipment.map(e => e.compteurId).filter(Boolean));
+    const buildingMeterIds = new Set(buildings.map(b => b.meterId).filter(Boolean));
+    const equipmentByMeter = new Map<string, string[]>();
+
     equipment.forEach(e => {
-        if (e.compteurId && (e.type.includes('MSAN') || e.type.includes('MSN') || e.type.includes('MSI') || e.type.includes('BTS'))) {
-            equipmentMetersMSAN.add(e.compteurId);
+        if (e.compteurId) {
+            if (!equipmentByMeter.has(e.compteurId)) {
+                equipmentByMeter.set(e.compteurId, []);
+            }
+            equipmentByMeter.get(e.compteurId)!.push(e.type);
         }
     });
 
-    const mtMeters = new Set(meters.filter(m => m.typeTension.includes('Moyen Tension')).map(m => m.id));
-    const equipmentMetersMT = new Set<string>();
-    equipment.forEach(e => {
-        if (e.compteurId && mtMeters.has(e.compteurId)) {
-            equipmentMetersMT.add(e.compteurId);
-        }
-    });
-    
-    const buildingMeterIds = new Set(buildings.map(b => b.meterId).filter(Boolean));
-    const metersWithEquipment = new Set(equipment.map(e => e.compteurId).filter(Boolean));
     const buildingOnlyMeters = new Set<string>();
     buildingMeterIds.forEach(meterId => {
-        if (!metersWithEquipment.has(meterId as string)) {
+        if (!equipmentMeterIds.has(meterId as string)) {
             buildingOnlyMeters.add(meterId as string);
         }
     });
-    
+
     annualBills.forEach(bill => {
-      let categorized = false;
-      if (equipmentMetersMSAN.has(bill.meterId)) {
-        msanGsmCost += bill.amount;
-        categorized = true;
-      }
-      // Use else-if to avoid double counting for equipment that is both MSAN/GSM and MT
-      else if (equipmentMetersMT.has(bill.meterId)) {
-        mtEquipCost += bill.amount;
-        categorized = true;
-      }
-      else if (buildingOnlyMeters.has(bill.meterId)) {
-        buildingOnlyCost += bill.amount;
-        categorized = true;
-      }
-      
-      if (!categorized) {
-        otherCost += bill.amount;
-      }
+        const meter = metersById.get(bill.meterId);
+        if (!meter) {
+            otherCost += bill.amount;
+            return;
+        }
+
+        const equipmentTypesOnMeter = equipmentByMeter.get(bill.meterId) || [];
+        const isMsanGsm = equipmentTypesOnMeter.some(type => ['MSI', 'MSN', 'BTS'].includes(type));
+        
+        // Category 1: Équipements MT
+        if (meter.typeTension.includes('Moyen Tension')) {
+            mtEquipCost += bill.amount;
+        } 
+        // Category 2: MSAN & GSM (on BT)
+        else if (isMsanGsm && meter.typeTension.includes('Basse Tension')) {
+            msanGsmCost += bill.amount;
+        }
+        // Category 3: Bâtiments Seuls
+        else if (buildingOnlyMeters.has(bill.meterId)) {
+            buildingOnlyCost += bill.amount;
+        }
+        // Category 4: Autres
+        else {
+            otherCost += bill.amount;
+        }
     });
+
 
     const chartData = [
       { name: 'MSAN & GSM', value: msanGsmCost },
