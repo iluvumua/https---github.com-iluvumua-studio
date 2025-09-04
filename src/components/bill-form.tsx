@@ -553,11 +553,11 @@ export function BillForm({ bill }: BillFormProps) {
         addBill(billData);
         toast({ title: "Facture ajoutée", description: "La nouvelle facture a été enregistrée avec succès." });
     }
-    router.push(`/dashboard/billing`);
+    router.push(`/dashboard/billing/${values.meterId}`);
   }
   
   const isCalculated = watchedTypeTension === 'Basse Tension' || watchedTypeTension === 'Moyen Tension Tranche Horaire' || watchedTypeTension === 'Moyen Tension Forfaitaire';
-  const cancelHref = '/dashboard/billing';
+  const cancelHref = bill ? `/dashboard/billing/${bill.meterId}` : '/dashboard/billing';
   
   const difference = (Number(watchForm("montantSTEG")) || 0) - (Number(watchForm("amount")) || 0);
   
@@ -770,7 +770,7 @@ export function BillForm({ bill }: BillFormProps) {
                 <FormField control={form.control} name="consumptionKWh" render={({ field }) => (
                     <FormItem><FormLabel>Consommation (kWh)</FormLabel>
                         <FormControl>
-                            <Input type="number" {...field} value={field.value ?? 0} readOnly={isCalculated} />
+                            <Input type="number" {...field} value={field.value ?? ''} readOnly={isCalculated} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -779,7 +779,7 @@ export function BillForm({ bill }: BillFormProps) {
                 <FormField control={form.control} name="amount" render={({ field }) => (
                     <FormItem><FormLabel>Montant Calculé (TND)</FormLabel>
                         <FormControl>
-                            <Input type="number" step="0.001" {...field} value={field.value ?? 0} readOnly={isCalculated}/>
+                            <Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly={isCalculated}/>
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -823,7 +823,7 @@ export function BillForm({ bill }: BillFormProps) {
                     <FormField control={form.control} name="montantSTEG" render={({ field }) => (
                         <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
                             <FormControl>
-                                <Input type="number" step="0.001" {...field} value={field.value ?? 0}/>
+                                <Input type="number" step="0.001" {...field} value={field.value ?? ''}/>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
