@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -234,13 +235,12 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                         <h4 className="font-semibold text-sm">Informations sur le Compteur Associé</h4>
                         {associatedMeter ? (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                            {associatedMeter.id && (
-                                <div>
-                                    <span className="font-medium text-muted-foreground">N° Compteur:</span> 
-                                    <div className="flex items-center gap-2">
-                                         <span className="font-mono">{associatedMeter.id}</span>
-                                         {item.status === 'switched off' && (
-                                             <TooltipProvider>
+                            <div>
+                                <span className="font-medium text-muted-foreground">N° Compteur:</span> 
+                                <div className="flex items-center gap-2">
+                                        <span className="font-mono">{associatedMeter.id}</span>
+                                        {item.status === 'switched off' && (
+                                            <TooltipProvider>
                                                 <Tooltip>
                                                     <TooltipTrigger>
                                                         <AlertCircle className="h-4 w-4 text-destructive" />
@@ -250,10 +250,9 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TooltipProvider>
-                                         )}
-                                    </div>
+                                        )}
                                 </div>
-                            )}
+                            </div>
                             <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
                             <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                             <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
@@ -438,3 +437,4 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
