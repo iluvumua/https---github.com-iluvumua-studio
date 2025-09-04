@@ -18,6 +18,7 @@ import { useBillingStore } from "@/hooks/use-billing-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
+import type { Equipment, Building } from "@/lib/types";
 
 // Base colors for dynamic generation
 const BASE_COLORS = [
@@ -33,7 +34,7 @@ const BASE_COLORS = [
   "hsl(var(--chart-5) / 0.7)",
 ];
 
-const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
+const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
 
 const RADIAN = Math.PI / 180;
 const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload, percent }: any) => {
@@ -41,12 +42,14 @@ const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload, perc
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const percentage = (percent * 100).toFixed(2);
+    const textAnchor = x > cx ? 'start' : 'end';
+    const lineHeight = 16; 
 
     return (
-        <text x={x} y={y} fill="currentColor" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs">
-            <tspan x={x} dy="-1.2em">{payload.name}</tspan>
-            <tspan x={x} dy="1.2em" className="font-semibold">{formatCurrency(payload.value)}</tspan>
-            <tspan x={x} dy="1.2em" className="text-muted-foreground">{` (${percentage}%)`}</tspan>
+        <text x={x} y={y} fill="currentColor" textAnchor={textAnchor} dominantBaseline="central" className="text-xs">
+            <tspan x={x} y={y - lineHeight}>{payload.name}</tspan>
+            <tspan x={x} y={y} className="font-semibold">{formatCurrency(payload.value)}</tspan>
+            <tspan x={x} y={y + lineHeight} className="text-muted-foreground">{`(${percentage}%)`}</tspan>
         </text>
     );
 };
@@ -73,7 +76,6 @@ export function CostBreakdownChart() {
     
     const meterToParents = new Map<string, (Equipment | Building)[]>();
     
-    // Map meters to buildings
     buildings.forEach(b => {
         if (b.meterId) {
             if (!meterToParents.has(b.meterId)) meterToParents.set(b.meterId, []);
@@ -81,14 +83,12 @@ export function CostBreakdownChart() {
         }
     });
 
-    // Map meters to equipment
     equipment.forEach(e => {
         if (e.compteurId) {
              if (!meterToParents.has(e.compteurId)) meterToParents.set(e.compteurId, []);
-             // Avoid double-counting if equipment is in a building that is already mapped
-             const buildingParentExists = meterToParents.get(e.compteurId)!.some(p => 'code' in p && p.id === e.buildingId);
-             if (!buildingParentExists) {
-                meterToParents.get(e.compteurId)!.push(e);
+             const parentList = meterToParents.get(e.compteurId)!;
+             if (!parentList.some(p => p.id === e.id)) {
+                 parentList.push(e);
              }
         }
     });
@@ -105,6 +105,7 @@ export function CostBreakdownChart() {
                 let categoryKey = 'Inconnu';
 
                 if ('type' in parent) { // It's an Equipment
+                    const type = parent.type;
                     const typeMap: { [key: string]: string } = {
                         'MSI': 'MSAN Indoor',
                         'MSN': 'MSAN Outdoor',
@@ -112,16 +113,13 @@ export function CostBreakdownChart() {
                         'EXC': 'Central Téléphonique',
                         'OLT': 'OLT',
                     };
-                    const descriptiveType = typeMap[parent.type] || parent.type;
+                    const descriptiveType = typeMap[type] || type;
                     categoryKey = `${descriptiveType} (${tensionLabel})`;
                 } else if ('code' in parent) { // It's a Building
-                     // Check if any active equipment is associated with this building's meter
                      const equipmentOnSameMeter = equipment.some(e => e.compteurId === parent.meterId && e.status !== 'switched off');
                      if (!equipmentOnSameMeter) {
                         categoryKey = 'Bâtiments Seuls';
                      } else {
-                        // Cost is already distributed to equipment, so we can skip this building parent
-                        // to avoid double counting or mis-attribution.
                         return; 
                      }
                 }
