@@ -39,7 +39,12 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style
 
 const RADIAN = Math.PI / 180;
 const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload, percent }: any) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.5;
+    // Do not render label for small slices to avoid overlap
+    if (percent < 0.03) {
+        return null;
+    }
+
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.6;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const percentage = (percent * 100).toFixed(2);
@@ -73,7 +78,6 @@ export function CostBreakdownChart() {
     const annualBills = bills.filter(bill => bill.month.endsWith(selectedYear.toString()));
 
     const costsByCategory: { [key: string]: number } = {};
-    const metersById = new Map(meters.map(m => [m.id, m]));
     
     const meterToParents = new Map<string, (Equipment | Building)[]>();
     
@@ -88,7 +92,7 @@ export function CostBreakdownChart() {
         if (e.compteurId) {
              if (!meterToParents.has(e.compteurId)) meterToParents.set(e.compteurId, []);
              const parentList = meterToParents.get(e.compteurId)!;
-             if (!parentList.some(p => p.id === e.id)) {
+             if (!parentList.some(p => 'id' in p && p.id === e.id)) { // Check if it's already added
                  parentList.push(e);
              }
         }
@@ -97,7 +101,7 @@ export function CostBreakdownChart() {
 
     annualBills.forEach(bill => {
         const parents = meterToParents.get(bill.meterId);
-        const meter = metersById.get(bill.meterId);
+        const meter = meters.find(m => m.id === bill.meterId);
         
         if (parents && parents.length > 0) {
             const costPerParent = bill.amount / parents.length;
@@ -121,6 +125,7 @@ export function CostBreakdownChart() {
                      if (!equipmentOnSameMeter) {
                         categoryKey = 'Bâtiments Seuls';
                      } else {
+                        // This cost is already distributed among equipment on the same meter.
                         return; 
                      }
                 }
