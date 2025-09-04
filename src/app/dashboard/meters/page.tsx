@@ -85,6 +85,7 @@ function MetersPageComponent() {
 
 
   const filteredMeters = metersWithAlerts.filter(meter => {
+      if (!meter.id) return false;
       const associationName = getAssociationName(meter).toLowerCase();
       const meterId = meter.id.toLowerCase();
       const policeNumber = meter.policeNumber?.toLowerCase() || '';
