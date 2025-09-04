@@ -84,36 +84,42 @@ function MetersPageComponent() {
   }, [metersWithAlerts]);
 
 
-  const filteredMeters = metersWithAlerts.filter(meter => {
+  const filteredMeters = useMemo(() => {
+    return metersWithAlerts.filter(meter => {
       if (!meter.id) return false;
-      const query = searchTerm.toLowerCase();
 
-      const matchesSearch = 
-          meter.id.toLowerCase().includes(query) ||
-          getAssociationName(meter).toLowerCase().includes(query) || 
-          (meter.policeNumber || '').toLowerCase().includes(query) ||
-          (meter.description || '').toLowerCase().includes(query);
-
-      if (!matchesSearch) return false;
-
+      // Status filter
       if (activeTab !== 'all') {
         const statusMap: { [key: string]: Meter['status'][] } = {
-            'en_cours': ['En cours'],
-            'en_service': ['En service'],
-            'switched_off_en_cours': ['switched off en cours'],
-            'switched_off': ['switched off'],
+          'en_cours': ['En cours'],
+          'en_service': ['En service'],
+          'switched_off_en_cours': ['switched off en cours'],
+          'switched_off': ['switched off'],
         };
         const statuses = statusMap[activeTab];
         if (!statuses || !statuses.includes(meter.status)) return false;
       }
       
+      // Alert filter
       if (alertFilter !== 'all') {
         if (alertFilter === 'alert' && !meter.hasSwitchedOffEquipment) return false;
         if (alertFilter === 'no_alert' && meter.hasSwitchedOffEquipment) return false;
       }
+      
+      // Search filter
+      const query = searchTerm.toLowerCase();
+      if (query) {
+        return (
+          meter.id.toLowerCase().includes(query) ||
+          getAssociationName(meter).toLowerCase().includes(query) || 
+          (meter.policeNumber || '').toLowerCase().includes(query) ||
+          (meter.description || '').toLowerCase().includes(query)
+        );
+      }
 
       return true;
-  });
+    });
+  }, [metersWithAlerts, activeTab, alertFilter, searchTerm, buildings, equipment]);
 
   const getTensionBadgeVariant = (tension: Meter['typeTension']) => {
     if (tension === 'Basse Tension') return 'outline';
