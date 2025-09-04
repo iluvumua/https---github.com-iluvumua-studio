@@ -236,22 +236,20 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                         {associatedMeter ? (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                             <div>
-                                <span className="font-medium text-muted-foreground">N° Compteur:</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono">{associatedMeter.id}</span>
-                                    {item.status === 'switched off' && (
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <AlertCircle className="inline-block h-4 w-4 text-destructive" />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>L'équipement est "switched off" mais le compteur est peut-être encore actif.</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    )}
-                                </div>
+                                <span className="font-medium text-muted-foreground">N° Compteur: </span>
+                                <span className="font-mono">{associatedMeter.id}</span>
+                                {item.status === 'switched off' && (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <AlertCircle className="inline-block h-4 w-4 text-destructive ml-2" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>L'équipement est "switched off" mais le compteur est peut-être encore actif.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
                             </div>
                             <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
                             <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
@@ -436,4 +434,5 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
 
