@@ -44,9 +44,8 @@ export default function BillingPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
-  const { bills, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear, billingSearchTerm, setBillingSearchTerm } = useBillingStore();
+  const { bills, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear, billingSearchTerm, setBillingSearchTerm, tensionFilter, setTensionFilter } = useBillingStore();
   const { user } = useUser();
-  const [tensionFilter, setTensionFilter] = useState<"all" | "Basse Tension" | "Moyen Tension Forfaitaire" | "Moyen Tension Tranche Horaire">("all");
   const { anomalies, markAsRead } = useAnomaliesStore();
 
   const unreadAnomalies = anomalies.filter(a => !a.isRead);

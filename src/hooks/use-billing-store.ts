@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { billingData } from '@/lib/data';
-import type { Bill } from '@/lib/types';
+import type { Bill, Meter } from '@/lib/types';
 import { useAnomaliesStore } from './use-anomalies-store';
 import { useBillingSettingsStore } from './use-billing-settings-store';
 import { parse } from 'date-fns';
@@ -12,6 +12,7 @@ const monthNames = [
   "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
 ];
 
+type TensionFilter = "all" | "Basse Tension" | "Moyen Tension Forfaitaire" | "Moyen Tension Tranche Horaire";
 interface BillingState {
   bills: Bill[];
   addBill: (bill: Bill) => void;
@@ -19,9 +20,11 @@ interface BillingState {
   selectedMonth: string;
   selectedYear: string;
   billingSearchTerm: string;
+  tensionFilter: TensionFilter;
   setSelectedMonth: (month: string) => void;
   setSelectedYear: (year: string) => void;
   setBillingSearchTerm: (term: string) => void;
+  setTensionFilter: (filter: TensionFilter) => void;
 }
 
 const getMonthNumber = (monthName: string) => {
@@ -39,9 +42,11 @@ export const useBillingStore = create<BillingState>((set, get) => ({
   selectedMonth: monthNames[new Date().getMonth()],
   selectedYear: new Date().getFullYear().toString(),
   billingSearchTerm: "",
+  tensionFilter: "all",
   setSelectedMonth: (month) => set({ selectedMonth: month }),
   setSelectedYear: (year) => set({ selectedYear: year }),
   setBillingSearchTerm: (term) => set({ billingSearchTerm: term }),
+  setTensionFilter: (filter) => set({ tensionFilter: filter }),
   addBill: (newBill) => {
     const allBills = get().bills;
     const { settings } = useBillingSettingsStore.getState();
