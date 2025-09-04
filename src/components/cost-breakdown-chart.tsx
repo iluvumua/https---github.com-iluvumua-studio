@@ -39,7 +39,7 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style
 
 const RADIAN = Math.PI / 180;
 const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, payload, percent }: any) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 1.25;
+    const radius = innerRadius + (outerRadius - innerRadius) * 1.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const percentage = (percent * 100).toFixed(2);
