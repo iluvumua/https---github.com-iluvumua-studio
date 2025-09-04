@@ -91,7 +91,11 @@ function MetersPageComponent() {
       const policeNumber = meter.policeNumber?.toLowerCase() || '';
       const query = searchTerm.toLowerCase();
       
-      const matchesSearch = meterId.includes(query) || associationName.includes(query) || policeNumber.includes(query);
+      const matchesSearch = meterId.includes(query) || 
+                            associationName.includes(query) || 
+                            policeNumber.includes(query) ||
+                            (meter.description && meter.description.toLowerCase().includes(query));
+
       if (!matchesSearch) return false;
 
       if (activeTab !== 'all') {
