@@ -37,11 +37,10 @@ const BASE_COLORS = [
   "hsl(var(--chart-5) / 0.7)",
 ];
 
-const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
+const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(value);
 
-const RADIAN = Math.PI / 180;
 const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, fill }: any) => {
-    const radius = outerRadius + 25;
+    const radius = outerRadius * 1.2; // Adjust this value to position the label
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     const percentage = (percent * 100).toFixed(0);
@@ -111,7 +110,7 @@ export function CostBreakdownChart() {
 
                 if ('type' in parent) { // It's an Equipment
                     const type = parent.type;
-                    const typeMap: { [key: string]: string } = {
+                     const typeMap: { [key: string]: string } = {
                         'MSI': 'MSAN Indoor',
                         'MSN': 'MSAN Outdoor',
                         'BTS': 'BTS',
@@ -184,6 +183,20 @@ export function CostBreakdownChart() {
     },
     []
   );
+  
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, fill }: any) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-bold">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
 
   return (
     <Card>
@@ -216,8 +229,9 @@ export function CostBreakdownChart() {
                             cx="50%"
                             cy="50%"
                             labelLine={false}
-                            label={<CustomLabel />}
-                            outerRadius={100}
+                            label={renderCustomizedLabel}
+                            outerRadius={110}
+                            innerRadius={60}
                             fill="#8884d8"
                             dataKey="value"
                             nameKey="name"
