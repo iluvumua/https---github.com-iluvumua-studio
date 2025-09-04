@@ -86,33 +86,35 @@ function MetersPageComponent() {
 
   const filteredMeters = useMemo(() => {
     let results = metersWithAlerts;
+
+    const statusMap: { [key: string]: Meter['status'] } = {
+      'en_cours': 'En cours',
+      'en_service': 'En service',
+      'switched_off_en_cours': 'switched off en cours',
+      'switched_off': 'switched off',
+    };
     
     // Status filter from tabs
     if (activeTab !== 'all') {
-      const statusMap: { [key: string]: Meter['status'] } = {
-        'en_cours': 'En cours',
-        'en_service': 'En service',
-        'switched_off_en_cours': 'switched off en cours',
-        'switched_off': 'switched off',
-      };
       const statusToFilter = statusMap[activeTab];
       if (statusToFilter) {
         results = results.filter(meter => meter.status === statusToFilter);
       }
     }
-
+    
     // Alert filter
-    if (alertFilter !== 'all') {
-        results = results.filter(meter => alertFilter === 'alert' ? meter.hasSwitchedOffEquipment : !meter.hasSwitchedOffEquipment);
+    if (alertFilter === 'alert') {
+        results = results.filter(meter => meter.hasSwitchedOffEquipment);
+    } else if (alertFilter === 'no_alert') {
+        results = results.filter(meter => !meter.hasSwitchedOffEquipment);
     }
     
     // Search filter
     const query = searchTerm.toLowerCase();
     if (query) {
       results = results.filter(meter => {
-        if (!meter.id) return false;
         return (
-          meter.id.toLowerCase().includes(query) ||
+          (meter.id && meter.id.toLowerCase().includes(query)) ||
           getAssociationName(meter).toLowerCase().includes(query) || 
           (meter.policeNumber || '').toLowerCase().includes(query) ||
           (meter.description || '').toLowerCase().includes(query)
@@ -218,8 +220,8 @@ function MetersPageComponent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMeters.map((meter) => (
-                    <TableRow key={meter.id}>
+                {filteredMeters.map((meter, index) => (
+                    <TableRow key={meter.id || `meter-${index}`}>
                         <TableCell className="font-mono">
                            <div className="flex items-center gap-2">
                              <span>{meter.id}</span>
