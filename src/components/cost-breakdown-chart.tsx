@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import { useMemo, useState } from "react";
 import { Pie, PieChart, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import {
@@ -13,8 +14,6 @@ import {
 import {
   ChartContainer,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent as ChartLegendContentPrimitive,
 } from "@/components/ui/chart";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
@@ -23,7 +22,6 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Equipment, Building } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import type {Payload} from 'recharts/types/component/DefaultLegendContent';
-import { cn } from "@/lib/utils";
 
 // Base colors for dynamic generation
 const BASE_COLORS = [
