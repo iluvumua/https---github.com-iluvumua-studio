@@ -60,38 +60,9 @@ export function EquipmentCommissioningForm({ equipment, onFinished, isFinished }
     toast({ title: "Étape 3 Terminée", description: "L'équipement a été mis en service." });
   }
 
-  const renderMeterIndex = (meter: Meter | undefined) => {
-    if (!meter) return <Input readOnly value="N/A" />;
-
-    if (meter.typeTension === 'Basse Tension' || meter.typeTension === 'Moyen Tension Forfaitaire') {
-        return <Input readOnly value={meter.indexDepart ?? 'N/A'} />;
-    }
-    if (meter.typeTension === 'Moyen Tension Tranche Horaire') {
-        return (
-            <div className="text-xs space-y-1 p-2 border rounded-md bg-muted">
-                <p><span className="font-semibold">Jour:</span> {meter.indexDepartJour ?? 'N/A'}</p>
-                <p><span className="font-semibold">Pointe:</span> {meter.indexDepartPointe ?? 'N/A'}</p>
-                <p><span className="font-semibold">Soir:</span> {meter.indexDepartSoir ?? 'N/A'}</p>
-                <p><span className="font-semibold">Nuit:</span> {meter.indexDepartNuit ?? 'N/A'}</p>
-            </div>
-        );
-    }
-     return <Input readOnly value="N/A" />;
-  }
-
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-2">
-                <Label>N° Compteur Associé</Label>
-                <Input readOnly value={equipment.compteurId || "N/A"} className="font-mono"/>
-            </div>
-
-             <div className="space-y-2">
-                <Label>Index de Départ Compteur</Label>
-                {renderMeterIndex(associatedMeter)}
-            </div>
-
             <FormField control={form.control} name="dateMiseEnService" render={({ field }) => (
                 <FormItem className="flex flex-col"><FormLabel>Date de Mise en Service de l'Équipement</FormLabel>
                     <Popover><PopoverTrigger asChild>
