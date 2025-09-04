@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Pie, PieChart, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Card,
@@ -19,6 +19,7 @@ import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Equipment, Building } from "@/lib/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 // Base colors for dynamic generation
 const BASE_COLORS = [
@@ -61,15 +62,15 @@ export function CostBreakdownChart() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
 
-  const { chartData, totalCost, year, chartConfig } = useMemo(() => {
-    const latestYear = bills.reduce((maxYear, bill) => {
-        const yearMatch = bill.month.match(/\d{4}$/);
-        const year = yearMatch ? parseInt(yearMatch[0]) : 0;
-        return isNaN(year) ? maxYear : Math.max(maxYear, year);
-    }, 0);
-    
-    const yearToDisplay = latestYear > 0 ? latestYear : new Date().getFullYear();
-    const annualBills = bills.filter(bill => bill.month.endsWith(yearToDisplay.toString()));
+  const availableYears = useMemo(() => {
+    const years = new Set(bills.map(b => b.month.split(' ')[1]));
+    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
+  }, [bills]);
+  
+  const [selectedYear, setSelectedYear] = useState<string>(availableYears[0] || new Date().getFullYear().toString());
+
+  const { chartData, totalCost, chartConfig } = useMemo(() => {
+    const annualBills = bills.filter(bill => bill.month.endsWith(selectedYear.toString()));
 
     const costsByCategory: { [key: string]: number } = {};
     const metersById = new Map(meters.map(m => [m.id, m]));
@@ -148,16 +149,30 @@ export function CostBreakdownChart() {
 
     const totalCost = annualBills.reduce((acc, bill) => acc + bill.amount, 0);
     
-    return { chartData: finalChartData, totalCost, year: yearToDisplay, chartConfig: dynamicChartConfig };
-  }, [bills, equipment, meters, buildings]);
+    return { chartData: finalChartData, totalCost, chartConfig: dynamicChartConfig };
+  }, [bills, equipment, meters, buildings, selectedYear]);
 
   const COLORS = useMemo(() => Object.values(chartConfig).map(c => c.color), [chartConfig]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Répartition des Coûts Annuels</CardTitle>
-        <CardDescription>Coûts par catégorie d'équipement pour l'année {year}.</CardDescription>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <CardTitle>Répartition des Coûts Annuels</CardTitle>
+                <CardDescription>Coûts par catégorie d'équipement pour l'année {selectedYear}.</CardDescription>
+            </div>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Année" />
+                </SelectTrigger>
+                <SelectContent>
+                    {availableYears.map(year => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
       </CardHeader>
       <CardContent>
         {chartData.length > 0 ? (
@@ -192,7 +207,7 @@ export function CostBreakdownChart() {
         </>
         ) : (
             <div className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-                <p>Aucune donnée de facturation pour l'année {year}.</p>
+                <p>Aucune donnée de facturation pour l'année {selectedYear}.</p>
                 <p className="text-xs">Ajoutez des factures pour voir le graphique.</p>
             </div>
         )}
