@@ -49,7 +49,7 @@ const monthNameToNumber: { [key: string]: string } = {
 };
 
 const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
-  reference: z.string().optional(),
+  reference: z.string().regex(/^[0-9]*$/, "Le N° de facture ne doit contenir que des chiffres.").optional(),
   meterId: z.string().min(1, "Le N° de compteur est requis."),
   billDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{4}$/, "Le format doit être MM/AAAA."),
   nombreMois: z.coerce.number().optional(),
@@ -548,7 +548,7 @@ export function BillForm({ bill }: BillFormProps) {
             <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-1">
             {isEditMode ? (
                 <FormField control={form.control} name="reference" render={({ field }) => (
-                    <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input {...field} readOnly className="bg-muted" /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input {...field} inputMode="numeric" pattern="[0-9]*" readOnly={!isEditMode} className={isEditMode ? "" : "bg-muted"} /></FormControl><FormMessage /></FormItem>
                 )} />
             ) : (
                 <div className="space-y-1">

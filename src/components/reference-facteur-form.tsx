@@ -23,7 +23,7 @@ import { Separator } from "./ui/separator";
 
 const formSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
-  referenceFacteur: z.string().min(1, "La référence facture est requise."),
+  referenceFacteur: z.string().regex(/^\d+$/, "La référence facture ne doit contenir que des chiffres.").min(1, "La référence facture est requise."),
   billingAddress: z.string().optional(),
 });
 
@@ -207,7 +207,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                     <FormItem>
                         <FormLabel>Référence Facture</FormLabel>
                         <FormControl>
-                            <Input placeholder="ex: 37805124" {...field} />
+                            <Input placeholder="ex: 37805124" {...field} inputMode="numeric" pattern="[0-9]*" />
                         </FormControl>
                         <FormMessage />
                     </FormItem> 
