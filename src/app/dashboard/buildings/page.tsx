@@ -27,7 +27,6 @@ import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { locationsData } from "@/lib/locations";
-import { ImporterButton } from "@/components/importer-button";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
@@ -82,7 +81,6 @@ export default function BuildingsPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <ImporterButton />
                 <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -173,7 +171,6 @@ export default function BuildingsPage() {
                         )}
                         {user.role === "Moyen Bâtiment" && (
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                <Pencil className="mr-2 h-4 w-4" />
                                 <EditBuildingForm building={building} />
                             </DropdownMenuItem>
                         )}

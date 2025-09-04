@@ -236,29 +236,27 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                         {associatedMeter ? (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                             <div>
-                                <div className="flex items-center gap-2">
-                                        <span className="font-medium text-muted-foreground">N° Compteur:</span> 
-                                        <span className="font-mono">{associatedMeter.id}</span>
-                                        {item.status === 'switched off' && (
-                                            <TooltipProvider>
-                                                <Tooltip>
-                                                    <TooltipTrigger>
-                                                        <AlertCircle className="h-4 w-4 text-destructive" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>
-                                                        <p>L'équipement est "switched off" mais le compteur est peut-être encore actif.</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            </TooltipProvider>
-                                        )}
-                                </div>
+                                <span className="font-medium text-muted-foreground">N° Compteur:</span> 
+                                <span className="font-mono"> {associatedMeter.id}</span>
+                                {item.status === 'switched off' && (
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                 <AlertCircle className="inline-block ml-2 h-4 w-4 text-destructive" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>L'équipement est "switched off" mais le compteur est peut-être encore actif.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                )}
                             </div>
                             <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
                             <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                             <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                             <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
-                            {renderMeterIndex(associatedMeter)}
                             <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
+                            {renderMeterIndex(associatedMeter)}
                             <div className="font-medium"><span className="text-muted-foreground">Coût Mensuel Moy:</span> {equipmentMetrics.averageCost !== null ? formatCurrency(equipmentMetrics.averageCost) : 'N/A'}</div>
                             <div className="font-medium"><span className="text-muted-foreground">Conso. Mensuelle Moy:</span> {equipmentMetrics.averageConsumption !== null ? `${formatKWh(equipmentMetrics.averageConsumption)} kWh` : 'N/A'}</div>
                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
@@ -361,7 +359,7 @@ export default function EquipmentPage() {
             "Date Mise en Service": item.dateMiseEnService ? format(new Date(item.dateMiseEnService), "dd/MM/yyyy") : 'N/A',
             "ID Compteur": item.compteurId || 'N/A',
         }));
-        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const worksheet = XLSX.utils.sheet_to_json(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Équipements");
         XLSX.writeFile(workbook, `equipements_${activeTab}.xlsx`);
@@ -389,7 +387,6 @@ export default function EquipmentPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <ImporterButton />
           <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
             <File className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

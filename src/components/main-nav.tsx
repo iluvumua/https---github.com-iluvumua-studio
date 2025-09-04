@@ -70,7 +70,12 @@ export function MainNav({ className, ...props }: React.HTMLAttributes<HTMLElemen
           {route.label}
         </Link>
       ))}
-       <ImporterButton />
+      <ImporterButton asChild>
+        <button className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary">
+            <Upload className="h-4 w-4" />
+            Importer Données
+        </button>
+      </ImporterButton>
       </div>
     </nav>
   );

@@ -11,7 +11,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import type { Building, Equipment, Meter, Bill } from "@/lib/types";
 
-export function ImporterButton({ asChild = false }: { asChild?: boolean }) {
+export function ImporterButton({ asChild = false, children }: { asChild?: boolean, children?: React.ReactNode }) {
   const { toast } = useToast();
   const { addBuilding } = useBuildingsStore();
   const { addEquipment } = useEquipmentStore();
@@ -62,19 +62,7 @@ export function ImporterButton({ asChild = false }: { asChild?: boolean }) {
     }
   }
 
-  const ButtonComponent = (
-     <Button
-        size="sm"
-        variant="outline"
-        className="h-8 gap-1"
-        onClick={() => document.getElementById('xlsx-importer')?.click()}
-      >
-        <Upload className="h-3.5 w-3.5" />
-        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-          Importer
-        </span>
-      </Button>
-  );
+  const triggerImport = () => document.getElementById('xlsx-importer')?.click();
 
   return (
     <>
@@ -86,11 +74,21 @@ export function ImporterButton({ asChild = false }: { asChild?: boolean }) {
         onChange={handleFileUpload}
       />
       {asChild ? (
-         <div onClick={() => document.getElementById('xlsx-importer')?.click()}>
-            <Upload className="mr-2 h-4 w-4" /> Importer
+         <div onClick={triggerImport} className="w-full h-full cursor-pointer">
+            {children}
          </div>
       ) : (
-        ButtonComponent
+        <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1"
+            onClick={triggerImport}
+        >
+            <Upload className="h-3.5 w-3.5" />
+            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            Importer
+            </span>
+        </Button>
       )}
     </>
   );

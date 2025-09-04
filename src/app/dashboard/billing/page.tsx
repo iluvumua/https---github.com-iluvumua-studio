@@ -31,7 +31,6 @@ import { Bell, Check } from "lucide-react";
 import type { Meter } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBillingStore } from "@/hooks/use-billing-store";
-import { ImporterButton } from "@/components/importer-button";
 import { Badge } from "@/components/ui/badge";
 
 const monthNames = [
@@ -309,7 +308,6 @@ export default function BillingPage() {
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="text-lg">{district}</CardTitle>
                                         <div className="flex items-center gap-2">
-                                            <ImporterButton />
                                             <Button size="sm" variant="outline" className="h-8 gap-1" onClick={() => handleExport(district)}>
                                                 <File className="h-3.5 w-3.5" />
                                                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Exporter</span>
