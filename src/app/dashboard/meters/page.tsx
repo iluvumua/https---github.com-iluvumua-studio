@@ -85,40 +85,42 @@ function MetersPageComponent() {
 
 
   const filteredMeters = useMemo(() => {
-    return metersWithAlerts.filter(meter => {
-      if (!meter.id) return false;
+    let results = metersWithAlerts;
 
-      // Status filter
-      if (activeTab !== 'all') {
-        const statusMap: { [key: string]: Meter['status'][] } = {
-          'en_cours': ['En cours'],
-          'en_service': ['En service'],
-          'switched_off_en_cours': ['switched off en cours'],
-          'switched_off': ['switched off'],
-        };
-        const statuses = statusMap[activeTab];
-        if (!statuses || !statuses.includes(meter.status)) return false;
+    // Status filter
+    if (activeTab !== 'all') {
+      const statusMap: { [key: string]: Meter['status'][] } = {
+        'en_cours': ['En cours'],
+        'en_service': ['En service'],
+        'switched_off_en_cours': ['switched off en cours'],
+        'switched_off': ['switched off'],
+      };
+      const statuses = statusMap[activeTab];
+      if (statuses) {
+        results = results.filter(meter => statuses.includes(meter.status));
       }
-      
-      // Alert filter
-      if (alertFilter !== 'all') {
-        if (alertFilter === 'alert' && !meter.hasSwitchedOffEquipment) return false;
-        if (alertFilter === 'no_alert' && meter.hasSwitchedOffEquipment) return false;
-      }
-      
-      // Search filter
-      const query = searchTerm.toLowerCase();
-      if (query) {
+    }
+    
+    // Alert filter
+    if (alertFilter !== 'all') {
+        results = results.filter(meter => alertFilter === 'alert' ? meter.hasSwitchedOffEquipment : !meter.hasSwitchedOffEquipment);
+    }
+    
+    // Search filter
+    const query = searchTerm.toLowerCase();
+    if (query) {
+      results = results.filter(meter => {
+        if (!meter.id) return false;
         return (
           meter.id.toLowerCase().includes(query) ||
           getAssociationName(meter).toLowerCase().includes(query) || 
           (meter.policeNumber || '').toLowerCase().includes(query) ||
           (meter.description || '').toLowerCase().includes(query)
         );
-      }
+      });
+    }
 
-      return true;
-    });
+    return results;
   }, [metersWithAlerts, activeTab, alertFilter, searchTerm, buildings, equipment]);
 
   const getTensionBadgeVariant = (tension: Meter['typeTension']) => {
