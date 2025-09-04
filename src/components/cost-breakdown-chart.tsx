@@ -1,9 +1,7 @@
 
 "use client";
 
-import * as React from "react";
-import { useMemo, useState } from "react";
-import { Pie, PieChart, Cell, Legend, Tooltip, ResponsiveContainer } from "recharts";
+import React, { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,55 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Equipment, Building } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import type {Payload} from 'recharts/types/component/DefaultLegendContent';
-
-// Base colors for dynamic generation
-const BASE_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
-  "hsl(var(--chart-1) / 0.7)",
-  "hsl(var(--chart-2) / 0.7)",
-  "hsl(var(--chart-3) / 0.7)",
-  "hsl(var(--chart-4) / 0.7)",
-  "hsl(var(--chart-5) / 0.7)",
-];
-
-const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(value);
-
-const CustomLabel = ({ cx, cy, midAngle, outerRadius, percent, fill }: any) => {
-    const RADIAN = Math.PI / 180;
-    const radius = outerRadius * 1.2; // Adjust this value to position the label
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    const percentage = (percent * 100).toFixed(0);
-
-    return (
-        <text
-            x={x}
-            y={y}
-            fill={fill}
-            textAnchor={x > cx ? 'start' : 'end'}
-            dominantBaseline="central"
-            className="text-sm font-bold"
-        >
-            {`${percentage}%`}
-        </text>
-    );
-};
-
+import { Chart } from "react-google-charts";
 
 export function CostBreakdownChart() {
   const { bills } = useBillingStore();
@@ -74,11 +30,9 @@ export function CostBreakdownChart() {
   
   const [selectedYear, setSelectedYear] = useState<string>(availableYears[0] || new Date().getFullYear().toString());
 
-  const { chartData, totalCost, chartConfig } = useMemo(() => {
+  const { chartData, totalCost } = useMemo(() => {
     const annualBills = bills.filter(bill => bill.month.endsWith(selectedYear.toString()));
-
     const costsByCategory: { [key: string]: number } = {};
-    
     const meterToParents = new Map<string, (Equipment | Building)[]>();
     
     buildings.forEach(b => {
@@ -92,12 +46,11 @@ export function CostBreakdownChart() {
         if (e.compteurId) {
              if (!meterToParents.has(e.compteurId)) meterToParents.set(e.compteurId, []);
              const parentList = meterToParents.get(e.compteurId)!;
-             if (!parentList.some(p => 'id' in p && p.id === e.id)) { // Check if it's already added
+             if (!parentList.some(p => 'id' in p && p.id === e.id)) {
                  parentList.push(e);
              }
         }
     });
-
 
     annualBills.forEach(bill => {
         const parents = meterToParents.get(bill.meterId);
@@ -107,16 +60,13 @@ export function CostBreakdownChart() {
             const costPerParent = bill.amount / parents.length;
             parents.forEach(parent => {
                 const tensionLabel = meter?.typeTension?.includes('Basse') ? 'BT' : 'MT';
-                 let categoryKey = 'Inconnu';
+                let categoryKey = 'Inconnu';
 
                 if ('type' in parent) { // It's an Equipment
                     const type = parent.type;
-                     const typeMap: { [key: string]: string } = {
-                        'MSI': 'MSAN Indoor',
-                        'MSN': 'MSAN Outdoor',
-                        'BTS': 'BTS',
-                        'EXC': 'Central Téléphonique',
-                        'OLT': 'OLT',
+                    const typeMap: { [key: string]: string } = {
+                        'MSI': 'MSAN Indoor', 'MSN': 'MSAN Outdoor', 'BTS': 'BTS',
+                        'EXC': 'Central Téléphonique', 'OLT': 'OLT',
                     };
                     const descriptiveType = typeMap[type] || type;
                     categoryKey = `${descriptiveType} (${tensionLabel})`;
@@ -125,7 +75,6 @@ export function CostBreakdownChart() {
                      if (!equipmentOnSameMeter) {
                         categoryKey = 'Bâtiments Seuls';
                      } else {
-                        // This cost is already distributed among equipment on the same meter.
                         return; 
                      }
                 }
@@ -137,67 +86,33 @@ export function CostBreakdownChart() {
         }
     });
 
-
-    const finalChartData = Object.entries(costsByCategory).map(([name, value]) => ({
-      name,
-      value,
-    })).filter(d => d.value > 0).sort((a,b) => b.value - a.value);
-
-    const dynamicChartConfig: { [key: string]: { label: string, color: string } } = {};
-    finalChartData.forEach((data, index) => {
-        const key = data.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        dynamicChartConfig[key] = {
-            label: data.name,
-            color: BASE_COLORS[index % BASE_COLORS.length],
-        };
-    });
-
+    const googleChartData = [
+      ["Catégorie", "Coût"],
+      ...Object.entries(costsByCategory).map(([name, value]) => [name, value])
+    ];
+    
     const totalCost = annualBills.reduce((acc, bill) => acc + bill.amount, 0);
     
-    return { chartData: finalChartData, totalCost, chartConfig: dynamicChartConfig };
+    return { chartData: googleChartData, totalCost };
   }, [bills, equipment, meters, buildings, selectedYear]);
 
-  const COLORS = useMemo(() => Object.values(chartConfig).map(c => c.color), [chartConfig]);
-  
-  const ChartLegendContent = React.useCallback(
-    (props: { payload?: Payload[] }) => {
-      return (
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 text-xs">
-          {props.payload?.map((item) => {
-             const { value, color, payload } = item;
-             const cost = (payload as any)?.value;
-            return (
-              <div key={value} className="flex items-center gap-1.5">
-                <div
-                  className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-                  style={{ backgroundColor: color }}
-                />
-                <div className="flex-1 space-x-1">
-                    <span>{value}</span>
-                    <span className="font-medium text-muted-foreground">{formatCurrency(cost)}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      );
+  const options = {
+    title: `Répartition des Coûts pour ${selectedYear}`,
+    is3D: true,
+    backgroundColor: 'transparent',
+    legend: {
+        textStyle: { color: 'hsl(var(--foreground))' }
     },
-    []
-  );
-  
-  const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, fill }: any) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" className="text-xs font-bold">
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
+    titleTextStyle: {
+        color: 'hsl(var(--foreground))'
+    },
+    pieSliceTextStyle: {
+        color: 'black',
+    },
+    chartArea: {width: '100%', height: '80%'}
   };
 
+  const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(value);
 
   return (
     <Card>
@@ -220,32 +135,16 @@ export function CostBreakdownChart() {
         </div>
       </CardHeader>
       <CardContent>
-        {chartData.length > 0 ? (
+        {chartData.length > 1 ? (
         <>
-            <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-                <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                        <Pie
-                            data={chartData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={renderCustomizedLabel}
-                            outerRadius={100}
-                            fill="#8884d8"
-                            dataKey="value"
-                            nameKey="name"
-                        >
-                            {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                        </Pie>
-                        <Tooltip content={<ChartTooltipContent formatter={(val) => formatCurrency(val as number)} />} />
-                        <Legend content={<ChartLegendContent />} />
-                    </PieChart>
-                </ResponsiveContainer>
-            </ChartContainer>
-            <div className="mt-4 text-center">
+            <Chart
+              chartType="PieChart"
+              data={chartData}
+              options={options}
+              width={"100%"}
+              height={"400px"}
+            />
+             <div className="mt-4 text-center">
                 <p className="text-lg font-semibold">Consommation en DT</p>
                 <p className="text-2xl font-bold text-primary">{formatCurrency(totalCost)}</p>
             </div>
