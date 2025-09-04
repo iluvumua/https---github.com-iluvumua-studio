@@ -86,21 +86,21 @@ function MetersPageComponent() {
 
   const filteredMeters = useMemo(() => {
     let results = metersWithAlerts;
-
-    // Status filter
+    
+    // Status filter from tabs
     if (activeTab !== 'all') {
-      const statusMap: { [key: string]: Meter['status'][] } = {
-        'en_cours': ['En cours'],
-        'en_service': ['En service'],
-        'switched_off_en_cours': ['switched off en cours'],
-        'switched_off': ['switched off'],
+      const statusMap: { [key: string]: Meter['status'] } = {
+        'en_cours': 'En cours',
+        'en_service': 'En service',
+        'switched_off_en_cours': 'switched off en cours',
+        'switched_off': 'switched off',
       };
-      const statuses = statusMap[activeTab];
-      if (statuses) {
-        results = results.filter(meter => statuses.includes(meter.status));
+      const statusToFilter = statusMap[activeTab];
+      if (statusToFilter) {
+        results = results.filter(meter => meter.status === statusToFilter);
       }
     }
-    
+
     // Alert filter
     if (alertFilter !== 'all') {
         results = results.filter(meter => alertFilter === 'alert' ? meter.hasSwitchedOffEquipment : !meter.hasSwitchedOffEquipment);
@@ -122,6 +122,7 @@ function MetersPageComponent() {
 
     return results;
   }, [metersWithAlerts, activeTab, alertFilter, searchTerm, buildings, equipment]);
+
 
   const getTensionBadgeVariant = (tension: Meter['typeTension']) => {
     if (tension === 'Basse Tension') return 'outline';
