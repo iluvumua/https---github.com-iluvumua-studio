@@ -308,15 +308,18 @@ const EquipmentTable = ({ equipment, openRow, setOpenRow }: { equipment: Equipme
     )
 }
 
+const equipmentTypes = ["BTS", "MSI", "MSN", "EXC", "OLT"];
+
 export default function EquipmentPage() {
     const { equipment } = useEquipmentStore();
     const { meters } = useMetersStore();
-    const [activeTab, setActiveTab] = useState("all");
+    const [activeStatusTab, setActiveStatusTab] = useState("all");
+    const [activeTypeTab, setActiveTypeTab] = useState("all");
     const { user } = useUser();
     const [searchTerm, setSearchTerm] = useState("");
     const [openRow, setOpenRow] = useState<string | null>(null);
 
-    const getFilteredEquipment = (status?: Equipment['status'] | 'all') => {
+    const getFilteredEquipment = (status?: Equipment['status'] | 'all', type?: string | 'all') => {
         return equipment.filter(item => {
             const query = searchTerm.toLowerCase();
             
@@ -335,14 +338,17 @@ export default function EquipmentPage() {
 
             if (!matchesSearch) return false;
             
-            if (status === 'all') return true;
-
-            return item.status === status;
+            const matchesStatus = status === 'all' || item.status === status;
+            const matchesType = type === 'all' || item.type === type;
+            
+            return matchesStatus && matchesType;
         });
     }
+    
+    const filteredEquipment = getFilteredEquipment(activeStatusTab as any, activeTypeTab);
 
     const handleExport = () => {
-        const dataToExport = getFilteredEquipment(activeTab as any).map(item => ({
+        const dataToExport = filteredEquipment.map(item => ({
             "Nom_MSAN": item.name,
             "État": item.status,
             "Type": item.type,
@@ -353,15 +359,24 @@ export default function EquipmentPage() {
         const worksheet = XLSX.utils.sheet_to_json(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Équipements");
-        XLSX.writeFile(workbook, `equipements_${activeTab}.xlsx`);
+        XLSX.writeFile(workbook, `equipements_${activeStatusTab}.xlsx`);
     };
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-    <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+    <Tabs defaultValue="all" value={activeTypeTab} onValueChange={setActiveTypeTab}>
+        <TabsList>
+            <TabsTrigger value="all">Tous les Types</TabsTrigger>
+            {equipmentTypes.map(type => (
+                <TabsTrigger key={type} value={type}>{type}</TabsTrigger>
+            ))}
+        </TabsList>
+    </Tabs>
+
+    <Tabs defaultValue="all" value={activeStatusTab} onValueChange={setActiveStatusTab}>
       <div className="flex items-center">
         <TabsList>
-          <TabsTrigger value="all">Tous</TabsTrigger>
+          <TabsTrigger value="all">Tous les États</TabsTrigger>
           <TabsTrigger value="en_cours">En cours</TabsTrigger>
           <TabsTrigger value="en_service">En service</TabsTrigger>
           <TabsTrigger value="switched_off_en_cours">Switched Off En Cours</TabsTrigger>
@@ -404,27 +419,11 @@ export default function EquipmentPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <TabsContent value="all">
-                <EquipmentTable equipment={getFilteredEquipment('all')} openRow={openRow} setOpenRow={setOpenRow} />
-            </TabsContent>
-            <TabsContent value="en_cours">
-                 <EquipmentTable equipment={getFilteredEquipment('En cours')} openRow={openRow} setOpenRow={setOpenRow} />
-            </TabsContent>
-            <TabsContent value="en_service">
-                 <EquipmentTable equipment={getFilteredEquipment('En service')} openRow={openRow} setOpenRow={setOpenRow} />
-            </TabsContent>
-            <TabsContent value="switched_off_en_cours">
-                 <EquipmentTable equipment={getFilteredEquipment('switched off en cours')} openRow={openRow} setOpenRow={setOpenRow} />
-            </TabsContent>
-            <TabsContent value="switched_off">
-                 <EquipmentTable equipment={getFilteredEquipment('switched off')} openRow={openRow} setOpenRow={setOpenRow} />
-            </TabsContent>
+            <EquipmentTable equipment={filteredEquipment} openRow={openRow} setOpenRow={setOpenRow} />
           </CardContent>
         </Card>
     </Tabs>
     </div>
   );
 }
-
-
 
