@@ -142,7 +142,7 @@ export default function MeterBillingPage() {
 
   const handleExport = () => {
     const dataToExport = filteredBills.map(bill => ({
-        "Id Facture": bill.reference,
+        "N° Facture": bill.reference,
         "Mois": bill.month,
         "Ancien Index": bill.ancienIndex ?? 'N/A',
         "Nouveau Index": bill.nouveauIndex ?? 'N/A',
@@ -166,7 +166,7 @@ export default function MeterBillingPage() {
             <div>
                 <CardTitle>Factures pour le Compteur <span className="font-mono text-primary">{selectedMeterId}</span></CardTitle>
                 <CardDescription>
-                  Police: {currentMeterDetails?.policeNumber || 'N/A'} | Numéro Facture: {currentMeterDetails?.referenceFacteur || 'N/A'} | Total Factures: {meterBills.length}
+                  Police: {currentMeterDetails?.policeNumber || 'N/A'} | Référence Facture: {currentMeterDetails?.referenceFacteur || 'N/A'} | Total Factures: {meterBills.length}
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -232,7 +232,7 @@ export default function MeterBillingPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Id Facture</TableHead>
+              <TableHead>N° Facture</TableHead>
               <TableHead>Mois</TableHead>
               <TableHead className="text-right">Ancien Index</TableHead>
               <TableHead className="text-right">Nouveau Index</TableHead>
@@ -297,5 +297,3 @@ export default function MeterBillingPage() {
     </TooltipProvider>
   );
 }
-
-    

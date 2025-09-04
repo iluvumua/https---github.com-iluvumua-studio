@@ -44,7 +44,7 @@ export const MeterTable = ({ meters, selectedMonth, selectedYear }: MeterTablePr
         <Table>
             <TableHeader>
                 <TableRow>
-                    <TableHead>Numéro Facture</TableHead>
+                    <TableHead>Référence Facture</TableHead>
                     <TableHead>N° Compteur</TableHead>
                     <TableHead>Type de Tension</TableHead>
                     <TableHead>Associé à</TableHead>

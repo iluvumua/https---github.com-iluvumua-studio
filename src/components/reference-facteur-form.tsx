@@ -23,9 +23,7 @@ import { Separator } from "./ui/separator";
 
 const formSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
-  referenceFacteur: z.string().refine(val => /^\d{8}$|^\d{12}$/.test(val), {
-    message: "Le Numéro Facture doit comporter 8 ou 12 chiffres.",
-  }),
+  referenceFacteur: z.string().min(1, "La référence facture est requise."),
   billingAddress: z.string().optional(),
 });
 
@@ -141,7 +139,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
     };
 
     updateMeter(updatedMeter);
-    toast({ title: "Numéro Facture mis à jour", description: "Le numéro de facture a été enregistré avec succès." });
+    toast({ title: "Référence Facture mise à jour", description: "La référence facture a été enregistrée avec succès." });
     
     if (onFinished) {
         onFinished();
@@ -207,7 +205,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                 
                  <FormField control={form.control} name="referenceFacteur" render={({ field }) => ( 
                     <FormItem>
-                        <FormLabel>Numéro Facture</FormLabel>
+                        <FormLabel>Référence Facture</FormLabel>
                         <FormControl>
                             <Input placeholder="ex: 37805124" {...field} />
                         </FormControl>

@@ -548,11 +548,11 @@ export function BillForm({ bill }: BillFormProps) {
             <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-1">
             {isEditMode ? (
                 <FormField control={form.control} name="reference" render={({ field }) => (
-                    <FormItem><FormLabel>Id Facture</FormLabel><FormControl><Input {...field} readOnly className="bg-muted" /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input {...field} readOnly className="bg-muted" /></FormControl><FormMessage /></FormItem>
                 )} />
             ) : (
                 <div className="space-y-1">
-                    <FormLabel>Id Facture (Auto)</FormLabel>
+                    <FormLabel>N° Facture (Auto)</FormLabel>
                     <Input readOnly value={selectedMeter?.referenceFacteur && watchForm("billDate").length === 7 ? `${selectedMeter.referenceFacteur}-${watchForm("billDate").replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
                 </div>
             )}
@@ -837,5 +837,3 @@ export function BillForm({ bill }: BillFormProps) {
     </Form>
   );
 }
-
-    

@@ -124,7 +124,7 @@ export default function BillingPage() {
 
   const handleExport = (district: string) => {
     const dataToExport = getMetersByDistrict(district).map(item => ({
-        "Numéro Facture": item.referenceFacteur,
+        "Référence Facture": item.referenceFacteur,
         "N° Compteur": item.id,
         "Type de Tension": item.typeTension,
         "District STEG": item.districtSteg,
@@ -176,7 +176,7 @@ export default function BillingPage() {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <CardTitle>Suivi des Factures par District</CardTitle>
-                        <CardDescription>Consultez les compteurs avec numéro de facturation pour chaque district.</CardDescription>
+                        <CardDescription>Consultez les compteurs avec référence de facturation pour chaque district.</CardDescription>
                     </div>
                      <div className="flex w-full sm:w-auto items-center gap-2">
                          <div className="relative flex-1 sm:flex-initial">
@@ -226,7 +226,7 @@ export default function BillingPage() {
                             <Button size="sm" className="h-9 gap-1" asChild>
                                 <Link href="/dashboard/billing/add-reference">
                                     <PlusCircle className="h-3.5 w-3.5" />
-                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Ajouter Numéro</span>
+                                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Référence Facture</span>
                                 </Link>
                             </Button>
                             </>
@@ -264,12 +264,12 @@ export default function BillingPage() {
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <FileText className="h-16 w-16 text-muted-foreground" />
                         <h3 className="mt-6 text-xl font-semibold">Aucun compteur à facturer</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">Assurez-vous que les compteurs ont un numéro de facturation pour les voir ici.</p>
+                        <p className="mt-2 text-sm text-muted-foreground">Assurez-vous que les compteurs ont une référence de facturation pour les voir ici.</p>
                         {user.role === 'Financier' && (
                             <div className="mt-6 w-full max-w-sm">
                                 <Button className="w-full" asChild>
                                     <Link href="/dashboard/billing/add-reference">
-                                        <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Numéro Facture
+                                        <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Référence Facture
                                     </Link>
                                 </Button>
                             </div>
@@ -279,18 +279,18 @@ export default function BillingPage() {
             </Card>
         ) : (
             <>
-            {filteredMeters.length === 0 && isValidNumFacture ? (
+            {filteredMeters.length === 0 && billingSearchTerm ? (
                  <Card>
                     <CardContent>
                         <div className="flex flex-col items-center justify-center py-10 text-center">
                             <FileText className="h-12 w-12 text-muted-foreground" />
                             <h3 className="mt-4 text-lg font-semibold">Aucun compteur trouvé pour "{billingSearchTerm}"</h3>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Voulez-vous ajouter une référence pour ce numéro de facture ?
+                                Voulez-vous ajouter une référence pour cette facture ?
                             </p>
                             <Button className="mt-4" asChild>
                                 <Link href={`/dashboard/billing/add-reference?numeroFacture=${billingSearchTerm}`}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Ajouter ce Numéro Facture
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Ajouter cette Référence Facture
                                 </Link>
                             </Button>
                         </div>
