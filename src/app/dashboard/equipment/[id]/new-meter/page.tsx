@@ -226,7 +226,7 @@ export default function NewMeterWorkflowPage() {
         setWorkflowChoice('new');
     }
     
-    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
+    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension Tranche Horaire' | 'Moyen Tension Forfaitaire' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
         const newMeter: Partial<Meter> = {
             id: `MTR-WIP-${Date.now()}`,
             status: 'En cours',
@@ -255,7 +255,7 @@ export default function NewMeterWorkflowPage() {
     }
     
     const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string, indexDepart: number }) => {
-        if (wipMeter) {
+        if (wipMeter && equipmentItem) {
             const tempId = wipMeter.id;
             const updatedWipMeter: Meter = {
                 ...(wipMeter as Meter),
@@ -273,6 +273,7 @@ export default function NewMeterWorkflowPage() {
                     ...equipmentItem,
                     compteurId: data.meterId,
                     status: 'En cours', // Remain 'En cours'
+                    lastUpdate: new Date().toISOString().split('T')[0],
                 });
             }
             
