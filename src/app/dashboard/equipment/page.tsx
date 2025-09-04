@@ -238,20 +238,11 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                             <div>
                                 <span className="font-medium text-muted-foreground">N° Compteur: </span>
                                 <span className="font-mono">{associatedMeter.id}</span>
-                                {item.status === 'switched off' && (
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <AlertCircle className="inline-block h-4 w-4 text-destructive ml-2" />
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>L'équipement est "switched off" mais le compteur est peut-être encore actif.</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                )}
                             </div>
-                            <div><span className="font-medium text-muted-foreground">N° Police:</span> <span className="font-mono">{associatedMeter.policeNumber}</span></div>
+                            <div>
+                                <span className="font-medium text-muted-foreground">N° Police: </span>
+                                <span className="font-mono">{associatedMeter.policeNumber}</span>
+                            </div>
                             <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                             <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
                             <div><span className="font-medium text-muted-foreground">Date M.E.S:</span> {formatShortDate(associatedMeter.dateMiseEnService)}</div>
@@ -434,5 +425,6 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
 
 
