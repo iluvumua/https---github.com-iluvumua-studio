@@ -125,7 +125,7 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   penalite_cos_phi_mtf: z.coerce.number().optional(),
 
 }).superRefine((data, ctx) => {
-    if (isEditMode && data.reference) {
+    if (data.reference) {
         if (data.typeTension === "Basse Tension") {
             if (data.reference.length !== 8) {
                 ctx.addIssue({
@@ -290,11 +290,21 @@ export function BillForm({ bill }: BillFormProps) {
         montantSTEG: bill?.montantSTEG ?? 0,
         description: bill?.description || "",
         // BT
+        ancienIndex: bill?.ancienIndex ?? 0,
+        nouveauIndex: bill?.nouveauIndex ?? 0,
         prix_unitaire_bt: bill?.prix_unitaire_bt ?? settings.basseTension.prix_unitaire_bt,
         redevances_fixes: bill?.redevances_fixes ?? settings.basseTension.redevances_fixes,
         tva_bt: bill?.tva_bt ?? settings.basseTension.tva_bt,
         ertt_bt: bill?.ertt_bt ?? settings.basseTension.ertt_bt,
         // MT Horaire
+        ancien_index_jour: bill?.ancien_index_jour ?? 0,
+        nouveau_index_jour: bill?.nouveau_index_jour ?? 0,
+        ancien_index_pointe: bill?.ancien_index_pointe ?? 0,
+        nouveau_index_pointe: bill?.nouveau_index_pointe ?? 0,
+        ancien_index_soir: bill?.ancien_index_soir ?? 0,
+        nouveau_index_soir: bill?.nouveau_index_soir ?? 0,
+        ancien_index_nuit: bill?.ancien_index_nuit ?? 0,
+        nouveau_index_nuit: bill?.nouveau_index_nuit ?? 0,
         coefficient_jour: bill?.coefficient_jour ?? settings.moyenTensionHoraire.coefficient_jour,
         coefficient_pointe: bill?.coefficient_pointe ?? settings.moyenTensionHoraire.coefficient_pointe,
         coefficient_soir: bill?.coefficient_soir ?? settings.moyenTensionHoraire.coefficient_soir,
@@ -315,11 +325,29 @@ export function BillForm({ bill }: BillFormProps) {
         surtaxe_municipale_mth: bill?.surtaxe_municipale_mth ?? 0,
         avance_sur_consommation_mth: bill?.avance_sur_consommation_mth ?? 0,
         penalite_cos_phi: bill?.penalite_cos_phi ?? 0,
+        consommation_jour: bill?.consommation_jour ?? 0,
+        consommation_pointe: bill?.consommation_pointe ?? 0,
+        consommation_soir: bill?.consommation_soir ?? 0,
+        consommation_nuit: bill?.consommation_nuit ?? 0,
         // MT Forfait
+        mtf_ancien_index: bill?.mtf_ancien_index ?? 0,
+        mtf_nouveau_index: bill?.mtf_nouveau_index ?? 0,
         coefficient_multiplicateur: bill?.coefficient_multiplicateur ?? settings.moyenTensionForfait.coefficient_multiplicateur,
         pu_consommation: bill?.pu_consommation ?? settings.moyenTensionForfait.pu_consommation,
         tva_consommation_percent: bill?.tva_consommation_percent ?? settings.moyenTensionForfait.tva_consommation_percent,
         tva_redevance_percent: bill?.tva_redevance_percent ?? settings.moyenTensionForfait.tva_redevance_percent,
+        perte_en_charge: bill?.perte_en_charge ?? 0,
+        perte_a_vide: bill?.perte_a_vide ?? 0,
+        prime_puissance: bill?.prime_puissance ?? 0,
+        contribution_rtt: bill?.contribution_rtt ?? 0,
+        surtaxe_municipale: bill?.surtaxe_municipale ?? 0,
+        avance_consommation: bill?.avance_consommation ?? 0,
+        bonification: bill?.bonification ?? 0,
+        frais_location_mtf: bill?.frais_location_mtf ?? 0,
+        frais_intervention_mtf: bill?.frais_intervention_mtf ?? 0,
+        frais_relance_mtf: bill?.frais_relance_mtf ?? 0,
+        frais_retard_mtf: bill?.frais_retard_mtf ?? 0,
+        penalite_cos_phi_mtf: bill?.penalite_cos_phi_mtf ?? 0,
      }
   }, [isEditMode, bill, meterIdParam, monthParam, yearParam, meters, settings]);
 
@@ -567,16 +595,17 @@ export function BillForm({ bill }: BillFormProps) {
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-1">
-            {isEditMode ? (
-                <FormField control={form.control} name="reference" render={({ field }) => (
-                    <FormItem><FormLabel>N° Facture</FormLabel><FormControl><Input {...field} inputMode="numeric" pattern="[0-9]*" /></FormControl><FormMessage /></FormItem>
-                )} />
-            ) : (
-                <div className="space-y-1">
-                    <FormLabel>N° Facture (Auto)</FormLabel>
-                    <Input readOnly value={selectedMeter?.referenceFacteur && watchForm("billDate").length === 7 ? `${selectedMeter.referenceFacteur}-${watchForm("billDate").replace('/', '')}` : "N/A"} className="font-mono bg-muted"/>
-                </div>
-            )}
+            
+            <FormField control={form.control} name="reference" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>N° Facture</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} inputMode="numeric" pattern="[0-9]*" placeholder={isEditMode ? '' : 'Auto-généré si non fourni'}/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+            )} />
+            
             
             <FormField control={form.control} name="meterId" render={({ field }) => (
                 <FormItem><FormLabel>N° Compteur</FormLabel>
@@ -678,13 +707,13 @@ export function BillForm({ bill }: BillFormProps) {
                      <div className="space-y-4 rounded-md border p-4">
                         <h4 className="font-medium text-sm">Groupe 1: Redevances et Frais Divers</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Frais Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                             <FormField control={form.control} name="penalite_cos_phi" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Frais Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                             <FormField control={form.control} name="penalite_cos_phi" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center font-semibold">
@@ -695,10 +724,10 @@ export function BillForm({ bill }: BillFormProps) {
                      <div className="space-y-4 rounded-md border p-4">
                         <h4 className="font-medium text-sm">Groupe 2: Taxes</h4>
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="tva_consommation" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="tva_redevance" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="surtaxe_municipale_mth" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="tva_consommation" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="tva_redevance" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="surtaxe_municipale_mth" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center font-semibold">
@@ -706,7 +735,7 @@ export function BillForm({ bill }: BillFormProps) {
                             <span>{formatDT(mthGroup2Total)}</span>
                         </div>
                     </div>
-                    <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                    <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                 </div>
             )}
             
@@ -716,29 +745,29 @@ export function BillForm({ bill }: BillFormProps) {
                         <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( 
                             <FormItem>
                                 <FormLabel>Ancien Index (Départ: {selectedMeter?.indexDepart ?? 'N/A'})</FormLabel>
-                                <FormControl><Input type="number" {...field} /></FormControl>
+                                <FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl>
                             </FormItem> 
                         )} />
-                        <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="bonification" render={({ field }) => ( <FormItem><FormLabel>Bonification</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="surtaxe_municipale" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="avance_consommation" render={({ field }) => ( <FormItem><FormLabel>Avance / Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_location_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Location</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_intervention_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_relance_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_retard_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="penalite_cos_phi_mtf" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="bonification" render={({ field }) => ( <FormItem><FormLabel>Bonification</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="surtaxe_municipale" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="avance_consommation" render={({ field }) => ( <FormItem><FormLabel>Avance / Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_location_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Location</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_intervention_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_relance_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_retard_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="penalite_cos_phi_mtf" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                      </div>
                      <Separator />
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="tva_consommation_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="tva_redevance_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance (%)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="tva_consommation_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation (%)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="tva_redevance_percent" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance (%)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                 </div>
             )}
@@ -773,7 +802,7 @@ export function BillForm({ bill }: BillFormProps) {
                 )} />
 
                 <FormField control={form.control} name="nombreMois" render={({ field }) => (
-                    <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                 )} />
             </div>
 
