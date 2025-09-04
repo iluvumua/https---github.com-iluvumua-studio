@@ -67,7 +67,12 @@ export function Combobox({ options, value, onChange, placeholder, className, dis
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command onKeyDown={handleKeyDown}>
+        <Command onKeyDown={handleKeyDown} filter={(value, search) => {
+            const option = options.find(option => option.value === value);
+            const label = option ? option.label : '';
+            if (value.toLowerCase().includes(search.toLowerCase()) || label.toLowerCase().includes(search.toLowerCase())) return 1;
+            return 0;
+          }}>
           <CommandInput 
             placeholder="Rechercher ou créer..."
             value={inputValue}
