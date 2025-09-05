@@ -590,37 +590,40 @@ export function BillForm({ bill }: BillFormProps) {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4 md:grid-cols-1">
             
-            <FormField control={form.control} name="reference" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>N° Facture</FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value ?? ''} inputMode="numeric" pattern="[0-9]*" placeholder={'Entrez le N° de facture'}/>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-            )} />
-            
-            
-            <FormField control={form.control} name="meterId" render={({ field }) => (
-                <FormItem><FormLabel>N° Compteur (Référence Facture: {selectedMeter?.referenceFacteur || 'N/A'})</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterIdParam || isEditMode}>
-                        <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
-                        <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id} - {meter.referenceFacteur}</SelectItem>))}</SelectContent>
-                    </Select>
-                    <FormMessage />
-                </FormItem>
-            )} />
-
-            {selectedMeter && (
-                <FormField control={form.control} name="typeTension" render={({ field }) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField control={form.control} name="reference" render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Type Tension</FormLabel>
-                        <FormControl>
-                            <Input {...field} value={field.value ?? ''} readOnly className="bg-muted" />
-                        </FormControl>
+                    <FormLabel>N° Facture</FormLabel>
+                    <FormControl>
+                        <Input {...field} value={field.value ?? ''} inputMode="numeric" pattern="[0-9]*" placeholder={'Entrez le N° de facture'}/>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )} />
+                <FormField control={form.control} name="meterId" render={({ field }) => (
+                    <FormItem><FormLabel>N° Compteur (Réf: {selectedMeter?.referenceFacteur || 'N/A'})</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!!meterIdParam || isEditMode}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un compteur" /></SelectTrigger></FormControl>
+                            <SelectContent>{availableMeters.map(meter => (<SelectItem key={meter.id} value={meter.id}>{meter.id} - {meter.referenceFacteur}</SelectItem>))}</SelectContent>
+                        </Select>
                         <FormMessage />
                     </FormItem>
                 )} />
+            </div>
+            
+            
+            {selectedMeter && (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="typeTension" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Type Tension</FormLabel>
+                            <FormControl>
+                                <Input {...field} value={field.value ?? ''} readOnly className="bg-muted" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
             )}
 
             {watchedTypeTension === 'Basse Tension' && (
@@ -636,9 +639,11 @@ export function BillForm({ bill }: BillFormProps) {
                             <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
-                     <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
-                        <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
-                    )} />
+                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
+                            <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
+                        )} />
+                     </div>
                     <Separator />
                     <h4 className="font-medium text-sm">Taxes et Redevances</h4>
                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -729,7 +734,9 @@ export function BillForm({ bill }: BillFormProps) {
                             <span>{formatDT(mthGroup2Total)}</span>
                         </div>
                     </div>
-                    <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                    </div>
                 </div>
             )}
             
@@ -820,14 +827,16 @@ export function BillForm({ bill }: BillFormProps) {
             
             {!watchForm("convenableSTEG") && (
                 <div className="space-y-4">
-                    <FormField control={form.control} name="montantSTEG" render={({ field }) => (
-                        <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
-                            <FormControl>
-                                <Input type="number" step="0.001" {...field} value={field.value ?? ''}/>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField control={form.control} name="montantSTEG" render={({ field }) => (
+                            <FormItem><FormLabel>Montant Facture STEG (TND)</FormLabel>
+                                <FormControl>
+                                    <Input type="number" step="0.001" {...field} value={field.value ?? ''}/>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                    </div>
                     {typeof watchForm("montantSTEG") === 'number' && typeof watchForm("amount") === 'number' && (
                          <Alert variant={difference === 0 ? "default" : "destructive"}>
                             <AlertCircle className="h-4 w-4" />
