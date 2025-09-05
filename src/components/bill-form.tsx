@@ -628,7 +628,7 @@ export function BillForm({ bill }: BillFormProps) {
 
             {watchedTypeTension === 'Basse Tension' && (
                 <div className="space-y-4 rounded-md border p-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <FormField control={form.control} name="ancienIndex" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Ancien Index (Départ: {selectedMeter?.indexDepart ?? 'N/A'})</FormLabel>
@@ -641,7 +641,7 @@ export function BillForm({ bill }: BillFormProps) {
                     </div>
                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
-                            <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} readOnly /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                      </div>
                     <Separator />
@@ -734,14 +734,14 @@ export function BillForm({ bill }: BillFormProps) {
                             <span>{formatDT(mthGroup2Total)}</span>
                         </div>
                     </div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                 </div>
             )}
             
             {watchedTypeTension === 'Moyen Tension Forfaitaire' && (
-                <div className="space-y-4 rounded-md border p-4">
+                 <div className="space-y-4 rounded-md border p-4">
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="mtf_ancien_index" render={({ field }) => ( 
                             <FormItem>
@@ -750,6 +750,8 @@ export function BillForm({ bill }: BillFormProps) {
                             </FormItem> 
                         )} />
                         <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
