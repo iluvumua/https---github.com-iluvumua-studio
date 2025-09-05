@@ -318,7 +318,7 @@ export default function EquipmentPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [openRow, setOpenRow] = useState<string | null>(null);
 
-    const getFilteredEquipment = (status?: Equipment['status'] | 'all') => {
+    const getFilteredEquipment = (status: string) => {
         return equipment.filter(item => {
             const query = searchTerm.toLowerCase();
             
@@ -337,13 +337,26 @@ export default function EquipmentPage() {
 
             if (!matchesSearch) return false;
             
-            const matchesStatus = status === 'all' || item.status === status;
-            
-            return matchesStatus;
+            if (status === 'all') return true;
+
+            const statusMap: { [key: string]: Equipment['status'] } = {
+                'en_cours': 'En cours',
+                'en_service': 'En service',
+                'switched_off_en_cours': 'switched off en cours',
+                'switched_off': 'switched off',
+            };
+
+            const statusToFilter = statusMap[status];
+
+            if (statusToFilter) {
+                return item.status === statusToFilter;
+            }
+
+            return false;
         });
     }
     
-    const filteredEquipment = getFilteredEquipment(activeStatusTab as any);
+    const filteredEquipment = getFilteredEquipment(activeStatusTab);
 
     const handleExport = () => {
         const dataToExport = filteredEquipment.map(item => ({
@@ -415,5 +428,6 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
 
 
