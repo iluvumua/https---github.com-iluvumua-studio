@@ -51,10 +51,14 @@ export type Bill = {
   // Basse tension fields
   ancienIndex?: number;
   nouveauIndex?: number;
-  prix_unitaire_bt?: number;
+  tranche1?: number;
+  tranche2?: number;
+  tranche3?: number;
+  tranche4?: number;
+  surtaxe_municipale_bt?: number;
+  frais_transition_energetique_bt?: number;
+  tva_bt_percent?: number;
   redevances_fixes?: number;
-  tva_bt?: number;
-  ertt_bt?: number;
 
   // Moyen tension horaire fields
   ancien_index_jour?: number;

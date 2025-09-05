@@ -4,10 +4,14 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 const defaultSettings = {
   basseTension: {
-    prix_unitaire_bt: 0.250,
+    tranche1: 0.195,
+    tranche2: 0.240,
+    tranche3: 0.333,
+    tranche4: 0.391,
+    surtaxe_municipale: 0.005,
+    frais_transition_energetique: 0.005,
+    tva_bt_percent: 19,
     redevances_fixes: 2.800,
-    tva_bt: 5.320,
-    ertt_bt: 0.000,
   },
   moyenTensionHoraire: {
     coefficient_jour: 1,
