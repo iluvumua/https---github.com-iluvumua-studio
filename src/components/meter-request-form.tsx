@@ -123,7 +123,7 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
             </div>
              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                    <FormLabel>Coordonnées Compteur</FormLabel>
+                    <FormLabel>coordonné ajusté de l'équipement</FormLabel>
                     <Button type="button" variant="ghost" size="sm" asChild>
                         <a href={mapsLink} target="_blank" rel="noopener noreferrer">
                             <MapPin className="mr-2 h-4 w-4" /> Ouvrir Google Maps
@@ -229,3 +229,5 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
     </Form>
   );
 }
+
+    
