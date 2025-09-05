@@ -18,7 +18,7 @@ export default function EditEquipmentPage() {
     const { user } = useUser();
 
     const equipmentToEdit = Array.isArray(id) ? undefined : equipment.find(e => e.id === id);
-    const canEdit = user.role === 'Responsable Énergie et Environnement' || user.role === 'Déploiement';
+    const canEdit = user.role === 'Responsable Énergie et Environnement' || user.role === 'Déploiement' || user.role === 'Etude et Planification';
 
     return (
         <Card>

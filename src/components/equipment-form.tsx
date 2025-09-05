@@ -218,10 +218,11 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }
 
   const canEditStatus = user.role === 'Responsable Énergie et Environnement';
-  const canEditDescription = user.role === 'Responsable Énergie et Environnement' || user.role === 'Déploiement';
-  const canCreate = user.role === 'Déploiement';
+  const canEditGenerally = user.role === 'Déploiement' || user.role === 'Etude et Planification';
+  const canCreate = user.role === 'Etude et Planification';
+  const canEditDesignation = user.role !== 'Financier';
 
-  const isFormDisabled = isEditMode && !canEditStatus && !canEditDescription;
+  const isFormDisabled = isEditMode && !canEditStatus && !canEditGenerally;
   
   const availableMeters = useMemo(() => {
     const selectedLocation = watchAllFields.localisation;
@@ -257,7 +258,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Fournisseur</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode && !canEditStatus}>
+                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFormDisabled}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un fournisseur" />
@@ -284,7 +285,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         value={field.value}
                         onChange={field.onChange}
                         placeholder="Rechercher une localisation..."
-                        disabled={!!building || (isEditMode && !canEditStatus)}
+                        disabled={!!building || isFormDisabled}
                     />
                     <FormMessage />
                   </FormItem>
@@ -301,7 +302,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         value={field.value}
                         onChange={field.onChange}
                         placeholder="Rechercher un type..."
-                        disabled={isEditMode && !canEditStatus}
+                        disabled={isFormDisabled}
                     />
                     <FormMessage />
                   </FormItem>
@@ -314,7 +315,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Type de Châssis</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: 7302" {...field} disabled={isEditMode && !canEditStatus} />
+                      <Input placeholder="ex: 7302" {...field} disabled={isFormDisabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -327,7 +328,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   <FormItem>
                     <FormLabel>Désignation (Optionnel)</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} disabled={!canEditDescription} />
+                      <Input placeholder="ex: MM_Immeuble Zarrouk" {...field} disabled={!canEditDesignation} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -347,10 +348,10 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     <div className="grid grid-cols-2 gap-2">
                         <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem>
                             <FormLabel>X (Longitude)</FormLabel>
-                            <FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>
+                            <FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isFormDisabled} /></FormControl><FormMessage /></FormItem> )}/>
                         <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem>
                             <FormLabel>Y (Latitude)</FormLabel>
-                            <FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isEditMode && !canEditStatus} /></FormControl><FormMessage /></FormItem> )}/>
+                            <FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isFormDisabled} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
               
@@ -360,7 +361,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
               </div>
 
             </div>
-            {((isEditMode && (canEditStatus || canEditDescription)) || (!isEditMode && canCreate)) && (
+            {((isEditMode && canEditGenerally) || (!isEditMode && canCreate)) && (
                  <div className="flex justify-end gap-2 mt-8">
                     <Button type="button" variant="ghost" asChild>
                         <Link href="/dashboard/equipment"><X className="mr-2" /> Annuler</Link>

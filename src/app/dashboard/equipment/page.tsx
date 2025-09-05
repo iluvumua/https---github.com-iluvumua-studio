@@ -401,7 +401,7 @@ export default function EquipmentPage() {
               Exporter
             </span>
           </Button>
-            {user.role === 'Déploiement' && (
+            {user.role === 'Etude et Planification' && (
                 <Button size="sm" className="h-8 gap-1" asChild>
                     <Link href="/dashboard/equipment/new">
                         <PlusCircle className="h-3.5 w-3.5" />

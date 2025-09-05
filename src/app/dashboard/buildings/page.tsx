@@ -180,7 +180,7 @@ export default function BuildingsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {user.role === 'Déploiement' && (
+                        {(user.role === 'Déploiement' || user.role === 'Etude et Planification') && (
                             <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/equipment/new?buildingId=${building.id}`}>
                                     <Network className="mr-2 h-4 w-4" />
@@ -188,7 +188,7 @@ export default function BuildingsPage() {
                                 </Link>
                             </DropdownMenuItem>
                         )}
-                        {user.role === "Moyen Bâtiment" && (
+                        {user.role === "Déploiement" && (
                              <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/buildings/${building.id}/new-meter`}>
                                     <Gauge className="mr-2 h-4 w-4" />
@@ -201,7 +201,7 @@ export default function BuildingsPage() {
                                 <EditBuildingForm building={building} />
                             </DropdownMenuItem>
                         )}
-                        {user.role !== "Moyen Bâtiment" && user.role !== "Déploiement" && (
+                        {user.role !== "Moyen Bâtiment" && user.role !== "Déploiement" && user.role !== 'Etude et Planification' && (
                              <DropdownMenuItem disabled>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Modification réservée
