@@ -17,14 +17,15 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Sun, Moon, Laptop, Zap } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Sun, Moon, Laptop, Zap, ClipboardList } from "lucide-react";
 import { useUser, UserRole } from "@/hooks/use-user";
 import { useTheme } from "@/hooks/use-theme";
 
 const roleIcons = {
   Financier: Briefcase,
   'Moyen Bâtiment': Building,
-  Technicien: Wrench,
+  'Etude et Planification': ClipboardList,
+  'Déploiement': Wrench,
   'Responsable Énergie et Environnement': Zap,
 }
 

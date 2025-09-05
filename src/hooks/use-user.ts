@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 
-export type UserRole = "Financier" | "Moyen Bâtiment" | "Technicien" | "Responsable Énergie et Environnement";
+export type UserRole = "Financier" | "Moyen Bâtiment" | "Etude et Planification" | "Responsable Énergie et Environnement" | "Déploiement";
 
 interface User {
   name: string;
@@ -23,6 +23,6 @@ export const useUser = create<UserState>((set) => ({
     email: 'admin@ener-track.com',
     role: 'Financier',
   },
-  availableRoles: ["Financier", "Moyen Bâtiment", "Technicien", "Responsable Énergie et Environnement"],
+  availableRoles: ["Financier", "Moyen Bâtiment", "Etude et Planification", "Responsable Énergie et Environnement", "Déploiement"],
   setUser: (user) => set({ user }),
 }));

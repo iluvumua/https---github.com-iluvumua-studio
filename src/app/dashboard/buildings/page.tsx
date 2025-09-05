@@ -153,7 +153,7 @@ export default function BuildingsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {user.role === 'Technicien' && (
+                        {user.role === 'Déploiement' && (
                             <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/equipment/new?buildingId=${building.id}`}>
                                     <Network className="mr-2 h-4 w-4" />
@@ -174,7 +174,7 @@ export default function BuildingsPage() {
                                 <EditBuildingForm building={building} />
                             </DropdownMenuItem>
                         )}
-                        {user.role !== "Moyen Bâtiment" && (
+                        {user.role !== "Moyen Bâtiment" && user.role !== "Déploiement" && (
                              <DropdownMenuItem disabled>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Modification réservée

@@ -218,8 +218,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }
 
   const canEditStatus = user.role === 'Responsable Énergie et Environnement';
-  const canEditDescription = user.role === 'Responsable Énergie et Environnement' || user.role === 'Technicien';
-  const canCreate = user.role === 'Technicien';
+  const canEditDescription = user.role === 'Responsable Énergie et Environnement' || user.role === 'Déploiement';
+  const canCreate = user.role === 'Déploiement';
 
   const isFormDisabled = isEditMode && !canEditStatus && !canEditDescription;
   

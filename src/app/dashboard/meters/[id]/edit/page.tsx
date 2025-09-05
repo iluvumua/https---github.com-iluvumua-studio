@@ -19,7 +19,7 @@ export default function EditMeterPage() {
     const { user } = useUser();
 
     const meterToEdit = Array.isArray(id) ? undefined : meters.find(e => e.id === id);
-    const canEdit = user.role === 'Technicien' || user.role === 'Responsable Énergie et Environnement';
+    const canEdit = user.role === 'Déploiement' || user.role === 'Responsable Énergie et Environnement';
 
 
     return (
