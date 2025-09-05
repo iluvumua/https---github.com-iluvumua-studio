@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { CostBreakdownChart } from "@/components/cost-breakdown-chart";
+import { DistrictEvolutionChart } from "@/components/district-evolution-chart";
 
 export default function DashboardPage() {
   const { equipment } = useEquipmentStore();
@@ -161,6 +162,9 @@ export default function DashboardPage() {
             </Card>
         </div>
       </div>
+       <div className="grid grid-cols-1 gap-4 md:gap-8">
+            <DistrictEvolutionChart />
+       </div>
     </div>
   );
 }
