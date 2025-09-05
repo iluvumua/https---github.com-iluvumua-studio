@@ -109,6 +109,9 @@ export function CostBreakdownChart() {
     pieSliceTextStyle: {
         color: 'black',
     },
+    tooltip: {
+        trigger: 'selection'
+    },
     chartArea: {width: '100%', height: '80%'}
   };
 
