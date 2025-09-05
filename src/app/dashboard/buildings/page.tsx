@@ -1,7 +1,8 @@
 
 "use client";
 
-import { File, Building2, PlusCircle, Network, Pencil, Gauge, MoreHorizontal } from "lucide-react";
+import { useState, useMemo } from "react";
+import { File, Building2, PlusCircle, Network, Pencil, Gauge, MoreHorizontal, Search } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { Button } from "@/components/ui/button";
 import {
@@ -27,10 +28,32 @@ import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { locationsData } from "@/lib/locations";
+import { Input } from "@/components/ui/input";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
     const { user } = useUser();
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const getLocationLabel = (abbreviation?: string) => {
+        if (!abbreviation) return "N/A";
+        const location = locationsData.find(l => l.abbreviation === abbreviation);
+        return location?.localite || abbreviation;
+    }
+    
+    const filteredBuildings = useMemo(() => {
+        const query = searchTerm.toLowerCase();
+        if (!query) return buildings;
+
+        return buildings.filter(building => 
+            building.code.toLowerCase().includes(query) ||
+            building.name.toLowerCase().includes(query) ||
+            building.commune.toLowerCase().includes(query) ||
+            getLocationLabel(building.localisation).toLowerCase().includes(query) ||
+            building.address.toLowerCase().includes(query)
+        );
+    }, [buildings, searchTerm]);
+
 
     const getNatureLabel = (nature: string[]) => {
         const labels = [];
@@ -47,14 +70,8 @@ export default function BuildingsPage() {
         return 'outline';
     };
 
-    const getLocationLabel = (abbreviation?: string) => {
-        if (!abbreviation) return "N/A";
-        const location = locationsData.find(l => l.abbreviation === abbreviation);
-        return location?.localite || abbreviation;
-    }
-
     const handleExport = () => {
-        const dataToExport = buildings.map(building => ({
+        const dataToExport = filteredBuildings.map(building => ({
             "Code Bâtiment": building.code,
             "Nom du Site": building.name,
             "Commune": building.commune,
@@ -81,6 +98,16 @@ export default function BuildingsPage() {
                 </CardDescription>
             </div>
             <div className="flex items-center gap-2">
+                 <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Rechercher bâtiment..."
+                        className="pl-8 sm:w-[200px] lg:w-[300px]"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
                 <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -101,22 +128,22 @@ export default function BuildingsPage() {
         </div>
       </CardHeader>
       <CardContent>
-        {buildings.length === 0 ? (
+        {filteredBuildings.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Building2 className="h-16 w-16 text-muted-foreground" />
                 <h3 className="mt-6 text-xl font-semibold">Aucun bâtiment trouvé</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    Commencez par ajouter votre premier bâtiment pour le voir ici.
+                    {searchTerm ? `Aucun résultat pour "${searchTerm}".` : "Commencez par ajouter votre premier bâtiment pour le voir ici."}
                 </p>
-                <div className="mt-6 w-full max-w-sm">
-                    {user.role === 'Moyen Bâtiment' && (
+                 {user.role === 'Moyen Bâtiment' && !searchTerm && (
+                    <div className="mt-6 w-full max-w-sm">
                          <Button className="w-full" asChild>
                             <Link href="/dashboard/buildings/new">
                                 <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Bâtiment
                             </Link>
                         </Button>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         ) : (
         <Table>
@@ -132,7 +159,7 @@ export default function BuildingsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {buildings.map((building) => (
+            {filteredBuildings.map((building) => (
               <TableRow key={building.id}>
                 <TableCell className="font-medium">{building.code}</TableCell>
                 <TableCell>{building.name}</TableCell>
