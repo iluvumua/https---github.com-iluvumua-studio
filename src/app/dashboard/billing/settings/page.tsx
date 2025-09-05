@@ -62,7 +62,7 @@ export default function BillingSettingsPage() {
     }, 500);
   }
 
-  const btFormula = "Montant Total = (Consommation kWh * Prix Unitaire) + Redevances Fixes + TVA + Contribution ERTT";
+  const btFormula = "Montant Total = (Σ (Conso Tranche * PU)) + Redevances + Surtaxe + Contr. ERTT + TVA";
   const mthFormula = "Montant Total = (Σ (Conso Tranche * Coeff * PU)) + Redevances + Taxes";
   const mtfFormula = "Montant Total = ((Énergie Enregistrée + Pertes) * PU) + Prime Puissance + Taxes - Bonification +/- Avance";
 
@@ -83,27 +83,48 @@ export default function BillingSettingsPage() {
           <CardHeader>
             <CardTitle>Paramètres Basse Tension</CardTitle>
             <CardDescription>
-              Ajustez les coefficients et les valeurs par défaut pour les
-              factures de basse tension.
+              Ajustez les tarifs par tranche, les redevances et les taxes pour les
+              factures de basse tension non-résidentiel.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <Label>Prix Unitaire par Tranche de Consommation Mensuelle (kWh)</Label>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                 <div>
+                    <Label htmlFor="bt_tranche1" className="text-xs">Tranche 1 (1-200)</Label>
+                    <Input id="bt_tranche1" type="number" step="0.001" value={localSettings.basseTension.tranche1} onChange={(e) => handleInputChange('basseTension', 'tranche1', e.target.value)} disabled={isDisabled} />
+                </div>
                 <div>
-                    <Label htmlFor="bt_prix_unitaire">Prix Unitaire (kWh)</Label>
-                    <Input id="bt_prix_unitaire" type="number" value={localSettings.basseTension.prix_unitaire_bt} onChange={(e) => handleInputChange('basseTension', 'prix_unitaire_bt', e.target.value)} disabled={isDisabled} />
+                    <Label htmlFor="bt_tranche2" className="text-xs">Tranche 2 (201-300)</Label>
+                    <Input id="bt_tranche2" type="number" step="0.001" value={localSettings.basseTension.tranche2} onChange={(e) => handleInputChange('basseTension', 'tranche2', e.target.value)} disabled={isDisabled} />
                 </div>
                  <div>
+                    <Label htmlFor="bt_tranche3" className="text-xs">Tranche 3 (301-500)</Label>
+                    <Input id="bt_tranche3" type="number" step="0.001" value={localSettings.basseTension.tranche3} onChange={(e) => handleInputChange('basseTension', 'tranche3', e.target.value)} disabled={isDisabled} />
+                </div>
+                 <div>
+                    <Label htmlFor="bt_tranche4" className="text-xs">Tranche 4 (>500)</Label>
+                    <Input id="bt_tranche4" type="number" step="0.001" value={localSettings.basseTension.tranche4} onChange={(e) => handleInputChange('basseTension', 'tranche4', e.target.value)} disabled={isDisabled} />
+                </div>
+            </div>
+             <Separator />
+             <Label>Redevances et Taxes</Label>
+             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
                     <Label htmlFor="bt_redevances_fixes">Redevances Fixes</Label>
-                    <Input id="bt_redevances_fixes" type="number" value={localSettings.basseTension.redevances_fixes} onChange={(e) => handleInputChange('basseTension', 'redevances_fixes', e.target.value)} disabled={isDisabled} />
+                    <Input id="bt_redevances_fixes" type="number" step="0.001" value={localSettings.basseTension.redevances_fixes} onChange={(e) => handleInputChange('basseTension', 'redevances_fixes', e.target.value)} disabled={isDisabled} />
+                </div>
+                <div>
+                    <Label htmlFor="bt_tva">TVA (%)</Label>
+                    <Input id="bt_tva" type="number" value={localSettings.basseTension.tva_bt_percent} onChange={(e) => handleInputChange('basseTension', 'tva_bt_percent', e.target.value)} disabled={isDisabled} />
                 </div>
                  <div>
-                    <Label htmlFor="bt_tva">TVA</Label>
-                    <Input id="bt_tva" type="number" value={localSettings.basseTension.tva_bt} onChange={(e) => handleInputChange('basseTension', 'tva_bt', e.target.value)} disabled={isDisabled} />
+                    <Label htmlFor="bt_surtaxe">Surtaxe Municipale (P.U.)</Label>
+                    <Input id="bt_surtaxe" type="number" step="0.001" value={localSettings.basseTension.surtaxe_municipale} onChange={(e) => handleInputChange('basseTension', 'surtaxe_municipale', e.target.value)} disabled={isDisabled} />
                 </div>
                  <div>
-                    <Label htmlFor="bt_ertt">Contribution ERTT</Label>
-                    <Input id="bt_ertt" type="number" value={localSettings.basseTension.ertt_bt} onChange={(e) => handleInputChange('basseTension', 'ertt_bt', e.target.value)} disabled={isDisabled} />
+                    <Label htmlFor="bt_ertt">Frais Transition Énergétique (P.U.)</Label>
+                    <Input id="bt_ertt" type="number" step="0.001" value={localSettings.basseTension.frais_transition_energetique} onChange={(e) => handleInputChange('basseTension', 'frais_transition_energetique', e.target.value)} disabled={isDisabled} />
                 </div>
             </div>
              <Separator />

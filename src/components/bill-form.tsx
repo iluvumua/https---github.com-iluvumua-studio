@@ -63,10 +63,6 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   // Basse Tension
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
-  prix_unitaire_bt: z.coerce.number().optional(),
-  redevances_fixes: z.coerce.number().optional(),
-  tva_bt: z.coerce.number().optional(),
-  ertt_bt: z.coerce.number().optional(),
 
   
   // Moyen Tension Horaire
@@ -291,10 +287,6 @@ export function BillForm({ bill }: BillFormProps) {
         // BT
         ancienIndex: bill?.ancienIndex ?? 0,
         nouveauIndex: bill?.nouveauIndex ?? 0,
-        prix_unitaire_bt: bill?.prix_unitaire_bt ?? settings.basseTension.prix_unitaire_bt,
-        redevances_fixes: bill?.redevances_fixes ?? settings.basseTension.redevances_fixes,
-        tva_bt: bill?.tva_bt ?? settings.basseTension.tva_bt,
-        ertt_bt: bill?.ertt_bt ?? settings.basseTension.ertt_bt,
         // MT Horaire
         ancien_index_jour: bill?.ancien_index_jour ?? 0,
         nouveau_index_jour: bill?.nouveau_index_jour ?? 0,
@@ -394,15 +386,43 @@ export function BillForm({ bill }: BillFormProps) {
         let consumption = 0;
         let finalAmount = 0;
 
+        const { basseTension: btSettings } = settings;
+
         if (watchedTypeTension === "Basse Tension") {
             const numAncienIndex = Number(watchedFields.ancienIndex) || 0;
             const numNouveauIndex = Number(watchedFields.nouveauIndex) || 0;
             consumption = calculateConsumptionWithRollover(numAncienIndex, numNouveauIndex);
             
-            const montant_consommation = consumption * (Number(watchedFields.prix_unitaire_bt) || 0);
-            const total_taxes = (Number(watchedFields.ertt_bt) || 0) + (Number(watchedFields.tva_bt) || 0);
-            const total_consommation = montant_consommation + (Number(watchedFields.redevances_fixes) || 0);
-            finalAmount = total_consommation + total_taxes;
+            const nombreMois = Number(watchedFields.nombreMois) || 1;
+            const conso_mensuelle = consumption / nombreMois;
+
+            let montant_tranche1 = 0, montant_tranche2 = 0, montant_tranche3 = 0, montant_tranche4 = 0;
+
+            if (conso_mensuelle > 0) {
+                const t1 = Math.min(conso_mensuelle, 200);
+                montant_tranche1 = t1 * (btSettings.tranche1);
+            }
+            if (conso_mensuelle > 200) {
+                const t2 = Math.min(conso_mensuelle - 200, 100);
+                montant_tranche2 = t2 * (btSettings.tranche2);
+            }
+            if (conso_mensuelle > 300) {
+                const t3 = Math.min(conso_mensuelle - 300, 200);
+                montant_tranche3 = t3 * (btSettings.tranche3);
+            }
+            if (conso_mensuelle > 500) {
+                const t4 = conso_mensuelle - 500;
+                montant_tranche4 = t4 * (btSettings.tranche4);
+            }
+
+            const total_tranches = (montant_tranche1 + montant_tranche2 + montant_tranche3 + montant_tranche4) * nombreMois;
+            const montant_surtaxe = consumption * (btSettings.surtaxe_municipale);
+            const montant_frais_transition = consumption * (btSettings.frais_transition_energetique);
+            
+            const sous_total = total_tranches + (btSettings.redevances_fixes) + montant_surtaxe + montant_frais_transition;
+            const montant_tva = sous_total * (btSettings.tva_bt_percent / 100);
+            
+            finalAmount = sous_total + montant_tva;
 
         } else if (watchedTypeTension === "Moyen Tension Tranche Horaire") {
             const consoJour = calculateConsumptionWithRollover(watchedFields.ancien_index_jour, watchedFields.nouveau_index_jour);
@@ -445,7 +465,7 @@ export function BillForm({ bill }: BillFormProps) {
         }
 
         return { amount: parseFloat(finalAmount.toFixed(3)), consumptionKWh: consumption };
-  }, [watchedFields, watchedTypeTension]);
+  }, [watchedFields, watchedTypeTension, settings]);
 
 
   useEffect(() => {
@@ -485,10 +505,6 @@ export function BillForm({ bill }: BillFormProps) {
         // BT
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
-        prix_unitaire_bt: values.typeTension === "Basse Tension" ? values.prix_unitaire_bt : undefined,
-        redevances_fixes: values.typeTension === "Basse Tension" ? values.redevances_fixes : undefined,
-        tva_bt: values.typeTension === "Basse Tension" ? values.tva_bt : undefined,
-        ertt_bt: values.typeTension === "Basse Tension" ? values.ertt_bt : undefined,
         
         // MT Horaire
         ancien_index_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_jour : undefined,
@@ -637,24 +653,6 @@ export function BillForm({ bill }: BillFormProps) {
                         )} />
                         <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
                             <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                    </div>
-                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <FormField control={form.control} name="prix_unitaire_bt" render={({ field }) => (
-                            <FormItem><FormLabel>Prix Unitaire (kWh)</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                     </div>
-                    <Separator />
-                    <h4 className="font-medium text-sm">Taxes et Redevances</h4>
-                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <FormField control={form.control} name="redevances_fixes" render={({ field }) => (
-                            <FormItem><FormLabel>Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                        <FormField control={form.control} name="tva_bt" render={({ field }) => (
-                            <FormItem><FormLabel>TVA</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                        )} />
-                         <FormField control={form.control} name="ertt_bt" render={({ field }) => (
-                            <FormItem><FormLabel>Contr. ERTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
                 </div>
