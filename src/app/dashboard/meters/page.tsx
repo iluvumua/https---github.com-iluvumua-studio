@@ -35,13 +35,15 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { useUser } from "@/hooks/use-user";
 import { ResiliationDialog } from "@/components/resiliation-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useBillingStore } from "@/hooks/use-billing-store";
 
 function MetersPageComponent() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
+  const { bills } = useBillingStore();
   const searchParams = useSearchParams();
   const initialSearch = searchParams.get('search') || "";
   const { user } = useUser();
@@ -49,6 +51,8 @@ function MetersPageComponent() {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [activeTab, setActiveTab] = useState("all");
   const [alertFilter, setAlertFilter] = useState<'all' | 'alert' | 'no_alert'>('all');
+  const [refFilter, setRefFilter] = useState<'all' | 'withRefNoBill' | 'noRef'>('all');
+
 
   const canResiliate = user.role === 'Responsable Énergie et Environnement';
 
@@ -109,6 +113,13 @@ function MetersPageComponent() {
         results = results.filter(meter => !meter.hasSwitchedOffEquipment);
     }
     
+    // Reference filter
+    if (refFilter === 'withRefNoBill') {
+        results = results.filter(meter => meter.referenceFacteur && !bills.some(b => b.meterId === meter.id));
+    } else if (refFilter === 'noRef') {
+        results = results.filter(meter => !meter.referenceFacteur);
+    }
+
     // Search filter
     const query = searchTerm.toLowerCase();
     if (query) {
@@ -123,7 +134,7 @@ function MetersPageComponent() {
     }
 
     return results;
-  }, [metersWithAlerts, activeTab, alertFilter, searchTerm, buildings, equipment]);
+  }, [metersWithAlerts, activeTab, alertFilter, refFilter, searchTerm, buildings, equipment, bills]);
 
 
   const getTensionBadgeVariant = (tension: Meter['typeTension']) => {
@@ -142,7 +153,7 @@ function MetersPageComponent() {
   return (
     <TooltipProvider>
     <Tabs defaultValue="all" onValueChange={setActiveTab}>
-      <div className="flex items-center mb-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center mb-4 gap-4">
         <TabsList>
           <TabsTrigger value="all">Tous</TabsTrigger>
           <TabsTrigger value="en_cours">En cours</TabsTrigger>
@@ -150,25 +161,35 @@ function MetersPageComponent() {
           <TabsTrigger value="switched_off_en_cours">Switched Off En Cours</TabsTrigger>
           <TabsTrigger value="switched_off">Switched Off</TabsTrigger>
         </TabsList>
-        <div className="ml-auto flex items-center gap-2">
-            <div className="relative">
+        <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full">
+             <div className="relative flex-1 sm:flex-initial">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                     type="search"
                     placeholder="Rechercher compteur..."
-                    className="pl-8 sm:w-[200px] lg:w-[200px]"
+                    className="pl-8 w-full sm:w-[200px] lg:w-[200px]"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
              <Select value={alertFilter} onValueChange={(value) => setAlertFilter(value as any)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Filtrer par alerte" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="all">Toutes alertes</SelectItem>
                     <SelectItem value="alert">Avec Alerte</SelectItem>
                     <SelectItem value="no_alert">Sans Alerte</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select value={refFilter} onValueChange={(value) => setRefFilter(value as any)}>
+                <SelectTrigger className="w-full sm:w-[220px]">
+                    <SelectValue placeholder="Filtrer par référence" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Toutes références</SelectItem>
+                    <SelectItem value="withRefNoBill">Avec Réf. Sans Facture</SelectItem>
+                    <SelectItem value="noRef">Sans Réf.</SelectItem>
                 </SelectContent>
             </Select>
           </div>
@@ -335,3 +356,5 @@ export default function MetersPage() {
         </Suspense>
     )
 }
+
+    
