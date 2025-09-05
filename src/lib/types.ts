@@ -9,6 +9,7 @@ export type Equipment = {
   fournisseur?: string;
   typeChassis?: string;
   designation?: string; // Nom de l'MSAN (GéoNetwork) ou Nom Workflow
+  description?: string;
   coordX?: number;
   coordY?: number;
   compteurId?: string;

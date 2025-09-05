@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { Combobox } from "./combobox";
+import { Textarea } from "./ui/textarea";
 
 const fournisseurs = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
@@ -57,6 +58,7 @@ const formSchema = z.object({
   localisation: z.string().min(1, "La localisation est requise."),
   typeChassis: z.string().min(1, "Le type de châssis est requis."),
   designation: z.string().optional(),
+  description: z.string().optional(),
   coordX: z.coerce.number({required_error: "La coordonnée X est requise."}),
   coordY: z.coerce.number({required_error: "La coordonnée Y est requise."}),
   buildingId: z.string().optional(),
@@ -116,6 +118,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       localisation: initialEquipment?.location || building?.code || "",
       typeChassis: initialEquipment?.typeChassis || "",
       designation: initialEquipment ? extractDesignationFromName(initialEquipment.name, initialEquipment.type, initialEquipment.typeChassis) : (building?.name || ""),
+      description: initialEquipment?.description || "",
       coordX: initialEquipment?.coordX,
       coordY: initialEquipment?.coordY,
       buildingId: initialEquipment?.buildingId || buildingIdParam || "",
@@ -189,6 +192,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
             designation: values.designation,
+            description: values.description,
             coordX: values.coordX,
             coordY: values.coordY,
             buildingId: values.buildingId,
@@ -206,6 +210,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
             fournisseur: values.fournisseur,
             typeChassis: values.typeChassis,
             designation: values.designation || undefined,
+            description: values.description || undefined,
             coordX: values.coordX,
             coordY: values.coordY,
             compteurId: building?.meterId,
@@ -354,6 +359,20 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                             <FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isFormDisabled} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
+
+                <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Description (Optionnel)</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Ajouter une description..." {...field} disabled={isFormDisabled} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <div className="md:col-span-2 space-y-2">
                 <Label>Nom Généré</Label>
