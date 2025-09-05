@@ -249,7 +249,7 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                             <div><span className="font-medium text-muted-foreground">Dernière MAJ Compteur:</span> {formatShortDate(associatedMeter.lastUpdate)}</div>
                             {renderMeterIndex(associatedMeter)}
                             <div className="font-medium"><span className="text-muted-foreground">Coût Mensuel Moy:</span> {equipmentMetrics.averageCost !== null ? formatCurrency(equipmentMetrics.averageCost) : 'N/A'}</div>
-                            <div className="font-medium"><span className="text-muted-foreground">Conso. Mensuelle Moy:</span> {equipmentMetrics.averageConsumption !== null ? `${formatKWh(equipmentMetrics.averageConsumption)} kWh` : 'N/A'}</div>
+                            <div className="font-medium"><span className="font-medium text-muted-foreground">Conso. Mensuelle Moy:</span> {equipmentMetrics.averageConsumption !== null ? `${formatKWh(equipmentMetrics.averageConsumption)} kWh` : 'N/A'}</div>
                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                             <div className="col-span-full mt-2">
                             <Button variant="link" size="sm" className="p-0 h-auto" asChild>
@@ -314,12 +314,11 @@ export default function EquipmentPage() {
     const { equipment } = useEquipmentStore();
     const { meters } = useMetersStore();
     const [activeStatusTab, setActiveStatusTab] = useState("all");
-    const [activeTypeTab, setActiveTypeTab] = useState("all");
     const { user } = useUser();
     const [searchTerm, setSearchTerm] = useState("");
     const [openRow, setOpenRow] = useState<string | null>(null);
 
-    const getFilteredEquipment = (status?: Equipment['status'] | 'all', type?: string | 'all') => {
+    const getFilteredEquipment = (status?: Equipment['status'] | 'all') => {
         return equipment.filter(item => {
             const query = searchTerm.toLowerCase();
             
@@ -339,13 +338,12 @@ export default function EquipmentPage() {
             if (!matchesSearch) return false;
             
             const matchesStatus = status === 'all' || item.status === status;
-            const matchesType = type === 'all' || item.type === type;
             
-            return matchesStatus && matchesType;
+            return matchesStatus;
         });
     }
     
-    const filteredEquipment = getFilteredEquipment(activeStatusTab as any, activeTypeTab);
+    const filteredEquipment = getFilteredEquipment(activeStatusTab as any);
 
     const handleExport = () => {
         const dataToExport = filteredEquipment.map(item => ({
@@ -364,15 +362,6 @@ export default function EquipmentPage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-    <Tabs defaultValue="all" value={activeTypeTab} onValueChange={setActiveTypeTab}>
-        <TabsList>
-            <TabsTrigger value="all">Tous les Types</TabsTrigger>
-            {equipmentTypes.map(type => (
-                <TabsTrigger key={type} value={type}>{type}</TabsTrigger>
-            ))}
-        </TabsList>
-    </Tabs>
-
     <Tabs defaultValue="all" value={activeStatusTab} onValueChange={setActiveStatusTab}>
       <div className="flex items-center">
         <TabsList>
@@ -426,4 +415,5 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
 
