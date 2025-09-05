@@ -625,7 +625,7 @@ export function BillForm({ bill }: BillFormProps) {
 
             {watchedTypeTension === 'Basse Tension' && (
                 <div className="space-y-4 rounded-md border p-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <FormField control={form.control} name="ancienIndex" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Ancien Index (Départ: {selectedMeter?.indexDepart ?? 'N/A'})</FormLabel>
@@ -641,7 +641,7 @@ export function BillForm({ bill }: BillFormProps) {
                     )} />
                     <Separator />
                     <h4 className="font-medium text-sm">Taxes et Redevances</h4>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <FormField control={form.control} name="redevances_fixes" render={({ field }) => (
                             <FormItem><FormLabel>Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
@@ -881,5 +881,3 @@ export function BillForm({ bill }: BillFormProps) {
     </Form>
   );
 }
-
-    
