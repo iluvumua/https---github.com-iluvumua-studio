@@ -14,7 +14,7 @@ const formSchema = z.object({
     ancien_index: z.coerce.number().default(1483440),
     nouveau_index: z.coerce.number().default(1489924),
     coefficient_multiplicateur: z.coerce.number().default(1.0),
-    perte_en_charge: z.coerce.number().default(130),
+    perte_en_charge: z.coerce.number().default(0), // Will be calculated
     perte_a_vide: z.coerce.number().default(260),
     pu_consommation: z.coerce.number().default(0.291),
     prime_puissance: z.coerce.number().default(250.000),
@@ -40,7 +40,7 @@ export function MoyenTensionForfaitForm() {
             ancien_index: 1483440,
             nouveau_index: 1489924,
             coefficient_multiplicateur: 1.0,
-            perte_en_charge: 130,
+            perte_en_charge: 0,
             perte_a_vide: 260,
             pu_consommation: 0.291,
             prime_puissance: 250.000,
@@ -63,7 +63,6 @@ export function MoyenTensionForfaitForm() {
     const ancien_index = parseFloat(String(watchedValues.ancien_index)) || 0;
     const nouveau_index = parseFloat(String(watchedValues.nouveau_index)) || 0;
     const coefficient_multiplicateur = parseFloat(String(watchedValues.coefficient_multiplicateur)) || 0;
-    const perte_en_charge = parseFloat(String(watchedValues.perte_en_charge)) || 0;
     const perte_a_vide = parseFloat(String(watchedValues.perte_a_vide)) || 0;
     const pu_consommation = parseFloat(String(watchedValues.pu_consommation)) || 0;
     const prime_puissance = parseFloat(String(watchedValues.prime_puissance)) || 0;
@@ -81,7 +80,10 @@ export function MoyenTensionForfaitForm() {
     
 
     // Calculations
-    const energie_enregistree = Math.max(0, nouveau_index - ancien_index) * coefficient_multiplicateur;
+    const indexDifference = Math.max(0, nouveau_index - ancien_index);
+    const perte_en_charge = Math.round(indexDifference * 0.02);
+
+    const energie_enregistree = indexDifference * coefficient_multiplicateur;
     const consommation_a_facturer = energie_enregistree + perte_en_charge + perte_a_vide;
     const montant_consommation = consommation_a_facturer * pu_consommation;
     const sous_total_consommation = montant_consommation;
@@ -100,7 +102,7 @@ export function MoyenTensionForfaitForm() {
 
 
     function onSubmit(values: FormValues) {
-        console.log(values);
+        console.log({ ...values, perte_en_charge });
     }
     
     const formatDT = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
@@ -118,7 +120,6 @@ export function MoyenTensionForfaitForm() {
                             <FormField control={form.control} name="ancien_index" render={({ field }) => ( <FormItem><FormLabel>Ancien Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
                         </CardContent>
                     </Card>
@@ -147,6 +148,7 @@ export function MoyenTensionForfaitForm() {
                             <CardTitle>Calcul de la Facture</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3 text-sm">
+                             <div className="flex justify-between items-center"><span>Perte en Charge Calculée:</span><span className="font-mono">{formatKWh(perte_en_charge)} kWh</span></div>
                              <div className="flex justify-between items-center"><span>Consommation à Facturer:</span><span className="font-mono">{formatKWh(consommation_a_facturer)} kWh</span></div>
                              <div className="flex justify-between items-center"><span>Montant Consommation:</span><span className="font-mono">{formatDT(montant_consommation)}</span></div>
                              <div className="flex justify-between items-center"><span>Bonification:</span><span className="font-mono text-green-500">-{formatDT(bonification)}</span></div>

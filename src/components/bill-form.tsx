@@ -188,9 +188,9 @@ export function BillForm({ bill }: BillFormProps) {
 
   const getMonthNumber = useCallback((monthName: string) => {
     try {
-        const date = parse(monthName, "LLLL yyyy", new Date(), { locale: fr });
-        if (!isNaN(date.getTime())) {
-            return date.getFullYear() * 100 + date.getMonth();
+        const parsedDate = parse(monthName, "LLLL yyyy", new Date(), { locale: fr });
+        if (!isNaN(parsedDate.getTime())) {
+            return parsedDate.getFullYear() * 100 + parsedDate.getMonth();
         }
     } catch(e) {}
     return 0;
@@ -440,8 +440,12 @@ export function BillForm({ bill }: BillFormProps) {
             finalAmount = subtotal + group1Total + group2Total + (Number(watchedFields.avance_sur_consommation_mth) || 0);
 
         } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
-            const energie_enregistree = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index) * (Number(watchedFields.coefficient_multiplicateur) || 0);
-            const consommation_a_facturer = energie_enregistree + (Number(watchedFields.perte_en_charge) || 0) + (Number(watchedFields.perte_a_vide) || 0);
+            const indexDifference = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index);
+            const perteEnCharge = Math.round(indexDifference * 0.02);
+            setValue('perte_en_charge', perteEnCharge, { shouldValidate: true });
+
+            const energie_enregistree = indexDifference * (Number(watchedFields.coefficient_multiplicateur) || 0);
+            const consommation_a_facturer = energie_enregistree + perteEnCharge + (Number(watchedFields.perte_a_vide) || 0);
             consumption = consommation_a_facturer;
 
             const montant_consommation = consommation_a_facturer * (Number(watchedFields.pu_consommation) || 0);
@@ -456,7 +460,7 @@ export function BillForm({ bill }: BillFormProps) {
         }
 
         return { amount: parseFloat(finalAmount.toFixed(3)), consumptionKWh: consumption };
-  }, [watchedFields, watchedTypeTension, settings]);
+  }, [watchedFields, watchedTypeTension, settings, setValue]);
 
 
   useEffect(() => {
@@ -734,8 +738,9 @@ export function BillForm({ bill }: BillFormProps) {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        
                         <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                         <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly className="bg-muted" /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="bonification" render={({ field }) => ( <FormItem><FormLabel>Bonification</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
