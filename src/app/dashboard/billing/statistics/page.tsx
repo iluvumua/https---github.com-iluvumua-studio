@@ -34,9 +34,7 @@ import type { Bill, Meter } from "@/lib/types";
 import { RecapCard, RecapData } from "@/components/recap-card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronDown, ListFilter } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Combobox } from "@/components/combobox";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -59,13 +57,34 @@ export default function BillingStatisticsPage() {
   const [recapMonth, setRecapMonth] = useState<string>(monthNames[new Date().getMonth()]);
   const [recapTension, setRecapTension] = useState<'all' | 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire'>('all');
   
-  const [selectedMeters, setSelectedMeters] = useState<string[]>([]);
+  const [selectedMeterId, setSelectedMeterId] = useState<string>("");
   const [displayMode, setDisplayMode] = useState<'cost' | 'consumption'>('cost');
 
   const availableYears = useMemo(() => {
     const years = new Set(bills.map(b => b.month.split(' ')[1]));
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [bills]);
+
+  const getAssociationName = (meterId: string) => {
+    const meter = meters.find(m => m.id === meterId);
+    if (!meter) return "N/A";
+    if (meter.buildingId) {
+        const building = buildings.find(b => b.id === meter.buildingId);
+        return building?.name || `Bâtiment ID: ${meter.buildingId}`;
+    }
+    const associatedEquipment = equipment.filter(e => e.compteurId === meterId);
+    if (associatedEquipment.length > 0) {
+        return associatedEquipment.map(e => e.name).join(', ');
+    }
+    return "Non Associé";
+  };
+
+  const meterOptions = useMemo(() => {
+    return meters.map(meter => ({
+        value: meter.id,
+        label: `${meter.id} (${getAssociationName(meter.id)})`
+    }));
+  }, [meters, buildings, equipment]);
 
   const recapDataByDistrict = useMemo(() => {
     const selectedMonthYear = `${recapMonth} ${recapYear}`;
@@ -131,8 +150,8 @@ export default function BillingStatisticsPage() {
 
   const annualChartData = useMemo(() => {
     let yearBills = bills.filter(bill => bill.month.endsWith(selectedYear));
-    if (selectedMeters.length > 0) {
-        yearBills = yearBills.filter(bill => selectedMeters.includes(bill.meterId));
+    if (selectedMeterId) {
+        yearBills = yearBills.filter(bill => bill.meterId === selectedMeterId);
     }
 
     const monthlyData: { [key: string]: { [key: string]: number } } = {};
@@ -145,7 +164,11 @@ export default function BillingStatisticsPage() {
         const monthName = bill.month.split(' ')[0];
         if (monthlyData[monthName]) {
             const value = displayMode === 'cost' ? bill.amount : bill.consumptionKWh;
-            monthlyData[monthName][bill.meterId] = (monthlyData[monthName][bill.meterId] || 0) + value;
+             if (selectedMeterId) {
+                 monthlyData[monthName][selectedMeterId] = (monthlyData[monthName][selectedMeterId] || 0) + value;
+             } else {
+                monthlyData[monthName].total = (monthlyData[monthName].total || 0) + value;
+             }
         }
     });
     
@@ -153,18 +176,14 @@ export default function BillingStatisticsPage() {
       month: month.slice(0, 3),
       ...data
     }));
-  }, [bills, selectedYear, selectedMeters, displayMode]);
+  }, [bills, selectedYear, selectedMeterId, displayMode]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
   const formatKWh = (value: number) => `${new Intl.NumberFormat('fr-FR').format(value)} kWh`;
   const yAxisFormatter = (value: number) => `${new Intl.NumberFormat('fr-TN', { notation: 'compact', compactDisplay: 'short' }).format(value)}`;
   
   const handleMeterSelection = (meterId: string) => {
-    setSelectedMeters(prev => 
-        prev.includes(meterId) 
-        ? prev.filter(id => id !== meterId) 
-        : [...prev, meterId]
-    );
+    setSelectedMeterId(meterId);
   };
   
   return (
@@ -175,7 +194,7 @@ export default function BillingStatisticsPage() {
                     <div>
                         <CardTitle>Statistiques Annuelles par Compteur</CardTitle>
                         <CardDescription>
-                            Aperçu {displayMode === 'cost' ? 'des coûts' : 'de la consommation'} pour les compteurs sélectionnés en {selectedYear}.
+                            Aperçu {displayMode === 'cost' ? 'des coûts' : 'de la consommation'} pour l'année {selectedYear}.
                         </CardDescription>
                     </div>
                      <div className="flex items-center gap-2">
@@ -183,26 +202,13 @@ export default function BillingStatisticsPage() {
                             <Button variant={displayMode === 'cost' ? "secondary" : "ghost"} size="sm" onClick={() => setDisplayMode('cost')}>Coût (TND)</Button>
                             <Button variant={displayMode === 'consumption' ? "secondary" : "ghost"} size="sm" onClick={() => setDisplayMode('consumption')}>Conso. (kWh)</Button>
                         </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="w-[180px]">
-                                    <ListFilter className="mr-2 h-4 w-4" /> 
-                                    {selectedMeters.length > 0 ? `${selectedMeters.length} Compteur(s)` : "Filtrer Compteurs"}
-                                    <ChevronDown className="ml-auto h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="max-h-80 overflow-y-auto">
-                                {meters.map(meter => (
-                                    <DropdownMenuCheckboxItem
-                                        key={meter.id}
-                                        checked={selectedMeters.includes(meter.id)}
-                                        onCheckedChange={() => handleMeterSelection(meter.id)}
-                                    >
-                                        {meter.id}
-                                    </DropdownMenuCheckboxItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Combobox
+                            options={meterOptions}
+                            value={selectedMeterId}
+                            onChange={handleMeterSelection}
+                            placeholder="Filtrer par Compteur..."
+                            className="w-[250px]"
+                        />
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
                             <SelectTrigger className="w-[120px]">
                                 <SelectValue placeholder="Année" />
@@ -224,18 +230,18 @@ export default function BillingStatisticsPage() {
                         <YAxis tickFormatter={yAxisFormatter} />
                         <Tooltip formatter={(value: number) => displayMode === 'cost' ? formatCurrency(value) : formatKWh(value)} contentStyle={{ backgroundColor: 'transparent', border: 'none' }} />
                         <Legend />
-                        {selectedMeters.map((meterId, index) => (
-                            <Line 
-                                key={meterId} 
+                         {selectedMeterId ? (
+                             <Line 
+                                key={selectedMeterId} 
                                 type="monotone" 
-                                dataKey={meterId} 
-                                name={meterId} 
-                                stroke={meterColors[index % meterColors.length]} 
+                                dataKey={selectedMeterId} 
+                                name={getAssociationName(selectedMeterId)}
+                                stroke={meterColors[0]}
+                                strokeWidth={2}
                             />
-                        ))}
-                        {selectedMeters.length === 0 && (
-                             <Line type="monotone" dataKey="total" name="Total" stroke="#8884d8" strokeWidth={2} />
-                        )}
+                         ) : (
+                             <Line type="monotone" dataKey="total" name="Total (Tous Compteurs)" stroke="#8884d8" strokeWidth={2} />
+                         )}
                     </LineChart>
                 </ResponsiveContainer>
             </CardContent>
@@ -286,7 +292,3 @@ export default function BillingStatisticsPage() {
     </div>
   );
 }
-
-    
-
-    
