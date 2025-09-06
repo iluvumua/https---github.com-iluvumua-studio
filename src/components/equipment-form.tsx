@@ -54,15 +54,32 @@ const outdoorEquipmentTypes = [
 const formSchema = z.object({
   name: z.string().optional(),
   type: z.string().min(1, "Le type est requis."),
-  fournisseur: z.string().min(1, "Le fournisseur est requis."),
+  fournisseur: z.string().optional(),
   localisation: z.string().min(1, "La localisation est requise."),
-  typeChassis: z.string().min(1, "Le type de châssis est requis."),
+  typeChassis: z.string().optional(),
   designation: z.string().optional(),
   description: z.string().optional(),
   coordX: z.coerce.number({required_error: "La coordonnée X est requise."}),
   coordY: z.coerce.number({required_error: "La coordonnée Y est requise."}),
   buildingId: z.string().optional(),
   googleMapsUrl: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if (data.type !== 'BTS' && data.type !== 'EXC') {
+        if (!data.fournisseur) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Le fournisseur est requis.",
+                path: ["fournisseur"],
+            });
+        }
+        if (!data.typeChassis) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Le type de châssis est requis.",
+                path: ["typeChassis"],
+            });
+        }
+    }
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -127,6 +144,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   });
 
   const watchAllFields = form.watch();
+  const watchedType = form.watch('type');
   const watchedUrl = form.watch('googleMapsUrl');
 
   useEffect(() => {
@@ -143,40 +161,49 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   useEffect(() => {
     const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
-    if (fournisseur && localisation && type && typeChassis) {
-        const fournisseurInfo = fournisseurs.find(f => f.value === fournisseur);
+    
+    if (localisation && type) {
+        let nameParts = [];
         const locInfo = localisations.find(l => l.value === localisation);
-
-        const fAbbr = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
+        const lAbbr = locInfo?.abbreviation || localisation.substring(0, 4).toUpperCase();
         
         let counterPart = "";
         if (isEditMode && initialEquipment) {
-            const nameParts = initialEquipment.name.split('_');
-            const potentialCounter = nameParts.length > 3 ? nameParts[3] : '';
-            const match = potentialCounter.match(/([A-Z]+)(\d+)/);
+            const initialNameParts = initialEquipment.name.split('_');
+            const potentialCounter = initialNameParts.find(part => part.startsWith(type));
+            const match = potentialCounter?.match(/([A-Z]+)(\d+)/);
             if(match && match[2]) {
                  counterPart = match[2];
             } else {
                  counterPart = "01";
             }
         } else {
-            const supplierEquipmentCount = allEquipment.filter(eq => {
-                const eqFournisseurInfo = fournisseurs.find(f => f.value === eq.fournisseur);
-                return eqFournisseurInfo?.abbreviation === fAbbr;
-            }).length;
-            counterPart = (supplierEquipmentCount + 1).toString().padStart(2, '0');
+             const sameTypeCount = allEquipment.filter(eq => eq.type === type).length;
+             counterPart = (sameTypeCount + 1).toString().padStart(2, '0');
         }
 
-        const lAbbr = locInfo?.abbreviation || localisation.substring(0, 4).toUpperCase();
         const tAbbr = type;
-        
-        const designationPart = designation ? `_${designation}` : "";
 
-        setGeneratedName(`${fAbbr}_SO_${lAbbr}_${tAbbr}${counterPart}${designationPart}_${typeChassis}`);
+        if (type === 'BTS' || type === 'EXC') {
+            nameParts = ['SO', lAbbr, `${tAbbr}${counterPart}`];
+            if (designation) nameParts.push(designation);
+        } else if (fournisseur && typeChassis) {
+            const fournisseurInfo = fournisseurs.find(f => f.value === fournisseur);
+            const fAbbr = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
+            nameParts = [fAbbr, 'SO', lAbbr, `${tAbbr}${counterPart}`];
+            if (designation) nameParts.push(designation);
+            nameParts.push(typeChassis);
+        }
+
+        if (nameParts.length > 0) {
+            setGeneratedName(nameParts.join('_'));
+        } else {
+            setGeneratedName("");
+        }
     } else {
         setGeneratedName("");
     }
-  }, [watchAllFields.fournisseur, watchAllFields.localisation, watchAllFields.type, watchAllFields.typeChassis, watchAllFields.designation, allEquipment, isEditMode, initialEquipment]);
+  }, [watchAllFields, allEquipment, isEditMode, initialEquipment]);
   
   const watchedCoords = form.watch(['coordY', 'coordX']);
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
@@ -229,6 +256,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   const isFormDisabled = isEditMode && !canEditStatus && !canEditGenerally;
   
+  const showSupplierAndChassis = watchedType !== 'BTS' && watchedType !== 'EXC';
+
   const availableMeters = useMemo(() => {
     const selectedLocation = watchAllFields.localisation;
     const selectedBuilding = buildings.find(b => b.code === selectedLocation);
@@ -257,24 +286,19 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
+               <FormField
                 control={form.control}
-                name="fournisseur"
+                name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fournisseur</FormLabel>
-                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFormDisabled}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un fournisseur" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {fournisseurs.map(f => (
-                            <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Type</FormLabel>
+                    <Combobox
+                        options={equipmentTypes}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Rechercher un type..."
+                        disabled={isFormDisabled}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -296,23 +320,30 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
-               <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Combobox
-                        options={equipmentTypes}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Rechercher un type..."
-                        disabled={isFormDisabled}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {showSupplierAndChassis && (
+                <>
+                <FormField
+                    control={form.control}
+                    name="fournisseur"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Fournisseur</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFormDisabled}>
+                        <FormControl>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un fournisseur" />
+                            </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                            {fournisseurs.map(f => (
+                                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
                <FormField
                 control={form.control}
                 name="typeChassis"
@@ -326,6 +357,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
+              </>
+            )}
                <FormField
                 control={form.control}
                 name="designation"
