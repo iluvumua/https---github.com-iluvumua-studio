@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2, MoreHorizontal, History, AlertCircle } from "lucide-react";
+import { File, Pencil, CheckSquare, MapPin, Search, Gauge, ChevronDown, ChevronRight, PlusCircle as PlusCircleIcon, TrendingUp, Calculator, Network, PlusCircle, Trash2, MoreHorizontal, History, AlertCircle, FileText } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import * as XLSX from 'xlsx';
@@ -161,14 +161,6 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                                         </Link>
                                     </DropdownMenuItem>
                                 )}
-                                {item.compteurId && (
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/dashboard/meters?search=${item.compteurId}`}>
-                                            <Gauge className="mr-2 h-4 w-4" />
-                                            Voir Compteur
-                                        </Link>
-                                    </DropdownMenuItem>
-                                )}
                                 <DropdownMenuItem asChild>
                                     <Link href={`/dashboard/equipment/${item.id}/edit`}>
                                         <Pencil className="mr-2 h-4 w-4" />
@@ -254,8 +246,8 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                             <div className="col-span-2"><span className="font-medium text-muted-foreground">Description:</span> {associatedMeter.description || 'N/A'}</div>
                             <div className="col-span-full mt-2">
                             <Button variant="link" size="sm" className="p-0 h-auto" asChild>
-                                <Link href={`/dashboard/billing/${associatedMeter.id}`}>
-                                Voir toutes les factures de ce compteur
+                                <Link href={`/dashboard/meters?search=${associatedMeter.id}`}>
+                                Voir Compteur
                                 </Link>
                             </Button>
                             </div>
@@ -429,8 +421,3 @@ export default function EquipmentPage() {
     </div>
   );
 }
-
-
-
-
-

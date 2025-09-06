@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History, AlertCircle } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History, AlertCircle, FileText } from "lucide-react";
 import React, { Suspense, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -293,6 +294,12 @@ function MetersPageComponent() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                         <DropdownMenuItem asChild>
+                                            <Link href={`/dashboard/billing/${meter.id}`}>
+                                                <FileText className="mr-2 h-4 w-4" />
+                                                Voir Factures
+                                            </Link>
+                                        </DropdownMenuItem>
                                         {meter.description && (
                                             <Popover>
                                                 <PopoverTrigger asChild>
