@@ -140,28 +140,36 @@ export function MoyenTensionForm() {
                     <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Index du Compteur</CardTitle>
+                                <CardTitle>Index et Coefficients</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <h3 className="text-sm font-medium">Ancien Index</h3>
-                                    <h3 className="text-sm font-medium">Nouveau Index</h3>
+                                <div className="grid grid-cols-4 gap-4">
+                                    <h3 className="text-sm font-medium">Anc. Index</h3>
+                                    <h3 className="text-sm font-medium">Nouv. Index</h3>
+                                    <h3 className="text-sm font-medium">Coeff. K</h3>
+                                    <h3 className="text-sm font-medium">P.U.</h3>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 items-center">
-                                <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel>Jour</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                                <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel>Jour</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 items-center">
-                                <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Pointe</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                                <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Pointe</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 items-center">
-                                <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel>Soir</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                                <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel>Soir</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 items-center">
-                                <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Nuit</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
-                                <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Nuit</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-2 items-center">
+                                    <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel>Jour</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                
+                                    <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel>Pointe</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+
+                                    <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel>Soir</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                
+                                    <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel>Nuit</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormLabel>&nbsp;</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 </div>
                             </CardContent>
                         </Card>
@@ -257,3 +265,5 @@ export function MoyenTensionForm() {
         </Form>
     );
 }
+
+    
