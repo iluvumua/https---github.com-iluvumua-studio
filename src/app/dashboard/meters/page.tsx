@@ -304,11 +304,11 @@ function MetersPageComponent() {
                                                 Voir Factures
                                             </Link>
                                         </DropdownMenuItem>
-                                        {canManageBilling && !meter.referenceFacteur && (
+                                        {canManageBilling && (
                                             <DropdownMenuItem asChild>
                                                 <Link href={`/dashboard/billing/add-reference?meterId=${meter.id}`}>
                                                     <FileSignature className="mr-2 h-4 w-4" />
-                                                    Ajouter Réf. Facture
+                                                    {meter.referenceFacteur ? "Voir Réf. Facture" : "Ajouter Réf. Facture"}
                                                 </Link>
                                             </DropdownMenuItem>
                                         )}
@@ -377,4 +377,5 @@ export default function MetersPage() {
 }
 
     
+
 
