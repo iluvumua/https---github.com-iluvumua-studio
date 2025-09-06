@@ -98,8 +98,6 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   contribution_rtt_mth: z.coerce.number().optional(),
   surtaxe_municipale_mth: z.coerce.number().optional(),
   avance_sur_consommation_mth: z.coerce.number().optional(),
-  penalite_cos_phi: z.coerce.number().optional(),
-
 
   // Moyen Tension Forfaitaire
   mtf_ancien_index: z.coerce.number().optional(),
@@ -296,7 +294,6 @@ export function BillForm({ bill }: BillFormProps) {
         contribution_rtt_mth: bill?.contribution_rtt_mth ?? 0,
         surtaxe_municipale_mth: bill?.surtaxe_municipale_mth ?? 0,
         avance_sur_consommation_mth: bill?.avance_sur_consommation_mth ?? 0,
-        penalite_cos_phi: bill?.penalite_cos_phi ?? 0,
         consommation_jour: bill?.consommation_jour ?? 0,
         consommation_pointe: bill?.consommation_pointe ?? 0,
         consommation_soir: bill?.consommation_soir ?? 0,
@@ -435,7 +432,7 @@ export function BillForm({ bill }: BillFormProps) {
 
             const subtotal = montantJour + montantPointe + montantSoir + montantNuit;
             
-            const group1Total = (Number(watchedFields.prime_puissance_mth) || 0) + (Number(watchedFields.depassement_puissance) || 0) + (Number(watchedFields.location_materiel) || 0) + (Number(watchedFields.frais_intervention) || 0) + (Number(watchedFields.frais_relance) || 0) + (Number(watchedFields.frais_retard) || 0) + (Number(watchedFields.penalite_cos_phi) || 0);
+            const group1Total = (Number(watchedFields.prime_puissance_mth) || 0) + (Number(watchedFields.depassement_puissance) || 0) + (Number(watchedFields.location_materiel) || 0) + (Number(watchedFields.frais_intervention) || 0) + (Number(watchedFields.frais_relance) || 0) + (Number(watchedFields.frais_retard) || 0);
             const group2Total = (Number(watchedFields.tva_consommation) || 0) + (Number(watchedFields.tva_redevance) || 0) + (Number(watchedFields.contribution_rtt_mth) || 0) + (Number(watchedFields.surtaxe_municipale_mth) || 0);
             
             finalAmount = subtotal + group1Total + group2Total + (Number(watchedFields.avance_sur_consommation_mth) || 0);
@@ -536,7 +533,6 @@ export function BillForm({ bill }: BillFormProps) {
         contribution_rtt_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.contribution_rtt_mth : undefined,
         surtaxe_municipale_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.surtaxe_municipale_mth : undefined,
         avance_sur_consommation_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.avance_sur_consommation_mth : undefined,
-        penalite_cos_phi: values.typeTension === "Moyen Tension Tranche Horaire" ? values.penalite_cos_phi : undefined,
 
 
         // MT Forfait
@@ -587,8 +583,7 @@ export function BillForm({ bill }: BillFormProps) {
            (Number(values.location_materiel) || 0) +
            (Number(values.frais_intervention) || 0) +
            (Number(values.frais_relance) || 0) +
-           (Number(values.frais_retard) || 0) +
-           (Number(values.penalite_cos_phi) || 0);
+           (Number(values.frais_retard) || 0);
   }, [getValues, watchedFields]);
 
   const mthGroup2Total = useMemo(() => {
@@ -703,7 +698,6 @@ export function BillForm({ bill }: BillFormProps) {
                             <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                             <FormField control={form.control} name="penalite_cos_phi" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center font-semibold">
