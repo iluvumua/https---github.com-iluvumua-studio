@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { File, FileText, PlusCircle, Search, Settings, BarChart, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
@@ -42,7 +42,7 @@ const monthNames = [
 
 const availableYears = Array.from({ length: 10 }, (_, i) => (new Date().getFullYear() - i).toString());
 
-export default function BillingPage() {
+function BillingPageComponent() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
@@ -340,4 +340,12 @@ export default function BillingPage() {
     </div>
     </TooltipProvider>
   );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BillingPageComponent />
+    </Suspense>
+  )
 }
