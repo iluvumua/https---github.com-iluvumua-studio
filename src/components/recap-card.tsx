@@ -56,7 +56,7 @@ export function RecapCard({ data }: RecapCardProps) {
                         <TableRow><TableCell className="font-medium">Nombre de facture n'appartenant pas à la base</TableCell><TableCell className="text-right font-mono">{data.nombreFacturesNonBase}</TableCell></TableRow>
                         <TableRow><TableCell className="font-medium">Montant des factures saisie dans la base</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantFacturesSaisie)}</TableCell></TableRow>
                         <TableRow><TableCell className="font-medium">Montant des factures n'appartenant pas à la base</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantFacturesNonBase)}</TableCell></TableRow>
-                        <TableRow><TableCell className="font-medium">Montant des factures en discordance</TableCell><TableCell className="text-right font-mono text-destructive">{formatCurrency(data.montantFacturesDiscordance)}</TableCell></TableRow>
+                        <TableRow><TableCell className="font-medium">montant des discordances des factures</TableCell><TableCell className="text-right font-mono text-destructive">{formatCurrency(data.montantFacturesDiscordance)}</TableCell></TableRow>
                         <TableRow><TableCell className="font-medium">Montant des factures vérifiées</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantFacturesVerifiees)}</TableCell></TableRow>
                     </TableBody>
                 </Table>
