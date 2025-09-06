@@ -84,7 +84,7 @@ export default function BillingPage() {
         const meterBills = bills.filter(b => b.meterId === meter.id);
         const annualBills = meterBills
             .filter(b => b.nombreMois && b.nombreMois >= 12)
-            .sort((a, b) => b.id.localeCompare(a.id));
+            .sort((a, b) => b.id.localeCompare(a, b));
 
         let averageMonthlyConsumption: number | null = null;
         if (annualBills.length > 0) {
@@ -150,6 +150,8 @@ export default function BillingPage() {
   const isNumeric = (str: string) => /^\d+$/.test(str);
   const isValidNumFacture = isNumeric(billingSearchTerm) && [8, 12].includes(billingSearchTerm.length);
 
+  const canManageFinances = user.role === 'Financier' || user.role === 'Admin';
+
 
   return (
     <TooltipProvider>
@@ -210,7 +212,7 @@ export default function BillingPage() {
                                 <SelectItem value="Moyen Tension Tranche Horaire">MT - Tranche Horaire</SelectItem>
                             </SelectContent>
                         </Select>
-                        {user.role === 'Financier' && (
+                        {canManageFinances && (
                             <>
                             <Button size="sm" variant="outline" className="h-9 gap-1" asChild>
                                 <Link href="/dashboard/billing/anomalies">
@@ -275,7 +277,7 @@ export default function BillingPage() {
                         <FileText className="h-16 w-16 text-muted-foreground" />
                         <h3 className="mt-6 text-xl font-semibold">Aucun compteur à facturer</h3>
                         <p className="mt-2 text-sm text-muted-foreground">Assurez-vous que les compteurs ont une référence de facturation pour les voir ici.</p>
-                        {user.role === 'Financier' && (
+                        {canManageFinances && (
                             <div className="mt-6 w-full max-w-sm">
                                 <Button className="w-full" asChild>
                                     <Link href="/dashboard/billing/add-reference">

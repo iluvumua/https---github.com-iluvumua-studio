@@ -158,6 +158,8 @@ export default function MeterBillingPage() {
     XLSX.writeFile(workbook, `factures_${selectedMeterId}.xlsx`);
   };
 
+  const canEdit = user.role === 'Financier' || user.role === 'Admin';
+
   return (
     <TooltipProvider>
     <Card>
@@ -197,7 +199,7 @@ export default function MeterBillingPage() {
                     Exporter
                     </span>
                 </Button>
-                 {user.role === 'Financier' && (
+                 {canEdit && (
                     <Button size="sm" className="h-8 gap-1" asChild>
                         <Link href={`/dashboard/billing/new?meterId=${selectedMeterId}`}>
                             <PlusCircle className="h-3.5 w-3.5" />
@@ -219,7 +221,7 @@ export default function MeterBillingPage() {
                     Commencez par ajouter votre première facture pour la voir ici.
                 </p>
                 <div className="mt-6 w-full max-w-sm">
-                   {user.role === 'Financier' && (
+                   {canEdit && (
                         <Button className="w-full" asChild>
                             <Link href={`/dashboard/billing/new?meterId=${selectedMeterId}`}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Ajouter Facture
@@ -277,7 +279,7 @@ export default function MeterBillingPage() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end">
-                     {user.role === "Financier" && (
+                     {canEdit && (
                         <Button variant="outline" size="sm" asChild>
                             <Link href={`/dashboard/billing/edit/${bill.id}`}>
                                 <Pencil className="mr-2 h-3 w-3" />

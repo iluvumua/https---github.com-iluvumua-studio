@@ -87,6 +87,10 @@ export default function BuildingsPage() {
         XLSX.writeFile(workbook, `batiments.xlsx`);
     };
 
+  const canEditBuildings = user.role === 'Moyen Bâtiment' || user.role === 'Admin';
+  const canAddEquipment = user.role === 'Déploiement' || user.role === 'Etude et Planification' || user.role === 'Admin';
+  const canManageMeters = user.role === "Déploiement" || user.role === 'Admin';
+
   return (
     <Card>
       <CardHeader>
@@ -114,7 +118,7 @@ export default function BuildingsPage() {
                     Exporter
                     </span>
                 </Button>
-                {user.role === 'Moyen Bâtiment' && (
+                {canEditBuildings && (
                     <Button size="sm" className="h-8 gap-1" asChild>
                         <Link href="/dashboard/buildings/new">
                             <PlusCircle className="h-3.5 w-3.5" />
@@ -135,7 +139,7 @@ export default function BuildingsPage() {
                 <p className="mt-2 text-sm text-muted-foreground">
                     {searchTerm ? `Aucun résultat pour "${searchTerm}".` : "Commencez par ajouter votre premier bâtiment pour le voir ici."}
                 </p>
-                 {user.role === 'Moyen Bâtiment' && !searchTerm && (
+                 {canEditBuildings && !searchTerm && (
                     <div className="mt-6 w-full max-w-sm">
                          <Button className="w-full" asChild>
                             <Link href="/dashboard/buildings/new">
@@ -180,7 +184,7 @@ export default function BuildingsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {(user.role === 'Déploiement' || user.role === 'Etude et Planification') && (
+                        {canAddEquipment && (
                             <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/equipment/new?buildingId=${building.id}`}>
                                     <Network className="mr-2 h-4 w-4" />
@@ -188,7 +192,7 @@ export default function BuildingsPage() {
                                 </Link>
                             </DropdownMenuItem>
                         )}
-                        {user.role === "Déploiement" && (
+                        {canManageMeters && (
                              <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/buildings/${building.id}/new-meter`}>
                                     <Gauge className="mr-2 h-4 w-4" />
@@ -196,12 +200,12 @@ export default function BuildingsPage() {
                                 </Link>
                             </DropdownMenuItem>
                         )}
-                        {user.role === "Moyen Bâtiment" && (
+                        {canEditBuildings && (
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                 <EditBuildingForm building={building} />
                             </DropdownMenuItem>
                         )}
-                        {user.role !== "Moyen Bâtiment" && user.role !== "Déploiement" && user.role !== 'Etude et Planification' && (
+                        {!canEditBuildings && !canAddEquipment && !canManageMeters && (
                              <DropdownMenuItem disabled>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Modification réservée

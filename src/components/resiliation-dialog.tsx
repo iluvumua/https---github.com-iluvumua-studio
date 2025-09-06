@@ -72,7 +72,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
   const equipment = isEquipment ? (item as Equipment) : undefined;
   const meter = !isEquipment ? (item as Meter) : undefined;
   
-  const isRespoEnergie = user.role === 'Responsable Énergie et Environnement';
+  const isRespoEnergie = user.role === 'Responsable Énergie et Environnement' || user.role === 'Admin';
 
 
   const form = useForm<FormValues>({
@@ -268,7 +268,7 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
             </div>
             <DialogFooter className="mt-4">
                 <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Annuler</Button>
-                <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
+                <Button type="submit" disabled={!isRespoEnergie || !form.formState.isValid || form.formState.isSubmitting}>
                     {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Enregistrer
                 </Button>

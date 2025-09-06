@@ -35,7 +35,7 @@ const PuissanceTable = ({ type, title }: { type: 'horaire' | 'forfait', title: s
     const { equipment } = useEquipmentStore();
     const { buildings } = useBuildingsStore();
     const { user } = useUser();
-    const isDisabled = user.role !== 'Financier';
+    const isDisabled = user.role !== 'Financier' && user.role !== 'Admin';
 
     const relevantMeters = meters.filter(m => settings.puissance[type][m.id as keyof typeof settings.puissance[type]]);
     
@@ -111,8 +111,8 @@ export default function BillingSettingsPage() {
   const [localSettings, setLocalSettings] = useState<Settings>(settings);
   const [isSaving, setIsSaving] = useState(false);
 
-  const isFinancier = user.role === 'Financier';
-  const isDisabled = !isFinancier;
+  const canEdit = user.role === 'Financier' || user.role === 'Admin';
+  const isDisabled = !canEdit;
 
   const handleInputChange = <K extends keyof Settings, SK extends keyof Settings[K]>(
     key: K,

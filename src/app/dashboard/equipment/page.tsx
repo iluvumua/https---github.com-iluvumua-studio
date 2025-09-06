@@ -51,7 +51,7 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
     const { buildings } = useBuildingsStore();
     const { user } = useUser();
 
-    const canResiliate = user.role === 'Responsable Énergie et Environnement';
+    const canResiliate = user.role === 'Responsable Énergie et Environnement' || user.role === 'Admin';
 
     const formatShortDate = (dateString?: string) => {
         if (!dateString) return "N/A";
@@ -366,6 +366,8 @@ export default function EquipmentPage() {
         XLSX.writeFile(workbook, `equipements_${activeStatusTab}.xlsx`);
     };
 
+    const canAddEquipment = user.role === 'Etude et Planification' || user.role === 'Admin';
+
   return (
     <div className="flex flex-col gap-4 md:gap-8">
     <Tabs defaultValue="all" value={activeStatusTab} onValueChange={setActiveStatusTab}>
@@ -394,7 +396,7 @@ export default function EquipmentPage() {
               Exporter
             </span>
           </Button>
-            {user.role === 'Etude et Planification' && (
+            {canAddEquipment && (
                 <Button size="sm" className="h-8 gap-1" asChild>
                     <Link href="/dashboard/equipment/new">
                         <PlusCircle className="h-3.5 w-3.5" />

@@ -55,8 +55,8 @@ function MetersPageComponent() {
   const [refFilter, setRefFilter] = useState<'all' | 'withRefNoBill' | 'withRefAndBill' | 'noRef'>('all');
 
 
-  const canResiliate = user.role === 'Responsable Énergie et Environnement';
-  const canManageBilling = user.role === 'Financier';
+  const canResiliate = user.role === 'Responsable Énergie et Environnement' || user.role === 'Admin';
+  const canManageBilling = user.role === 'Financier' || user.role === 'Admin';
 
   const getAssociationName = (meter: (typeof meters)[0]) => {
      if (meter.buildingId) {
@@ -377,9 +377,3 @@ export default function MetersPage() {
         </Suspense>
     )
 }
-
-    
-
-
-
-

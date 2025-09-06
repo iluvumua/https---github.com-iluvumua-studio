@@ -265,9 +265,9 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     router.push('/dashboard/equipment');
   }
 
-  const canEditStatus = user.role === 'Responsable Énergie et Environnement';
-  const canEditGenerally = user.role === 'Déploiement' || user.role === 'Etude et Planification';
-  const canCreate = user.role === 'Etude et Planification';
+  const canEditStatus = user.role === 'Responsable Énergie et Environnement' || user.role === 'Admin';
+  const canEditGenerally = user.role === 'Déploiement' || user.role === 'Etude et Planification' || user.role === 'Admin';
+  const canCreate = user.role === 'Etude et Planification' || user.role === 'Admin';
   const canEditDesignation = user.role !== 'Financier';
 
   const isFormDisabled = isEditMode && !canEditStatus && !canEditGenerally;

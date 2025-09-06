@@ -39,8 +39,8 @@ export function EditMeterForm({ meter }: EditMeterFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   
-  const canEditStatus = user.role === 'Responsable Énergie et Environnement';
-  const canEditDescription = user.role === 'Responsable Énergie et Environnement' || user.role === 'Déploiement';
+  const canEditStatus = user.role === 'Responsable Énergie et Environnement' || user.role === 'Admin';
+  const canEditDescription = user.role === 'Responsable Énergie et Environnement' || user.role === 'Déploiement' || user.role === 'Admin';
   const canSaveChanges = canEditStatus || canEditDescription;
 
   const form = useForm<FormValues>({
