@@ -98,6 +98,8 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   contribution_rtt_mth: z.coerce.number().optional(),
   surtaxe_municipale_mth: z.coerce.number().optional(),
   avance_sur_consommation_mth: z.coerce.number().optional(),
+  cos_phi: z.coerce.number().optional(),
+  coefficient_k: z.coerce.number().optional(),
 
   // Moyen Tension Forfaitaire
   mtf_ancien_index: z.coerce.number().optional(),
@@ -298,6 +300,8 @@ export function BillForm({ bill }: BillFormProps) {
         consommation_pointe: bill?.consommation_pointe ?? 0,
         consommation_soir: bill?.consommation_soir ?? 0,
         consommation_nuit: bill?.consommation_nuit ?? 0,
+        cos_phi: bill?.cos_phi ?? 0,
+        coefficient_k: bill?.coefficient_k ?? 0,
         // MT Forfait
         mtf_ancien_index: bill?.mtf_ancien_index ?? 0,
         mtf_nouveau_index: bill?.mtf_nouveau_index ?? 0,
@@ -433,9 +437,10 @@ export function BillForm({ bill }: BillFormProps) {
             const subtotal = montantJour + montantPointe + montantSoir + montantNuit;
             
             const group1Total = (Number(watchedFields.prime_puissance_mth) || 0) + (Number(watchedFields.depassement_puissance) || 0) + (Number(watchedFields.location_materiel) || 0) + (Number(watchedFields.frais_intervention) || 0) + (Number(watchedFields.frais_relance) || 0) + (Number(watchedFields.frais_retard) || 0);
+            const penalites = (Number(watchedFields.cos_phi) || 0) + (Number(watchedFields.coefficient_k) || 0);
             const group2Total = (Number(watchedFields.tva_consommation) || 0) + (Number(watchedFields.tva_redevance) || 0) + (Number(watchedFields.contribution_rtt_mth) || 0) + (Number(watchedFields.surtaxe_municipale_mth) || 0);
             
-            finalAmount = subtotal + group1Total + group2Total + (Number(watchedFields.avance_sur_consommation_mth) || 0);
+            finalAmount = subtotal + group1Total + penalites + group2Total + (Number(watchedFields.avance_sur_consommation_mth) || 0);
 
         } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
             const indexDifference = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index);
@@ -533,6 +538,8 @@ export function BillForm({ bill }: BillFormProps) {
         contribution_rtt_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.contribution_rtt_mth : undefined,
         surtaxe_municipale_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.surtaxe_municipale_mth : undefined,
         avance_sur_consommation_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.avance_sur_consommation_mth : undefined,
+        cos_phi: values.typeTension === "Moyen Tension Tranche Horaire" ? values.cos_phi : undefined,
+        coefficient_k: values.typeTension === "Moyen Tension Tranche Horaire" ? values.coefficient_k : undefined,
 
 
         // MT Forfait
@@ -584,6 +591,12 @@ export function BillForm({ bill }: BillFormProps) {
            (Number(values.frais_intervention) || 0) +
            (Number(values.frais_relance) || 0) +
            (Number(values.frais_retard) || 0);
+  }, [getValues, watchedFields]);
+  
+   const mthPenaltiesTotal = useMemo(() => {
+    const values = getValues();
+    return (Number(values.cos_phi) || 0) +
+           (Number(values.coefficient_k) || 0);
   }, [getValues, watchedFields]);
 
   const mthGroup2Total = useMemo(() => {
@@ -703,6 +716,18 @@ export function BillForm({ bill }: BillFormProps) {
                         <div className="flex justify-between items-center font-semibold">
                             <span>Montant Groupe 1:</span>
                             <span>{formatDT(mthGroup1Total)}</span>
+                        </div>
+                    </div>
+                     <div className="space-y-4 rounded-md border p-4">
+                        <h4 className="font-medium text-sm">Groupe: Pénalités</h4>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                           <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between items-center font-semibold">
+                            <span>Montant Pénalités:</span>
+                            <span>{formatDT(mthPenaltiesTotal)}</span>
                         </div>
                     </div>
                      <div className="space-y-4 rounded-md border p-4">

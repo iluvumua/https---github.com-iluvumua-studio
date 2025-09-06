@@ -91,6 +91,8 @@ export type Bill = {
   contribution_rtt_mth?: number;
   surtaxe_municipale_mth?: number;
   avance_sur_consommation_mth?: number;
+  cos_phi?: number;
+  coefficient_k?: number;
 
   // Moyen tension forfaitaire fields
   mtf_ancien_index?: number;
