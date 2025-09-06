@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "./ui/separator";
 import { Input } from "./ui/input";
 import { useState } from "react";
+import { Button } from "./ui/button";
+import { PlusCircle, Trash2 } from "lucide-react";
 
 interface Litige {
     refFact: string;
@@ -34,6 +36,11 @@ interface RecapCardProps {
 export function RecapCard({ data }: RecapCardProps) {
     const [nombreFacturesNonBase, setNombreFacturesNonBase] = useState(data.nombreFacturesNonBase);
     const [montantFacturesNonBase, setMontantFacturesNonBase] = useState(data.montantFacturesNonBase);
+
+    const [facturesExternes, setFacturesExternes] = useState<Litige[]>([]);
+    const [newRefFact, setNewRefFact] = useState("");
+    const [newMotif, setNewMotif] = useState("");
+    const [newMontant, setNewMontant] = useState("");
     
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('fr-TN', {
@@ -45,6 +52,26 @@ export function RecapCard({ data }: RecapCardProps) {
     
     const montantTotalBordereau = data.montantFacturesSaisie + montantFacturesNonBase;
     
+    const handleAddFactureExterne = () => {
+        if (newRefFact && newMotif && newMontant) {
+            setFacturesExternes([
+                ...facturesExternes,
+                {
+                    refFact: newRefFact,
+                    litige: newMotif,
+                    montantTTC: parseFloat(newMontant),
+                }
+            ]);
+            setNewRefFact("");
+            setNewMotif("");
+            setNewMontant("");
+        }
+    };
+
+    const handleRemoveFactureExterne = (index: number) => {
+        setFacturesExternes(facturesExternes.filter((_, i) => i !== index));
+    };
+
     return (
         <Card>
             <CardHeader className="bg-muted/50">
@@ -113,6 +140,45 @@ export function RecapCard({ data }: RecapCardProps) {
                         </Table>
                     </>
                 )}
+
+                <div className="p-4 space-y-4">
+                    <h4 className="font-medium">Factures non trouvées dans la base</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                        <Input placeholder="Réf Facture" value={newRefFact} onChange={(e) => setNewRefFact(e.target.value)} />
+                        <Input placeholder="Motif" value={newMotif} onChange={(e) => setNewMotif(e.target.value)} />
+                        <Input placeholder="Montant" type="number" value={newMontant} onChange={(e) => setNewMontant(e.target.value)} />
+                        <Button size="sm" onClick={handleAddFactureExterne}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Ajouter
+                        </Button>
+                    </div>
+
+                    {facturesExternes.length > 0 && (
+                         <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Réf Facture</TableHead>
+                                    <TableHead>Motif</TableHead>
+                                    <TableHead>Montant</TableHead>
+                                    <TableHead className="text-right"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {facturesExternes.map((facture, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell className="font-mono">{facture.refFact}</TableCell>
+                                        <TableCell>{facture.litige}</TableCell>
+                                        <TableCell className="font-mono">{formatCurrency(facture.montantTTC)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveFactureExterne(index)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </div>
             </CardContent>
         </Card>
     )
