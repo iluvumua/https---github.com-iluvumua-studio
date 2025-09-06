@@ -56,7 +56,7 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   consumptionKWh: z.coerce.number().optional(),
   amount: z.coerce.number().optional(),
   typeTension: z.enum(["Basse Tension", "Moyen Tension Forfaitaire", "Moyen Tension Tranche Horaire"]),
-  convenableSTEG: z.boolean().default(false),
+  conformeSTEG: z.boolean().default(false),
   montantSTEG: z.coerce.number().optional(),
   description: z.string().optional(),
   
@@ -147,10 +147,10 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
     message: "Le montant est requis pour le type Forfaitaire.",
     path: ["amount"],
 }).refine(data => {
-    if (!data.convenableSTEG && data.montantSTEG === undefined) return false;
+    if (!data.conformeSTEG && data.montantSTEG === undefined) return false;
     return true;
 }, {
-    message: "Le montant STEG est requis si la facture n'est pas convenable.",
+    message: "Le montant STEG est requis si la facture n'est pas conforme.",
     path: ["montantSTEG"],
 }).refine(data => {
     if (isEditMode) return true; // Skip validation in edit mode
@@ -279,7 +279,7 @@ export function BillForm({ bill }: BillFormProps) {
         billDate,
         nombreMois: bill?.nombreMois ?? 1,
         typeTension: bill?.typeTension ?? selectedMeterForDefaults?.typeTension ?? "Basse Tension",
-        convenableSTEG: bill?.convenableSTEG ?? true,
+        conformeSTEG: bill?.conformeSTEG ?? true,
         consumptionKWh: bill?.consumptionKWh ?? 0,
         amount: bill?.amount ?? 0,
         montantSTEG: bill?.montantSTEG ?? 0,
@@ -498,7 +498,7 @@ export function BillForm({ bill }: BillFormProps) {
         typeTension: values.typeTension,
         consumptionKWh: values.consumptionKWh ?? 0,
         amount: values.amount ?? 0,
-        convenableSTEG: values.convenableSTEG,
+        conformeSTEG: values.conformeSTEG,
         montantSTEG: values.montantSTEG,
         description: values.description,
         
@@ -809,11 +809,11 @@ export function BillForm({ bill }: BillFormProps) {
 
              <FormField
                 control={form.control}
-                name="convenableSTEG"
+                name="conformeSTEG"
                 render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                     <div className="space-y-0.5">
-                        <FormLabel>Convenable avec STEG</FormLabel>
+                        <FormLabel>Conforme avec STEG</FormLabel>
                     </div>
                     <FormControl>
                         <Switch
@@ -825,7 +825,7 @@ export function BillForm({ bill }: BillFormProps) {
                 )}
                 />
             
-            {!watchForm("convenableSTEG") && (
+            {!watchForm("conformeSTEG") && (
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="montantSTEG" render={({ field }) => (

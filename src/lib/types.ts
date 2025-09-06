@@ -43,7 +43,7 @@ export type Bill = {
   amount: number;
   consumptionKWh: number;
   typeTension: 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire';
-  convenableSTEG?: boolean;
+  conformeSTEG?: boolean;
   montantSTEG?: number;
   nombreMois?: number;
   description?: string;

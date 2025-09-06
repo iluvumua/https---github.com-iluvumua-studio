@@ -110,7 +110,7 @@ export default function MeterBillingPage() {
   
   const [selectedMeterId, setSelectedMeterId] = useState(initialMeterId);
   const [searchTerm, setSearchTerm] = useState("");
-  const [convenableFilter, setConvenableFilter] = useState<"all" | "yes" | "no">("all");
+  const [conformeFilter, setConformeFilter] = useState<"all" | "yes" | "no">("all");
 
   const currentMeterDetails = meters.find(m => m.id === selectedMeterId);
 
@@ -133,11 +133,11 @@ export default function MeterBillingPage() {
       bill.month.toLowerCase().includes(query)
     );
 
-    const matchesConvenable = convenableFilter === 'all' || 
-                             (convenableFilter === 'yes' && bill.convenableSTEG) || 
-                             (convenableFilter === 'no' && !bill.convenableSTEG);
+    const matchesConforme = conformeFilter === 'all' || 
+                             (conformeFilter === 'yes' && bill.conformeSTEG) || 
+                             (conformeFilter === 'no' && !bill.conformeSTEG);
 
-    return matchesSearch && matchesConvenable;
+    return matchesSearch && matchesConforme;
   });
 
   const handleExport = () => {
@@ -148,9 +148,9 @@ export default function MeterBillingPage() {
         "Nouveau Index": bill.nouveauIndex ?? 'N/A',
         "Consommation (kWh)": bill.consumptionKWh,
         "Montant Calculé": bill.amount,
-        "Convenable STEG": bill.convenableSTEG ? 'Oui' : 'Non',
-        "Montant STEG": bill.convenableSTEG ? '' : bill.montantSTEG,
-        "Différence": bill.convenableSTEG ? '' : (bill.montantSTEG || 0) - bill.amount,
+        "Conforme STEG": bill.conformeSTEG ? 'Oui' : 'Non',
+        "Montant STEG": bill.conformeSTEG ? '' : bill.montantSTEG,
+        "Différence": bill.conformeSTEG ? '' : (bill.montantSTEG || 0) - bill.amount,
     }));
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
@@ -180,14 +180,14 @@ export default function MeterBillingPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                 <Select value={convenableFilter} onValueChange={(value) => setConvenableFilter(value as any)}>
+                 <Select value={conformeFilter} onValueChange={(value) => setConformeFilter(value as any)}>
                     <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Filtrer par convenance" />
+                        <SelectValue placeholder="Filtrer par conformité" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">Tous</SelectItem>
-                        <SelectItem value="yes">Convenable</SelectItem>
-                        <SelectItem value="no">Non Convenable</SelectItem>
+                        <SelectItem value="yes">Conforme</SelectItem>
+                        <SelectItem value="no">Non Conforme</SelectItem>
                     </SelectContent>
                 </Select>
                 <ImporterButton />
@@ -259,7 +259,7 @@ export default function MeterBillingPage() {
                   {formatCurrency(bill.amount)}
                 </TableCell>
                  <TableCell className="text-right">
-                   {!bill.convenableSTEG && typeof bill.montantSTEG === 'number' ? (
+                   {!bill.conformeSTEG && typeof bill.montantSTEG === 'number' ? (
                        formatCurrency(bill.montantSTEG)
                    ) : (
                     <span className="text-muted-foreground">-</span>
@@ -267,9 +267,9 @@ export default function MeterBillingPage() {
                 </TableCell>
                  <TableCell className={cn(
                      "text-right font-semibold",
-                     !bill.convenableSTEG && (bill.montantSTEG || 0) - bill.amount !== 0 ? 'text-destructive' : ''
+                     !bill.conformeSTEG && (bill.montantSTEG || 0) - bill.amount !== 0 ? 'text-destructive' : ''
                  )}>
-                   {!bill.convenableSTEG && typeof bill.montantSTEG === 'number' ? (
+                   {!bill.conformeSTEG && typeof bill.montantSTEG === 'number' ? (
                        formatCurrency(bill.montantSTEG - bill.amount)
                    ) : (
                     <span className="text-muted-foreground">-</span>

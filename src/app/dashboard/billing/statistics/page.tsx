@@ -86,10 +86,10 @@ export default function BillingStatisticsPage() {
             const facturesSaisie = relevantBills;
             const montantSaisie = facturesSaisie.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
             
-            const facturesDiscordance = facturesSaisie.filter(b => !b.convenableSTEG);
+            const facturesDiscordance = facturesSaisie.filter(b => !b.conformeSTEG);
             const montantDiscordance = facturesDiscordance.reduce((sum, bill) => sum + Math.abs((bill.montantSTEG ?? 0) - (bill.amount ?? 0)), 0);
             
-            const facturesVerifiees = facturesSaisie.filter(b => b.convenableSTEG);
+            const facturesVerifiees = facturesSaisie.filter(b => b.conformeSTEG);
             const montantVerifiees = facturesVerifiees.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
             
             const litiges = facturesDiscordance.map(b => ({
