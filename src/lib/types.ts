@@ -36,8 +36,7 @@ export type Building = {
 };
 
 export type Bill = {
-  id: string;
-  reference: string; // Facture Number (13 digits)
+  id: string; // Auto-generated: referenceFacteur-YYYYMM
   meterId: string; // Numéro du compteur Steg
   month: string;
   amount: number;

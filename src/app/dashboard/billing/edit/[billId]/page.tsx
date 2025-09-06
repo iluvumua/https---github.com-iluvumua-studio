@@ -38,7 +38,7 @@ export default function EditBillPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Modifier la facture <span className="font-mono text-sm text-primary">{billToEdit.reference}</span></CardTitle>
+                <CardTitle>Modifier la facture <span className="font-mono text-sm text-primary">{billToEdit.id}</span></CardTitle>
                 <CardDescription>
                     Mettez à jour les détails de la facture ci-dessous.
                 </CardDescription>

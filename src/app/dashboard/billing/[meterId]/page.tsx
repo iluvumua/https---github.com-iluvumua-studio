@@ -129,7 +129,7 @@ export default function MeterBillingPage() {
   const filteredBills = meterBills.filter(bill => {
     const query = searchTerm.toLowerCase();
     const matchesSearch = (
-      bill.reference.toLowerCase().includes(query) ||
+      bill.id.toLowerCase().includes(query) ||
       bill.month.toLowerCase().includes(query)
     );
 
@@ -142,7 +142,7 @@ export default function MeterBillingPage() {
 
   const handleExport = () => {
     const dataToExport = filteredBills.map(bill => ({
-        "N° Facture": bill.reference,
+        "ID Facture": bill.id,
         "Mois": bill.month,
         "Ancien Index": bill.ancienIndex ?? 'N/A',
         "Nouveau Index": bill.nouveauIndex ?? 'N/A',
@@ -232,7 +232,7 @@ export default function MeterBillingPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Facture</TableHead>
+              <TableHead>ID Facture</TableHead>
               <TableHead>Mois</TableHead>
               <TableHead className="text-right">Ancien Index</TableHead>
               <TableHead className="text-right">Nouveau Index</TableHead>
@@ -246,7 +246,7 @@ export default function MeterBillingPage() {
           <TableBody>
             {filteredBills.map((bill) => (
               <TableRow key={bill.id} onClick={(e) => e.stopPropagation()}>
-                <TableCell className="font-mono">{bill.reference}</TableCell>
+                <TableCell className="font-mono">{bill.id}</TableCell>
                 <TableCell>{bill.month}</TableCell>
                 <TableCell className="text-right font-mono">
                     <IndexDisplay bill={bill} />
