@@ -4,6 +4,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "./ui/separator";
+import { Input } from "./ui/input";
+import { useState } from "react";
 
 interface Litige {
     refFact: string;
@@ -30,6 +32,8 @@ interface RecapCardProps {
 }
 
 export function RecapCard({ data }: RecapCardProps) {
+    const [nombreFacturesNonBase, setNombreFacturesNonBase] = useState(data.nombreFacturesNonBase);
+    const [montantFacturesNonBase, setMontantFacturesNonBase] = useState(data.montantFacturesNonBase);
     
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('fr-TN', {
@@ -38,6 +42,8 @@ export function RecapCard({ data }: RecapCardProps) {
             maximumFractionDigits: 3,
         }).format(value);
     }
+    
+    const montantTotalBordereau = data.montantFacturesSaisie + montantFacturesNonBase;
     
     return (
         <Card>
@@ -51,11 +57,32 @@ export function RecapCard({ data }: RecapCardProps) {
                 <Table>
                     <TableBody>
                         <TableRow><TableCell className="font-medium">Nombre de Factures parvenue</TableCell><TableCell className="text-right font-mono">{data.nombreFacturesParvenue}</TableCell></TableRow>
-                        <TableRow><TableCell className="font-medium">Montant total du bordereau steg</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantTotalBordereau)}</TableCell></TableRow>
+                        <TableRow><TableCell className="font-medium">Montant total du bordereau steg</TableCell><TableCell className="text-right font-mono">{formatCurrency(montantTotalBordereau)}</TableCell></TableRow>
                         <TableRow><TableCell className="font-medium">Nombre de Factures saisie dans la base</TableCell><TableCell className="text-right font-mono">{data.nombreFacturesSaisie}</TableCell></TableRow>
-                        <TableRow><TableCell className="font-medium">Nombre de facture n'appartenant pas à la base</TableCell><TableCell className="text-right font-mono">{data.nombreFacturesNonBase}</TableCell></TableRow>
+                        <TableRow>
+                            <TableCell className="font-medium">Nombre de facture n'appartenant pas à la base</TableCell>
+                            <TableCell className="text-right font-mono">
+                                <Input 
+                                    type="number" 
+                                    className="h-8 text-right"
+                                    value={nombreFacturesNonBase}
+                                    onChange={(e) => setNombreFacturesNonBase(Number(e.target.value) || 0)}
+                                />
+                            </TableCell>
+                        </TableRow>
                         <TableRow><TableCell className="font-medium">Montant des factures saisie dans la base</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantFacturesSaisie)}</TableCell></TableRow>
-                        <TableRow><TableCell className="font-medium">Montant des factures n'appartenant pas à la base</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantFacturesNonBase)}</TableCell></TableRow>
+                        <TableRow>
+                            <TableCell className="font-medium">Montant des factures n'appartenant pas à la base</TableCell>
+                            <TableCell className="text-right font-mono">
+                                <Input 
+                                    type="number" 
+                                    step="0.001"
+                                    className="h-8 text-right"
+                                    value={montantFacturesNonBase}
+                                    onChange={(e) => setMontantFacturesNonBase(Number(e.target.value) || 0)}
+                                />
+                            </TableCell>
+                        </TableRow>
                         <TableRow><TableCell className="font-medium">montant des discordances des factures</TableCell><TableCell className="text-right font-mono text-destructive">{formatCurrency(data.montantFacturesDiscordance)}</TableCell></TableRow>
                         <TableRow><TableCell className="font-medium">Montant des factures vérifiées</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantFacturesVerifiees)}</TableCell></TableRow>
                     </TableBody>
