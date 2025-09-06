@@ -23,9 +23,7 @@ import {
 } from "recharts";
 import { parse } from "date-fns";
 import { fr } from 'date-fns/locale';
-import { Button } from "./ui/button";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 const getMonthNumber = (monthName: string) => {
     try {
@@ -93,19 +91,14 @@ export function DistrictEvolutionChart() {
 
   }, [bills, meters]);
 
-  const [selectedDistricts, setSelectedDistricts] = useState<string[]>(allDistricts);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
 
-  React.useEffect(() => {
-    setSelectedDistricts(allDistricts);
-  }, [allDistricts]);
-
-  const handleDistrictSelection = (district: string) => {
-    setSelectedDistricts(prev => 
-      prev.includes(district) 
-        ? prev.filter(d => d !== district) 
-        : [...prev, district]
-    );
-  };
+  const districtsToDisplay = useMemo(() => {
+    if (selectedDistrict === 'all') {
+        return allDistricts;
+    }
+    return [selectedDistrict];
+  }, [selectedDistrict, allDistricts]);
 
   return (
      <Card>
@@ -115,24 +108,17 @@ export function DistrictEvolutionChart() {
             <CardTitle>Évolution par District</CardTitle>
             <CardDescription>Évolution mensuelle des coûts et de la consommation pour chaque district.</CardDescription>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Sélectionner les districts <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {allDistricts.map(district => (
-                <DropdownMenuCheckboxItem
-                  key={district}
-                  checked={selectedDistricts.includes(district)}
-                  onCheckedChange={() => handleDistrictSelection(district)}
-                >
-                  {district}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+            <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Sélectionner un district" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="all">Voir tout</SelectItem>
+                {allDistricts.map(district => (
+                    <SelectItem key={district} value={district}>{district}</SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
       <CardContent className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -146,7 +132,7 @@ export function DistrictEvolutionChart() {
                         <YAxis tickFormatter={yAxisFormatter} />
                         <Tooltip formatter={(value: number) => formatCurrency(value)} />
                         <Legend />
-                        {selectedDistricts.map(district => (
+                        {districtsToDisplay.map(district => (
                             <Line key={district} type="monotone" dataKey={`cost_${district}`} name={district} stroke={(districtColors as any)[district] || '#000000'} />
                         ))}
                     </LineChart>
@@ -165,7 +151,7 @@ export function DistrictEvolutionChart() {
                     <YAxis tickFormatter={yAxisFormatter}/>
                     <Tooltip formatter={(value: number) => formatKWh(value)} />
                     <Legend />
-                    {selectedDistricts.map(district => (
+                    {districtsToDisplay.map(district => (
                         <Line key={district} type="monotone" dataKey={`consumption_${district}`} name={district} stroke={(districtColors as any)[district] || '#000000'} />
                     ))}
                 </LineChart>
