@@ -27,19 +27,31 @@ import { useToast } from "@/hooks/use-toast";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
+import { useBuildingsStore } from "@/hooks/use-buildings-store";
 
 const PuissanceTable = ({ type, title }: { type: 'horaire' | 'forfait', title: string }) => {
     const { settings, updatePuissanceSetting } = useBillingSettingsStore();
     const { meters } = useMetersStore();
     const { equipment } = useEquipmentStore();
+    const { buildings } = useBuildingsStore();
     const { user } = useUser();
     const isDisabled = user.role !== 'Financier';
 
     const relevantMeters = meters.filter(m => settings.puissance[type][m.id as keyof typeof settings.puissance[type]]);
     
-    const getAssociatedEquipment = (meterId: string) => {
-        const associated = equipment.filter(e => e.compteurId === meterId);
-        return associated.length > 0 ? associated.map(e => e.name).join(', ') : 'N/A';
+    const getAssociationName = (meterId: string) => {
+        const associatedEquipment = equipment.filter(e => e.compteurId === meterId);
+        if (associatedEquipment.length > 0) {
+            return associatedEquipment.map(e => e.name).join(', ');
+        }
+        
+        const meter = meters.find(m => m.id === meterId);
+        if(meter?.buildingId) {
+            const associatedBuilding = buildings.find(b => b.id === meter.buildingId);
+            return associatedBuilding?.name || 'Bâtiment Inconnu';
+        }
+
+        return 'N/A';
     }
 
     const calculatePr = (params: { pph: number, ppe: number, pj: number, ps: number }) => {
@@ -56,7 +68,7 @@ const PuissanceTable = ({ type, title }: { type: 'horaire' | 'forfait', title: s
                     <TableHeader>
                         <TableRow>
                             <TableHead>Compteur</TableHead>
-                            <TableHead>Équipement(s) Associé(s)</TableHead>
+                            <TableHead>Associé à</TableHead>
                             {type === 'horaire' && <><TableHead>Pph</TableHead><TableHead>Ppe</TableHead></>}
                             <TableHead>Pj</TableHead>
                             {type === 'horaire' && <TableHead>Ps</TableHead>}
@@ -72,7 +84,7 @@ const PuissanceTable = ({ type, title }: { type: 'horaire' | 'forfait', title: s
                             return (
                                 <TableRow key={meter.id}>
                                     <TableCell className="font-mono">{meter.id}</TableCell>
-                                    <TableCell className="text-xs max-w-[200px] truncate">{getAssociatedEquipment(meter.id)}</TableCell>
+                                    <TableCell className="text-xs max-w-[200px] truncate">{getAssociationName(meter.id)}</TableCell>
                                     {type === 'horaire' && <>
                                         <TableCell><Input type="number" value={params.pph} onChange={e => updatePuissanceSetting(type, meter.id, 'pph', parseFloat(e.target.value))} disabled={isDisabled} className="w-20" /></TableCell>
                                         <TableCell><Input type="number" value={params.ppe} onChange={e => updatePuissanceSetting(type, meter.id, 'ppe', parseFloat(e.target.value))} disabled={isDisabled} className="w-20" /></TableCell>
