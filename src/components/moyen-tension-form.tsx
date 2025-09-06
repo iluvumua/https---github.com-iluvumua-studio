@@ -117,16 +117,17 @@ export function MoyenTensionForm() {
                         (Number(watchedValues.location_materiel) || 0) +
                         (Number(watchedValues.frais_intervention) || 0) +
                         (Number(watchedValues.frais_relance) || 0) +
-                        (Number(watchedValues.frais_retard) || 0) +
-                        (Number(watchedValues.penalite_cos_phi) || 0) +
-                        (Number(watchedValues.coefficient_k) || 0);
-    
+                        (Number(watchedValues.frais_retard) || 0);
+
+    const groupPenaliteTotal = (Number(watchedValues.penalite_cos_phi) || 0) +
+                               (Number(watchedValues.coefficient_k) || 0);
+
     const group2Total = (Number(watchedValues.tva_consommation) || 0) +
                         (Number(watchedValues.tva_redevance) || 0) +
                         (Number(watchedValues.contribution_rtt_mth) || 0) +
                         (Number(watchedValues.surtaxe_municipale_mth) || 0);
     
-    const finalAmount = subtotal + group1Total + group2Total + (Number(watchedValues.avance_sur_consommation_mth) || 0);
+    const finalAmount = subtotal + group1Total + groupPenaliteTotal + group2Total + (Number(watchedValues.avance_sur_consommation_mth) || 0);
     const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
 
     function onSubmit(values: FormValues) {
@@ -188,7 +189,14 @@ export function MoyenTensionForm() {
                                     <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                     <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                     <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="penalite_cos_phi" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader>
+                                    <CardTitle>Pénalités</CardTitle>
+                                </CardHeader>
+                                <CardContent className="grid grid-cols-2 gap-4">
+                                     <FormField control={form.control} name="penalite_cos_phi" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                     <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 </CardContent>
                             </Card>
@@ -241,6 +249,10 @@ export function MoyenTensionForm() {
                             <div className="flex justify-between items-center font-medium">
                                 <span className="text-muted-foreground">Total Redevances & Frais:</span>
                                 <span className="font-mono">{formatDT(group1Total)}</span>
+                            </div>
+                             <div className="flex justify-between items-center font-medium">
+                                <span className="text-muted-foreground">Total Pénalités:</span>
+                                <span className="font-mono">{formatDT(groupPenaliteTotal)}</span>
                             </div>
                             <div className="flex justify-between items-center font-medium">
                                 <span className="text-muted-foreground">Total Taxes:</span>
