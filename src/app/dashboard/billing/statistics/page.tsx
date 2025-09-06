@@ -204,7 +204,7 @@ export default function BillingStatisticsPage() {
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
                         <YAxis tickFormatter={yAxisFormatter} />
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={{ backgroundColor: 'transparent', border: 'none' }} />
                         <Legend />
                         <Line type="monotone" dataKey="total" stroke="#8884d8" name="Total" strokeWidth={2} />
                         <Line type="monotone" dataKey="MSAN & GSM" stroke="#82ca9d" name="MSAN & GSM" />
