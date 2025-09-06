@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -69,12 +70,12 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
   const router = useRouter();
   const searchParams = useSearchParams();
   const numeroFactureParam = searchParams.get('numeroFacture');
-
+  const meterIdParam = searchParams.get('meterId');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      meterId: "",
+      meterId: meterIdParam || "",
       referenceFacteur: numeroFactureParam || "",
       billingAddress: "",
     }
@@ -83,8 +84,8 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
   const watchedMeterId = form.watch("meterId");
 
   const availableMeters = useMemo(() => {
-    return meters.filter(m => m.status === 'En service' && !m.referenceFacteur);
-  }, [meters]);
+    return meters.filter(m => m.status === 'En service' && (!m.referenceFacteur || m.id === meterIdParam));
+  }, [meters, meterIdParam]);
 
   const meterOptions = useMemo(() => {
     return availableMeters.map(meter => ({
@@ -171,6 +172,7 @@ export function ReferenceFacteurForm({ onFinished }: ReferenceFacteurFormProps) 
                             value={field.value}
                             onChange={field.onChange}
                             placeholder="Rechercher un compteur..."
+                            disabled={!!meterIdParam}
                         />
                         <FormMessage />
                     </FormItem>

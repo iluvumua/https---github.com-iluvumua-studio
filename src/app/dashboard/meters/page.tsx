@@ -2,7 +2,7 @@
 
 "use client";
 
-import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History, AlertCircle, FileText } from "lucide-react";
+import { Building, HardDrive, Pencil, Gauge, Search, PlusCircle, Info, Trash2, MoreHorizontal, History, AlertCircle, FileText, FileSignature } from "lucide-react";
 import React, { Suspense, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,6 +56,7 @@ function MetersPageComponent() {
 
 
   const canResiliate = user.role === 'Responsable Énergie et Environnement';
+  const canManageBilling = user.role === 'Financier';
 
   const getAssociationName = (meter: (typeof meters)[0]) => {
      if (meter.buildingId) {
@@ -300,6 +301,14 @@ function MetersPageComponent() {
                                                 Voir Factures
                                             </Link>
                                         </DropdownMenuItem>
+                                        {canManageBilling && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/dashboard/billing/add-reference?meterId=${meter.id}`}>
+                                                    <FileSignature className="mr-2 h-4 w-4" />
+                                                    Gérer Réf. Facture
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
                                         {meter.description && (
                                             <Popover>
                                                 <PopoverTrigger asChild>
