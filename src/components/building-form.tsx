@@ -12,7 +12,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useBuildingsStore } from '@/hooks/use-buildings-store';
 import { useMetersStore } from '@/hooks/use-meters-store';
 import type { Building, Meter } from '@/lib/types';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

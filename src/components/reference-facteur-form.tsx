@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Save, X, Building, Network } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { useMetersStore } from "@/hooks/use-meters-store";
 import type { Meter } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";

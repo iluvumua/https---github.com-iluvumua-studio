@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, MapPin, Save, X } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import type { Equipment } from "@/lib/types";
@@ -343,18 +342,13 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Fournisseur</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFormDisabled}>
-                        <FormControl>
-                            <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un fournisseur" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {fournisseurs.map(f => (
-                                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
+                        <Combobox
+                            options={fournisseurs}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Sélectionner un fournisseur"
+                            disabled={isFormDisabled}
+                        />
                         <FormMessage />
                     </FormItem>
                     )}

@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { useUser } from "@/hooks/use-user"
 
 interface ComboboxProps {
   options: { value: string; label: string }[];
@@ -29,8 +30,10 @@ interface ComboboxProps {
 }
 
 export function Combobox({ options, value, onChange, placeholder, className, disabled }: ComboboxProps) {
+  const { user } = useUser();
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
+  const isAdmin = user.role === 'Admin';
 
   const handleSelect = (currentValue: string) => {
     onChange(currentValue === value ? "" : currentValue)
@@ -38,7 +41,7 @@ export function Combobox({ options, value, onChange, placeholder, className, dis
   }
 
   const handleCreate = () => {
-    if (inputValue) {
+    if (isAdmin && inputValue) {
       onChange(inputValue)
       setOpen(false)
     }
@@ -74,18 +77,20 @@ export function Combobox({ options, value, onChange, placeholder, className, dis
             return 0;
           }}>
           <CommandInput 
-            placeholder="Rechercher ou créer..."
+            placeholder={isAdmin ? "Rechercher ou créer..." : "Rechercher..."}
             value={inputValue}
             onValueChange={setInputValue}
            />
           <CommandList>
             <CommandEmpty>
-                <div 
-                    className="p-2 text-sm cursor-pointer hover:bg-accent"
-                    onClick={handleCreate}
-                >
-                    Ajouter: "{inputValue}"
-                </div>
+                {isAdmin ? (
+                    <div 
+                        className="p-2 text-sm cursor-pointer hover:bg-accent"
+                        onClick={handleCreate}
+                    >
+                        Ajouter: "{inputValue}"
+                    </div>
+                ) : "Aucun résultat."}
             </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
@@ -110,5 +115,3 @@ export function Combobox({ options, value, onChange, placeholder, className, dis
     </Popover>
   )
 }
-
-    
