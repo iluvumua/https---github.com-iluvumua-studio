@@ -1,7 +1,8 @@
 
+
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { File, FileText, PlusCircle, Search, Settings, BarChart, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as XLSX from 'xlsx';
@@ -32,6 +33,7 @@ import type { Meter } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useBillingStore } from "@/hooks/use-billing-store";
 import { Badge } from "@/components/ui/badge";
+import { useSearchParams } from "next/navigation";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -47,8 +49,17 @@ export default function BillingPage() {
   const { bills, selectedMonth, selectedYear, setSelectedMonth, setSelectedYear, billingSearchTerm, setBillingSearchTerm, tensionFilter, setTensionFilter } = useBillingStore();
   const { user } = useUser();
   const { anomalies, markAsRead } = useAnomaliesStore();
+  const searchParams = useSearchParams();
 
   const unreadAnomalies = anomalies.filter(a => !a.isRead);
+  
+  useEffect(() => {
+    const search = searchParams.get('search');
+    if (search) {
+      setBillingSearchTerm(search);
+    }
+  }, [searchParams, setBillingSearchTerm]);
+
 
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
