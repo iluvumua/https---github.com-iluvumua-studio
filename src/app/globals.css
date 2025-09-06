@@ -87,3 +87,10 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.bg-green-100 {
+    background-color: #f0fff4;
+}
+.dark .bg-green-900\/50 {
+    background-color: rgba(22, 101, 52, 0.5);
+}
