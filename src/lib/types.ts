@@ -56,7 +56,7 @@ export type Bill = {
   tranche4?: number;
   surtaxe_municipale_bt?: number;
   frais_transition_energetique_bt?: number;
-  tva_bt_percent?: number;
+  tva_percent?: number;
   redevances_fixes?: number;
 
   // Moyen tension horaire fields

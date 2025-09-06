@@ -64,7 +64,10 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   // Basse Tension
   ancienIndex: z.coerce.number().optional(),
   nouveauIndex: z.coerce.number().optional(),
-
+  redevances_fixes: z.coerce.number().optional(),
+  tva_percent: z.coerce.number().optional(),
+  surtaxe_municipale_bt: z.coerce.number().optional(),
+  frais_transition_energetique_bt: z.coerce.number().optional(),
   
   // Moyen Tension Horaire
   ancien_index_jour: z.coerce.number().optional(),
@@ -267,6 +270,10 @@ export function BillForm({ bill }: BillFormProps) {
         // BT
         ancienIndex: bill?.ancienIndex ?? 0,
         nouveauIndex: bill?.nouveauIndex ?? 0,
+        redevances_fixes: bill?.redevances_fixes ?? settings.basseTension.redevances_fixes,
+        tva_percent: bill?.tva_percent ?? settings.basseTension.tva_bt_percent,
+        surtaxe_municipale_bt: bill?.surtaxe_municipale_bt ?? settings.basseTension.surtaxe_municipale,
+        frais_transition_energetique_bt: bill?.frais_transition_energetique_bt ?? settings.basseTension.frais_transition_energetique,
         // MT Horaire
         ancien_index_jour: bill?.ancien_index_jour ?? 0,
         nouveau_index_jour: bill?.nouveau_index_jour ?? 0,
@@ -329,6 +336,7 @@ export function BillForm({ bill }: BillFormProps) {
   useEffect(() => {
     if (selectedMeter && watchedBillDate && watchedBillDate.length === 7) {
         const [monthStr, year] = watchedBillDate.split('/');
+        if(!monthStr || !year) return;
         const monthIndex = parseInt(monthStr, 10) - 1;
         const monthAbbreviation = monthNames[monthIndex] ? monthNames[monthIndex].substring(0, 3).toUpperCase() : 'UNK';
         const id = `${selectedMeter.referenceFacteur || 'NoRef'}-${monthAbbreviation}${year}`;
@@ -406,11 +414,11 @@ export function BillForm({ bill }: BillFormProps) {
             }
 
             const total_tranches = (montant_tranche1 + montant_tranche2 + montant_tranche3 + montant_tranche4) * nombreMois;
-            const montant_surtaxe = consumption * (btSettings.surtaxe_municipale);
-            const montant_frais_transition = consumption * (btSettings.frais_transition_energetique);
+            const montant_surtaxe = consumption * (Number(watchedFields.surtaxe_municipale_bt) || 0);
+            const montant_frais_transition = consumption * (Number(watchedFields.frais_transition_energetique_bt) || 0);
             
-            const sous_total = total_tranches + (btSettings.redevances_fixes) + montant_surtaxe + montant_frais_transition;
-            const montant_tva = sous_total * (btSettings.tva_bt_percent / 100);
+            const sous_total = total_tranches + (Number(watchedFields.redevances_fixes) || 0) + montant_surtaxe + montant_frais_transition;
+            const montant_tva = sous_total * ((Number(watchedFields.tva_percent) || 0) / 100);
             
             finalAmount = sous_total + montant_tva;
 
@@ -445,7 +453,7 @@ export function BillForm({ bill }: BillFormProps) {
 
         } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
             const indexDifference = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index);
-            const perteEnCharge = Math.round(indexDifference * 0.02);
+            const perteEnCharge = Number(watchedFields.perte_en_charge) || 0;
 
             const energie_enregistree = indexDifference * (Number(watchedFields.coefficient_multiplicateur) || 0);
             const consommation_a_facturer = energie_enregistree + perteEnCharge + (Number(watchedFields.perte_a_vide) || 0);
@@ -476,7 +484,7 @@ export function BillForm({ bill }: BillFormProps) {
     return Math.round(indexDifference * 0.02);
   }, [watchedTypeTension, watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index]);
 
-  useEffect(() => {
+ useEffect(() => {
     if (watchedTypeTension === 'Moyen Tension Forfaitaire') {
         if(perteEnCharge !== getValues('perte_en_charge')) {
             setValue('perte_en_charge', perteEnCharge, { shouldValidate: true });
@@ -519,6 +527,10 @@ export function BillForm({ bill }: BillFormProps) {
         // BT
         ancienIndex: values.typeTension === "Basse Tension" ? values.ancienIndex : undefined,
         nouveauIndex: values.typeTension === "Basse Tension" ? values.nouveauIndex : undefined,
+        redevances_fixes: values.typeTension === "Basse Tension" ? values.redevances_fixes : undefined,
+        tva_percent: values.typeTension === "Basse Tension" ? values.tva_percent : undefined,
+        surtaxe_municipale_bt: values.typeTension === "Basse Tension" ? values.surtaxe_municipale_bt : undefined,
+        frais_transition_energetique_bt: values.typeTension === "Basse Tension" ? values.frais_transition_energetique_bt : undefined,
         
         // MT Horaire
         ancien_index_jour: values.typeTension === "Moyen Tension Tranche Horaire" ? values.ancien_index_jour : undefined,
@@ -662,6 +674,14 @@ export function BillForm({ bill }: BillFormProps) {
                         <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
                             <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                         )} />
+                    </div>
+                     <Separator />
+                    <Label>Redevances et Taxes</Label>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <FormField control={form.control} name="redevances_fixes" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="tva_percent" render={({ field }) => ( <FormItem><FormLabel className="text-xs">TVA (%)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="surtaxe_municipale_bt" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_transition_energetique_bt" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Contr. RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                 </div>
             )}
