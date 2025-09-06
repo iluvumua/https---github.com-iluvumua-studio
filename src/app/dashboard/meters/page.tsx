@@ -298,15 +298,17 @@ function MetersPageComponent() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                         <DropdownMenuItem asChild>
-                                            <Link href={`/dashboard/billing/${meter.id}`}>
-                                                <FileText className="mr-2 h-4 w-4" />
-                                                Voir Factures
-                                            </Link>
-                                        </DropdownMenuItem>
+                                        {meter.referenceFacteur && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/dashboard/billing/${meter.id}`}>
+                                                    <FileText className="mr-2 h-4 w-4" />
+                                                    Voir Factures
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
                                         {canManageBilling && (
                                             <DropdownMenuItem asChild>
-                                                <Link href={`/dashboard/billing/add-reference?meterId=${meter.id}`}>
+                                                <Link href={meter.referenceFacteur ? `/dashboard/billing/${meter.id}` : `/dashboard/billing/add-reference?meterId=${meter.id}`}>
                                                     <FileSignature className="mr-2 h-4 w-4" />
                                                     {meter.referenceFacteur ? "Voir Réf. Facture" : "Ajouter Réf. Facture"}
                                                 </Link>
@@ -377,5 +379,6 @@ export default function MetersPage() {
 }
 
     
+
 
 
