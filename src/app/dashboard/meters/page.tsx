@@ -52,7 +52,7 @@ function MetersPageComponent() {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [activeTab, setActiveTab] = useState("all");
   const [alertFilter, setAlertFilter] = useState<'all' | 'alert' | 'no_alert'>('all');
-  const [refFilter, setRefFilter] = useState<'all' | 'withRefNoBill' | 'noRef'>('all');
+  const [refFilter, setRefFilter] = useState<'all' | 'withRefNoBill' | 'withRefAndBill' | 'noRef'>('all');
 
 
   const canResiliate = user.role === 'Responsable Énergie et Environnement';
@@ -118,6 +118,8 @@ function MetersPageComponent() {
     // Reference filter
     if (refFilter === 'withRefNoBill') {
         results = results.filter(meter => meter.referenceFacteur && !bills.some(b => b.meterId === meter.id));
+    } else if (refFilter === 'withRefAndBill') {
+        results = results.filter(meter => meter.referenceFacteur && bills.some(b => b.meterId === meter.id));
     } else if (refFilter === 'noRef') {
         results = results.filter(meter => !meter.referenceFacteur);
     }
@@ -191,6 +193,7 @@ function MetersPageComponent() {
                 <SelectContent>
                     <SelectItem value="all">Toutes références</SelectItem>
                     <SelectItem value="withRefNoBill">Avec Réf. Sans Facture</SelectItem>
+                    <SelectItem value="withRefAndBill">Avec Réf. et Factures</SelectItem>
                     <SelectItem value="noRef">Sans Réf.</SelectItem>
                 </SelectContent>
             </Select>
@@ -374,3 +377,4 @@ export default function MetersPage() {
 }
 
     
+
