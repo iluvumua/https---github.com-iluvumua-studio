@@ -16,6 +16,7 @@ interface UserState {
   currentUser: User;
   setCurrentUser: (user: User) => void;
   updateUserRole: (userId: number, role: UserRole) => void;
+  updateUserEmail: (userId: number, email: string) => void;
 }
 
 const initialUsers: User[] = [
@@ -38,6 +39,10 @@ export const useUserStore = create<UserState>()(
                 // Also update currentUser if it's the one being changed
                 currentUser: state.currentUser.id === userId ? { ...state.currentUser, role } : state.currentUser,
             })),
+            updateUserEmail: (userId, email) => set((state) => ({
+                users: state.users.map(u => u.id === userId ? { ...u, email } : u),
+                currentUser: state.currentUser.id === userId ? { ...state.currentUser, email } : state.currentUser,
+            })),
         }),
         {
             name: 'user-storage',
@@ -47,7 +52,7 @@ export const useUserStore = create<UserState>()(
 );
 
 export const useUser = () => {
-    const { currentUser, users, setCurrentUser, updateUserRole } = useUserStore();
+    const { currentUser, users, setCurrentUser, updateUserRole, updateUserEmail } = useUserStore();
     const availableRoles = ["Admin", "Financier", "Moyen Bâtiment", "Etude et Planification", "Responsable Énergie et Environnement", "Déploiement"] as UserRole[];
     
     // This function simulates logging in as another user from the list.
@@ -58,5 +63,5 @@ export const useUser = () => {
         }
     }
 
-    return { user: currentUser, users, availableRoles, updateUserRole, loginAs, setCurrentUser };
+    return { user: currentUser, users, availableRoles, updateUserRole, loginAs, setCurrentUser, updateUserEmail };
 }

@@ -25,9 +25,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ShieldCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export default function AdminPage() {
-  const { user, users, updateUserRole, availableRoles } = useUser();
+  const { user, users, updateUserRole, availableRoles, updateUserEmail } = useUser();
 
   if (user.role !== 'Admin') {
     return (
@@ -45,6 +46,11 @@ export default function AdminPage() {
   const handleRoleChange = (userId: number, role: UserRole) => {
     updateUserRole(userId, role);
   };
+
+  const handleEmailChange = (userId: number, email: string) => {
+    updateUserEmail(userId, email);
+  };
+
 
   return (
     <Card>
@@ -67,7 +73,13 @@ export default function AdminPage() {
             {users.map((u) => (
               <TableRow key={u.id}>
                 <TableCell className="font-medium">{u.name}</TableCell>
-                <TableCell>{u.email}</TableCell>
+                <TableCell>
+                  <Input 
+                    defaultValue={u.email}
+                    onBlur={(e) => handleEmailChange(u.id, e.target.value)}
+                    disabled={u.id === user.id}
+                  />
+                </TableCell>
                 <TableCell>
                    <Select 
                      value={u.role} 
