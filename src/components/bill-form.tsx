@@ -329,8 +329,10 @@ export function BillForm({ bill }: BillFormProps) {
   
   useEffect(() => {
     if (selectedMeter && watchedBillDate && watchedBillDate.length === 7) {
-        const [month, year] = watchedBillDate.split('/');
-        const id = `${selectedMeter.referenceFacteur || 'NoRef'}-${year}${month}`;
+        const [monthStr, year] = watchedBillDate.split('/');
+        const monthIndex = parseInt(monthStr, 10) - 1;
+        const monthAbbreviation = monthNames[monthIndex] ? monthNames[monthIndex].substring(0, 3).toUpperCase() : 'UNK';
+        const id = `${selectedMeter.referenceFacteur || 'NoRef'}-${monthAbbreviation}${year}`;
         setValue('id', id);
     }
   }, [selectedMeter, watchedBillDate, setValue])
