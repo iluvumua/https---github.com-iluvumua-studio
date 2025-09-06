@@ -39,7 +39,7 @@ const formSchema = z.object({
     frais_retard: z.coerce.number().default(0),
     
     coefficient_k: z.coerce.number().default(0),
-    cos_phi: z.coerce.number().default(0),
+    cos_phi: z.coerce.number().default(0.8),
 
     tva_consommation: z.coerce.number().default(0),
     tva_redevance: z.coerce.number().default(0),
@@ -85,7 +85,7 @@ export function MoyenTensionForm() {
             frais_relance: 0,
             frais_retard: 0,
             coefficient_k: 0,
-            cos_phi: 0,
+            cos_phi: 0.8,
             tva_consommation: 0,
             tva_redevance: 0,
             contribution_rtt_mth: 0,
@@ -120,14 +120,16 @@ export function MoyenTensionForm() {
                         (Number(watchedValues.frais_relance) || 0) +
                         (Number(watchedValues.frais_retard) || 0);
 
-    const groupPenaliteTotal = (Number(watchedValues.coefficient_k) || 0) + (Number(watchedValues.cos_phi) || 0);
+    const bonification_calc = (Number(watchedValues.cos_phi) > 0.8) 
+        ? -1 * (Number(watchedValues.coefficient_k) || 0) * subtotal
+        : (Number(watchedValues.coefficient_k) || 0) * subtotal;
 
     const group2Total = (Number(watchedValues.tva_consommation) || 0) +
                         (Number(watchedValues.tva_redevance) || 0) +
                         (Number(watchedValues.contribution_rtt_mth) || 0) +
                         (Number(watchedValues.surtaxe_municipale_mth) || 0);
     
-    const finalAmount = subtotal + group1Total + groupPenaliteTotal + group2Total + (Number(watchedValues.avance_sur_consommation_mth) || 0);
+    const finalAmount = subtotal + group1Total + bonification_calc + group2Total + (Number(watchedValues.avance_sur_consommation_mth) || 0);
     const totalConsumption = consommation_jour + consommation_pointe + consommation_soir + consommation_nuit;
 
     function onSubmit(values: FormValues) {
@@ -193,11 +195,11 @@ export function MoyenTensionForm() {
                             </Card>
                              <Card>
                                 <CardHeader>
-                                    <CardTitle>Pénalités</CardTitle>
+                                    <CardTitle>Bonification/Pénalité</CardTitle>
                                 </CardHeader>
                                 <CardContent className="grid grid-cols-2 gap-4">
                                     <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos Φ</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem> )} />
                                 </CardContent>
                             </Card>
                              <Card>
@@ -251,8 +253,8 @@ export function MoyenTensionForm() {
                                 <span className="font-mono">{formatDT(group1Total)}</span>
                             </div>
                              <div className="flex justify-between items-center font-medium">
-                                <span className="text-muted-foreground">Total Pénalités:</span>
-                                <span className="font-mono">{formatDT(groupPenaliteTotal)}</span>
+                                <span className="text-muted-foreground">Bonification/Pénalité:</span>
+                                <span className="font-mono">{formatDT(bonification_calc)}</span>
                             </div>
                             <div className="flex justify-between items-center font-medium">
                                 <span className="text-muted-foreground">Total Taxes:</span>
