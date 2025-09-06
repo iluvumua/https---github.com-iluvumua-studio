@@ -627,8 +627,6 @@ export function BillForm({ bill }: BillFormProps) {
            (Number(values.surtaxe_municipale_mth) || 0);
   }, [getValues, watchedFields]);
 
-  const greenBgClass = "bg-green-100 dark:bg-green-900/50";
-
   return (
     <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -675,16 +673,16 @@ export function BillForm({ bill }: BillFormProps) {
                             </FormItem>
                         )} />
                         <FormField control={form.control} name="nouveauIndex" render={({ field }) => (
-                            <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem>
                         )} />
                     </div>
                      <Separator />
                     <Label>Redevances et Taxes</Label>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <FormField control={form.control} name="redevances_fixes" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="redevances_fixes" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Redevances Fixes</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="tva_percent" render={({ field }) => ( <FormItem><FormLabel className="text-xs">TVA (%)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="surtaxe_municipale_bt" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_transition_energetique_bt" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Contr. RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_transition_energetique_bt" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Contr. RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                     </div>
                 </div>
             )}
@@ -699,28 +697,28 @@ export function BillForm({ bill }: BillFormProps) {
                     {/* Jour */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Jour (Départ: {selectedMeter?.indexDepartJour ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Jour</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Jour</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_jour" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Jour</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     {/* Pointe */}
                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Pointe (Départ: {selectedMeter?.indexDepartPointe ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Pointe</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Pointe</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_pointe" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Pointe</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     {/* Soir */}
                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Soir (Départ: {selectedMeter?.indexDepartSoir ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Soir</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Soir</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_soir" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Soir</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
                     {/* Nuit */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end">
                        <FormField control={form.control} name="ancien_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Anc. Idx Nuit (Départ: {selectedMeter?.indexDepartNuit ?? 'N/A'})</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                       <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                       <FormField control={form.control} name="nouveau_index_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs">Nouv. Idx Nuit</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="coefficient_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">Coeff. Nuit</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                        <FormField control={form.control} name="prix_unitaire_nuit" render={({ field }) => ( <FormItem><FormLabel className="text-xs sm:hidden">P.U. Nuit</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                     </div>
@@ -784,7 +782,7 @@ export function BillForm({ bill }: BillFormProps) {
                                 <FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl>
                             </FormItem> 
                         )} />
-                        <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="mtf_nouveau_index" render={({ field }) => ( <FormItem><FormLabel>Nouveau Index</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
@@ -795,7 +793,7 @@ export function BillForm({ bill }: BillFormProps) {
                         <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos Φ</FormLabel><FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="surtaxe_municipale" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="avance_consommation" render={({ field }) => ( <FormItem><FormLabel>Avance / Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="frais_location_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Location</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
@@ -841,7 +839,7 @@ export function BillForm({ bill }: BillFormProps) {
                 )} />
 
                 <FormField control={form.control} name="nombreMois" render={({ field }) => (
-                    <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} value={field.value ?? ''} className={greenBgClass} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Nombre de mois</FormLabel><FormControl><Input type="number" placeholder="ex: 1" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem>
                 )} />
             </div>
 

@@ -88,9 +88,9 @@ body {
   }
 }
 
-.bg-green-100 {
-    background-color: #f0fff4;
+.highlight-green {
+    @apply bg-green-200 text-green-900;
 }
-.dark .bg-green-900\/50 {
-    background-color: rgba(22, 101, 52, 0.5);
+.dark .highlight-green {
+    @apply bg-green-900 text-green-200;
 }
