@@ -11,6 +11,7 @@ import {
   FileBarChart,
   LayoutDashboard,
   Gauge,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Breadcrumb,
@@ -45,6 +46,7 @@ export function Header() {
     "add-reference": "Ajouter Référence",
     statistics: "Statistiques",
     anomalies: "Anomalies",
+    admin: "Administration",
   };
 
   return (
@@ -96,6 +98,13 @@ export function Header() {
             >
               <FileBarChart className="h-5 w-5" />
               Facturation
+            </Link>
+            <Link
+              href="/dashboard/admin"
+              className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <ShieldCheck className="h-5 w-5" />
+              Administration
             </Link>
           </nav>
         </SheetContent>

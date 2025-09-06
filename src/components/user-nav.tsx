@@ -17,11 +17,12 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
-import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Sun, Moon, Laptop, Zap, ClipboardList } from "lucide-react";
+import { CreditCard, LogOut, Settings, User, Building, Wrench, Briefcase, Sun, Moon, Laptop, Zap, ClipboardList, ShieldCheck } from "lucide-react";
 import { useUser, UserRole } from "@/hooks/use-user";
 import { useTheme } from "@/hooks/use-theme";
 
 const roleIcons = {
+  Admin: ShieldCheck,
   Financier: Briefcase,
   'Moyen Bâtiment': Building,
   'Etude et Planification': ClipboardList,
@@ -30,11 +31,16 @@ const roleIcons = {
 }
 
 export function UserNav() {
-  const { user, setUser, availableRoles } = useUser();
+  const { user, loginAs, availableRoles, users } = useUser();
   const { theme, setTheme } = useTheme();
 
   const handleRoleChange = (role: string) => {
-    setUser({ ...user, role: role as UserRole });
+    // In a real app, this would be a call to an API to switch roles.
+    // Here we find the first user with that role and "log in" as them.
+    const userWithRole = users.find(u => u.role === role);
+    if(userWithRole) {
+        loginAs(userWithRole.id);
+    }
   };
 
   const CurrentRoleIcon = roleIcons[user.role];
@@ -68,9 +74,11 @@ export function UserNav() {
             <CreditCard className="mr-2 h-4 w-4" />
             <span>Facturation</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Paramètres</span>
+           <DropdownMenuItem asChild>
+            <Link href="/dashboard/admin">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Paramètres</span>
+            </Link>
           </DropdownMenuItem>
            <DropdownMenuSub>
             <DropdownMenuSubTrigger>
@@ -98,7 +106,7 @@ export function UserNav() {
           </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Rôle Actuel</DropdownMenuLabel>
+        <DropdownMenuLabel>Changer de Rôle (Démo)</DropdownMenuLabel>
          <DropdownMenuRadioGroup value={user.role} onValueChange={handleRoleChange}>
             {availableRoles.map(role => {
               const Icon = roleIcons[role as keyof typeof roleIcons];
