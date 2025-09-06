@@ -24,6 +24,63 @@ import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/hooks/use-user";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useMetersStore } from "@/hooks/use-meters-store";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+const PuissanceTable = ({ type, title }: { type: 'horaire' | 'forfait', title: string }) => {
+    const { settings, updatePuissanceSetting } = useBillingSettingsStore();
+    const { meters } = useMetersStore();
+    const { user } = useUser();
+    const isDisabled = user.role !== 'Financier';
+
+    const relevantMeters = meters.filter(m => settings.puissance[type][m.id as keyof typeof settings.puissance[type]]);
+    
+    const calculatePr = (params: { pph: number, ppe: number, pj: number, ps: number }) => {
+        return (0.4 * params.pph) + (0.3 * params.ppe) + (0.2 * params.pj) + (0.1 * params.ps);
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>{title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Compteur</TableHead>
+                            {type === 'horaire' && <><TableHead>Pph</TableHead><TableHead>Ppe</TableHead></>}
+                            <TableHead>Pj</TableHead>
+                            {type === 'horaire' && <TableHead>Ps</TableHead>}
+                            <TableHead>P. Installée</TableHead>
+                            {type === 'horaire' && <TableHead>P. Réduite (Pr)</TableHead>}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {relevantMeters.map(meter => {
+                            const params = (settings.puissance[type] as any)[meter.id];
+                            if (!params) return null;
+                            const pr = type === 'horaire' ? calculatePr(params) : null;
+                            return (
+                                <TableRow key={meter.id}>
+                                    <TableCell className="font-mono">{meter.id}</TableCell>
+                                    {type === 'horaire' && <>
+                                        <TableCell><Input type="number" value={params.pph} onChange={e => updatePuissanceSetting(type, meter.id, 'pph', parseFloat(e.target.value))} disabled={isDisabled} className="w-20" /></TableCell>
+                                        <TableCell><Input type="number" value={params.ppe} onChange={e => updatePuissanceSetting(type, meter.id, 'ppe', parseFloat(e.target.value))} disabled={isDisabled} className="w-20" /></TableCell>
+                                    </>}
+                                    <TableCell><Input type="number" value={params.pj} onChange={e => updatePuissanceSetting(type, meter.id, 'pj', parseFloat(e.target.value))} disabled={isDisabled} className="w-20" /></TableCell>
+                                    {type === 'horaire' && <TableCell><Input type="number" value={params.ps} onChange={e => updatePuissanceSetting(type, meter.id, 'ps', parseFloat(e.target.value))} disabled={isDisabled} className="w-20" /></TableCell>}
+                                    <TableCell><Input type="number" value={params.pi} onChange={e => updatePuissanceSetting(type, meter.id, 'pi', parseFloat(e.target.value))} disabled={isDisabled} className="w-20" /></TableCell>
+                                    {type === 'horaire' && <TableCell>{pr?.toFixed(2)}</TableCell>}
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function BillingSettingsPage() {
   const { settings, setSettings: setStoreSettings } = useBillingSettingsStore();
@@ -49,6 +106,16 @@ export default function BillingSettingsPage() {
         }
     }));
   };
+  
+   const handleRootInputChange = (key: keyof Settings['puissance'], value: string) => {
+    setLocalSettings(prev => ({
+        ...prev,
+        puissance: {
+            ...prev.puissance,
+            [key]: parseFloat(value) || 0,
+        }
+    }));
+  };
 
   const handleSave = () => {
     setIsSaving(true);
@@ -70,12 +137,13 @@ export default function BillingSettingsPage() {
   return (
     <div className="space-y-6">
     <Tabs defaultValue="tarifs" className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="tarifs">Tarifs Basse Tension</TabsTrigger>
         <TabsTrigger value="moyen-tension-horaire">
           Tarifs MT Tranche Horaire
         </TabsTrigger>
         <TabsTrigger value="moyen-tension-forfait">Tarifs MT Forfait</TabsTrigger>
+        <TabsTrigger value="puissance">Puissance</TabsTrigger>
         <TabsTrigger value="anomalies">Anomalies</TabsTrigger>
       </TabsList>
       <TabsContent value="tarifs">
@@ -225,6 +293,39 @@ export default function BillingSettingsPage() {
             </div>
           </CardContent>
         </Card>
+      </TabsContent>
+       <TabsContent value="puissance">
+        <div className="space-y-6">
+          <PuissanceTable type="horaire" title="Puissance Contractuelle - Tranche Horaire" />
+          <PuissanceTable type="forfait" title="Puissance Contractuelle - Forfait" />
+          <Card>
+            <CardHeader>
+                <CardTitle>Paramètres Prime Puissance</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="prix_prime_horaire">Prix Unitaire Prime (Tranche Horaire)</Label>
+                    <Input 
+                        id="prix_prime_horaire" 
+                        type="number" 
+                        value={localSettings.puissance.prixUnitairePrimeTrancheHoraire} 
+                        onChange={e => handleRootInputChange('prixUnitairePrimeTrancheHoraire', e.target.value)}
+                        disabled={isDisabled} 
+                    />
+                </div>
+                 <div>
+                    <Label htmlFor="prix_prime_forfait">Prix Unitaire Prime (Régime Forfaitaire)</Label>
+                    <Input 
+                        id="prix_prime_forfait" 
+                        type="number" 
+                        value={localSettings.puissance.prixUnitairePrimeRegimeForfaitaire}
+                         onChange={e => handleRootInputChange('prixUnitairePrimeRegimeForfaitaire', e.target.value)}
+                        disabled={isDisabled}
+                    />
+                </div>
+            </CardContent>
+          </Card>
+        </div>
       </TabsContent>
       <TabsContent value="anomalies">
         <Card>
