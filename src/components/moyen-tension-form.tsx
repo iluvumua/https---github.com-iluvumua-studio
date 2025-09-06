@@ -38,6 +38,7 @@ const formSchema = z.object({
     frais_relance: z.coerce.number().default(0),
     frais_retard: z.coerce.number().default(0),
     penalite_cos_phi: z.coerce.number().default(0),
+    coefficient_k: z.coerce.number().default(0),
 
     tva_consommation: z.coerce.number().default(0),
     tva_redevance: z.coerce.number().default(0),
@@ -83,6 +84,7 @@ export function MoyenTensionForm() {
             frais_relance: 0,
             frais_retard: 0,
             penalite_cos_phi: 0,
+            coefficient_k: 0,
             tva_consommation: 0,
             tva_redevance: 0,
             contribution_rtt_mth: 0,
@@ -116,7 +118,8 @@ export function MoyenTensionForm() {
                         (Number(watchedValues.frais_intervention) || 0) +
                         (Number(watchedValues.frais_relance) || 0) +
                         (Number(watchedValues.frais_retard) || 0) +
-                        (Number(watchedValues.penalite_cos_phi) || 0);
+                        (Number(watchedValues.penalite_cos_phi) || 0) +
+                        (Number(watchedValues.coefficient_k) || 0);
     
     const group2Total = (Number(watchedValues.tva_consommation) || 0) +
                         (Number(watchedValues.tva_redevance) || 0) +
@@ -186,6 +189,7 @@ export function MoyenTensionForm() {
                                     <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                     <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                     <FormField control={form.control} name="penalite_cos_phi" render={({ field }) => ( <FormItem><FormLabel>Pénalité Cos Φ</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 </CardContent>
                             </Card>
                              <Card>
