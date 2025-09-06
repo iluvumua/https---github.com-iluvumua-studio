@@ -380,6 +380,21 @@ export function BillForm({ bill }: BillFormProps) {
   }, [previousBill, selectedMeter, setValue, isEditMode, hasAnyBillForMeter]);
 
 
+  const perteEnCharge = useMemo(() => {
+    if (watchedTypeTension !== 'Moyen Tension Forfaitaire') return 0;
+    const indexDifference = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index);
+    return Math.round(indexDifference * 0.02);
+  }, [watchedTypeTension, watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index]);
+
+ useEffect(() => {
+    if (watchedTypeTension === 'Moyen Tension Forfaitaire') {
+        const currentPerteEnCharge = getValues('perte_en_charge');
+        if(perteEnCharge !== currentPerteEnCharge && !dirtyFields.perte_en_charge) {
+            setValue('perte_en_charge', perteEnCharge, { shouldValidate: true });
+        }
+    }
+  }, [perteEnCharge, watchedTypeTension, setValue, getValues, dirtyFields.perte_en_charge]);
+
   const { amount, consumptionKWh } = useMemo(() => {
         let consumption = 0;
         let finalAmount = 0;
@@ -453,10 +468,10 @@ export function BillForm({ bill }: BillFormProps) {
 
         } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
             const indexDifference = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index);
-            const perteEnCharge = Number(watchedFields.perte_en_charge) || 0;
+            const perteEnChargeVal = Number(watchedFields.perte_en_charge) || 0;
 
             const energie_enregistree = indexDifference * (Number(watchedFields.coefficient_multiplicateur) || 0);
-            const consommation_a_facturer = energie_enregistree + perteEnCharge + (Number(watchedFields.perte_a_vide) || 0);
+            const consommation_a_facturer = energie_enregistree + perteEnChargeVal + (Number(watchedFields.perte_a_vide) || 0);
             consumption = consommation_a_facturer;
 
             const montant_consommation = consommation_a_facturer * (Number(watchedFields.pu_consommation) || 0);
@@ -478,23 +493,7 @@ export function BillForm({ bill }: BillFormProps) {
         return { amount: parseFloat(finalAmount.toFixed(3)), consumptionKWh: consumption };
   }, [watchedFields, watchedTypeTension, settings]);
 
-  const perteEnCharge = useMemo(() => {
-    if (watchedTypeTension !== 'Moyen Tension Forfaitaire') return 0;
-    const indexDifference = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index);
-    return Math.round(indexDifference * 0.02);
-  }, [watchedTypeTension, watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index]);
-
  useEffect(() => {
-    if (watchedTypeTension === 'Moyen Tension Forfaitaire') {
-        const currentPerteEnCharge = getValues('perte_en_charge');
-        if(perteEnCharge !== currentPerteEnCharge) {
-            setValue('perte_en_charge', perteEnCharge, { shouldValidate: true });
-        }
-    }
-  }, [perteEnCharge, watchedTypeTension, setValue, getValues]);
-
-
-  useEffect(() => {
     if (!dirtyFields.consumptionKWh) {
       setValue('consumptionKWh', consumptionKWh);
     }
@@ -733,12 +732,12 @@ export function BillForm({ bill }: BillFormProps) {
                      <div className="space-y-4 rounded-md border p-4">
                         <h4 className="font-medium text-sm">Groupe 1: Redevances et Frais Divers</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Frais Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Frais Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                         </div>
                         <Separator />
                         <div className="flex justify-between items-center font-semibold">
@@ -749,8 +748,8 @@ export function BillForm({ bill }: BillFormProps) {
                      <div className="space-y-4 rounded-md border p-4">
                         <h4 className="font-medium text-sm">Bonification/Pénalité</h4>
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos φ</FormLabel><FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                           <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                           <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos φ</FormLabel><FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                           <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                         </div>
                     </div>
                      <div className="space-y-4 rounded-md border p-4">
@@ -758,7 +757,7 @@ export function BillForm({ bill }: BillFormProps) {
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField control={form.control} name="tva_consommation" render={({ field }) => ( <FormItem><FormLabel>TVA Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="tva_redevance" render={({ field }) => ( <FormItem><FormLabel>TVA Redevance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                            <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                            <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                             <FormField control={form.control} name="surtaxe_municipale_mth" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         </div>
                         <Separator />
@@ -787,19 +786,19 @@ export function BillForm({ bill }: BillFormProps) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="coefficient_multiplicateur" render={({ field }) => ( <FormItem><FormLabel>Coeff. Multiplicateur</FormLabel><FormControl><Input type="number" step="0.1" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         
-                        <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="perte_a_vide" render={({ field }) => ( <FormItem><FormLabel>Perte à Vide (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                          <FormField control={form.control} name="perte_en_charge" render={({ field }) => ( <FormItem><FormLabel>Perte en Charge (kWh)</FormLabel><FormControl><Input type="number" {...field} value={field.value ?? ''} readOnly className="bg-muted" /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="pu_consommation" render={({ field }) => ( <FormItem><FormLabel>P.U. Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos Φ</FormLabel><FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="prime_puissance" render={({ field }) => ( <FormItem><FormLabel>Prime de Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos Φ</FormLabel><FormControl><Input type="number" step="0.01" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="contribution_rtt" render={({ field }) => ( <FormItem><FormLabel>Contribution RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="surtaxe_municipale" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Municipale</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
                         <FormField control={form.control} name="avance_consommation" render={({ field }) => ( <FormItem><FormLabel>Avance / Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_location_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Location</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_intervention_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_relance_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
-                        <FormField control={form.control} name="frais_retard_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_location_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Location</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_intervention_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_relance_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
+                        <FormField control={form.control} name="frais_retard_mtf" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl></FormItem> )} />
                      </div>
                      <Separator />
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
