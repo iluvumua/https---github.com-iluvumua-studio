@@ -64,6 +64,7 @@ const formSchema = z.object({
   buildingId: z.string().optional(),
   googleMapsUrl: z.string().optional(),
 }).superRefine((data, ctx) => {
+    // Fournisseur is required for all types except BTS and EXC
     if (data.type !== 'BTS' && data.type !== 'EXC') {
         if (!data.fournisseur) {
             ctx.addIssue({
@@ -72,6 +73,9 @@ const formSchema = z.object({
                 path: ["fournisseur"],
             });
         }
+    }
+    // TypeChassis is required only for MSAN types
+    if (data.type === 'MSI' || data.type === 'MSN') {
         if (!data.typeChassis) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -89,22 +93,25 @@ interface EquipmentFormProps {
 }
 
 const extractDesignationFromName = (name: string, type: string, typeChassis: string): string => {
-    if (!name || !type || !typeChassis) return "";
+    if (!name || !type) return "";
 
-    // The designation is between the type+counter and the chassis
-    const chassisIndex = name.lastIndexOf(`_${typeChassis}`);
-    if (chassisIndex === -1) return "";
-
-    // Find the type with its counter (e.g., MSI11, MSN01)
     const typeRegex = new RegExp(`_${type}\\d+`);
     const typeMatch = name.match(typeRegex);
     if (!typeMatch || typeof typeMatch.index === 'undefined') return "";
     
-    const designationStartIndex = typeMatch.index + typeMatch[0].length + 1; // +1 for the underscore
+    const designationStartIndex = typeMatch.index + typeMatch[0].length + 1;
 
-    if (designationStartIndex >= chassisIndex) return "";
+    let designationEndIndex = name.length;
+    if (typeChassis) {
+        const chassisIndex = name.lastIndexOf(`_${typeChassis}`);
+        if (chassisIndex > designationStartIndex) {
+            designationEndIndex = chassisIndex;
+        }
+    }
+    
+    if (designationStartIndex >= designationEndIndex) return "";
 
-    return name.substring(designationStartIndex, chassisIndex);
+    return name.substring(designationStartIndex, designationEndIndex);
 }
 
 export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProps) {
@@ -122,7 +129,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const building = buildings.find(b => b.id === buildingIdParam);
 
   const equipmentTypes = useMemo(() => {
-    // BTS is available for both indoor and outdoor
     const baseTypes = buildingIdParam ? indoorEquipmentTypes : outdoorEquipmentTypes;
     return [...commonEquipmentTypes, ...baseTypes];
   }, [buildingIdParam]);
@@ -134,7 +140,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       fournisseur: initialEquipment?.fournisseur || "",
       localisation: initialEquipment?.location || building?.code || "",
       typeChassis: initialEquipment?.typeChassis || "",
-      designation: initialEquipment ? extractDesignationFromName(initialEquipment.name, initialEquipment.type, initialEquipment.typeChassis) : (building?.name || ""),
+      designation: initialEquipment ? extractDesignationFromName(initialEquipment.name, initialEquipment.type, initialEquipment.typeChassis || '') : (building?.name || ""),
       description: initialEquipment?.description || "",
       coordX: initialEquipment?.coordX,
       coordY: initialEquipment?.coordY,
@@ -183,15 +189,25 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         }
 
         const tAbbr = type;
+        const isMSAN = type === 'MSI' || type === 'MSN';
+        const needsFournisseur = type !== 'BTS' && type !== 'EXC';
 
-        if (type === 'BTS' || type === 'EXC') {
-            nameParts = ['SO', lAbbr, `${tAbbr}${counterPart}`];
-            if (designation) nameParts.push(designation);
-        } else if (fournisseur && typeChassis) {
+        let namePrefix = 'SO';
+        let supplierPrefix = '';
+        if (needsFournisseur && fournisseur) {
             const fournisseurInfo = fournisseurs.find(f => f.value === fournisseur);
-            const fAbbr = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
-            nameParts = [fAbbr, 'SO', lAbbr, `${tAbbr}${counterPart}`];
-            if (designation) nameParts.push(designation);
+            supplierPrefix = fournisseurInfo?.abbreviation || fournisseur.substring(0, 3).toUpperCase();
+            namePrefix = 'SO';
+            nameParts.push(supplierPrefix, namePrefix);
+        } else {
+            nameParts.push(namePrefix);
+        }
+
+        nameParts.push(lAbbr, `${tAbbr}${counterPart}`);
+
+        if (designation) nameParts.push(designation);
+        
+        if (isMSAN && typeChassis) {
             nameParts.push(typeChassis);
         }
 
@@ -256,14 +272,14 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   const isFormDisabled = isEditMode && !canEditStatus && !canEditGenerally;
   
-  const showSupplierAndChassis = watchedType !== 'BTS' && watchedType !== 'EXC';
+  const showSupplier = watchedType && watchedType !== 'BTS' && watchedType !== 'EXC';
+  const showChassis = watchedType === 'MSI' || watchedType === 'MSN';
 
   const availableMeters = useMemo(() => {
     const selectedLocation = watchAllFields.localisation;
     const selectedBuilding = buildings.find(b => b.code === selectedLocation);
 
     if (selectedBuilding) {
-      // Find all equipment in the same building
       const equipmentInBuilding = allEquipment.filter(e => e.buildingId === selectedBuilding.id);
       const meterIds = equipmentInBuilding.map(e => e.compteurId).filter(Boolean);
       if (selectedBuilding.meterId) {
@@ -320,8 +336,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
-            {showSupplierAndChassis && (
-                <>
+            {showSupplier && (
                 <FormField
                     control={form.control}
                     name="fournisseur"
@@ -344,6 +359,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     </FormItem>
                     )}
                 />
+            )}
+            {showChassis && (
                <FormField
                 control={form.control}
                 name="typeChassis"
@@ -357,7 +374,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                   </FormItem>
                 )}
               />
-              </>
             )}
                <FormField
                 control={form.control}
