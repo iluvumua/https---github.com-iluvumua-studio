@@ -373,9 +373,10 @@ export function BillForm({ bill }: BillFormProps) {
   }, [previousBill, selectedMeter, setValue, isEditMode, hasAnyBillForMeter]);
 
 
-  const { amount, consumptionKWh } = useMemo(() => {
+  const { amount, consumptionKWh, perteEnCharge } = useMemo(() => {
         let consumption = 0;
         let finalAmount = 0;
+        let perteEnCharge = 0;
 
         const { basseTension: btSettings } = settings;
 
@@ -441,8 +442,7 @@ export function BillForm({ bill }: BillFormProps) {
 
         } else if (watchedTypeTension === "Moyen Tension Forfaitaire") {
             const indexDifference = calculateConsumptionWithRollover(watchedFields.mtf_ancien_index, watchedFields.mtf_nouveau_index);
-            const perteEnCharge = Math.round(indexDifference * 0.02);
-            setValue('perte_en_charge', perteEnCharge, { shouldValidate: true });
+            perteEnCharge = Math.round(indexDifference * 0.02);
 
             const energie_enregistree = indexDifference * (Number(watchedFields.coefficient_multiplicateur) || 0);
             const consommation_a_facturer = energie_enregistree + perteEnCharge + (Number(watchedFields.perte_a_vide) || 0);
@@ -459,8 +459,14 @@ export function BillForm({ bill }: BillFormProps) {
             finalAmount = total_3 + (Number(watchedFields.avance_consommation) || 0);
         }
 
-        return { amount: parseFloat(finalAmount.toFixed(3)), consumptionKWh: consumption };
-  }, [watchedFields, watchedTypeTension, settings, setValue]);
+        return { amount: parseFloat(finalAmount.toFixed(3)), consumptionKWh: consumption, perteEnCharge };
+  }, [watchedFields, watchedTypeTension, settings]);
+
+  useEffect(() => {
+    if (watchedTypeTension === 'Moyen Tension Forfaitaire' && perteEnCharge !== watchedFields.perte_en_charge) {
+      setValue('perte_en_charge', perteEnCharge, { shouldValidate: true });
+    }
+  }, [perteEnCharge, watchedTypeTension, setValue, watchedFields.perte_en_charge]);
 
 
   useEffect(() => {
