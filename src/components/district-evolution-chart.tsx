@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Card,
   CardContent,
@@ -23,6 +23,9 @@ import {
 } from "recharts";
 import { parse } from "date-fns";
 import { fr } from 'date-fns/locale';
+import { Button } from "./ui/button";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 const getMonthNumber = (monthName: string) => {
     try {
@@ -43,14 +46,14 @@ export function DistrictEvolutionChart() {
   const { bills } = useBillingStore();
   const { meters } = useMetersStore();
   
-  const districtColors = {
+  const districtColors: { [key: string]: string } = useMemo(() => ({
     'SOUSSE NORD': '#8884d8',
     'SOUSSE CENTRE': '#82ca9d',
     'ENFIDHA': '#ffc658',
     'MSAKEN': '#ff8042',
-  };
+  }), []);
 
-  const chartData = useMemo(() => {
+  const { data: chartData, allDistricts } = useMemo(() => {
     const dataByMonth: { [month: string]: { month: string, monthNum: number, cost: { [district: string]: number }, consumption: { [district: string]: number } } } = {};
     const districts = new Set<string>();
 
@@ -86,28 +89,64 @@ export function DistrictEvolutionChart() {
         return monthData;
     });
 
-    return { data: formattedData, districts: allDistricts };
+    return { data: formattedData, allDistricts };
 
   }, [bills, meters]);
+
+  const [selectedDistricts, setSelectedDistricts] = useState<string[]>(allDistricts);
+
+  React.useEffect(() => {
+    setSelectedDistricts(allDistricts);
+  }, [allDistricts]);
+
+  const handleDistrictSelection = (district: string) => {
+    setSelectedDistricts(prev => 
+      prev.includes(district) 
+        ? prev.filter(d => d !== district) 
+        : [...prev, district]
+    );
+  };
 
   return (
      <Card>
       <CardHeader>
-        <CardTitle>Évolution par District</CardTitle>
-        <CardDescription>Évolution mensuelle des coûts et de la consommation pour chaque district.</CardDescription>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div>
+            <CardTitle>Évolution par District</CardTitle>
+            <CardDescription>Évolution mensuelle des coûts et de la consommation pour chaque district.</CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                Sélectionner les districts <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {allDistricts.map(district => (
+                <DropdownMenuCheckboxItem
+                  key={district}
+                  checked={selectedDistricts.includes(district)}
+                  onCheckedChange={() => handleDistrictSelection(district)}
+                >
+                  {district}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
       <CardContent className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <div>
             <h4 className="text-center font-semibold mb-4">Évolution des Coûts (TND)</h4>
-             {chartData.data.length > 0 ? (
+             {chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={chartData.data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
                         <YAxis tickFormatter={yAxisFormatter} />
                         <Tooltip formatter={(value: number) => formatCurrency(value)} />
                         <Legend />
-                        {chartData.districts.map(district => (
+                        {selectedDistricts.map(district => (
                             <Line key={district} type="monotone" dataKey={`cost_${district}`} name={district} stroke={(districtColors as any)[district] || '#000000'} />
                         ))}
                     </LineChart>
@@ -118,15 +157,15 @@ export function DistrictEvolutionChart() {
         </div>
          <div>
             <h4 className="text-center font-semibold mb-4">Évolution de la Consommation (kWh)</h4>
-            {chartData.data.length > 0 ? (
+            {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={chartData.data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis tickFormatter={yAxisFormatter}/>
                     <Tooltip formatter={(value: number) => formatKWh(value)} />
                     <Legend />
-                    {chartData.districts.map(district => (
+                    {selectedDistricts.map(district => (
                         <Line key={district} type="monotone" dataKey={`consumption_${district}`} name={district} stroke={(districtColors as any)[district] || '#000000'} />
                     ))}
                 </LineChart>
