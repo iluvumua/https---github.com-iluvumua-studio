@@ -97,10 +97,12 @@ export function CostBreakdownChart() {
   }, [bills, equipment, meters, buildings, selectedYear]);
 
   const options = {
-    title: `Répartition des Coûts pour ${selectedYear}`,
+    title: ``,
     is3D: true,
     backgroundColor: 'transparent',
     legend: {
+        position: 'right',
+        alignment: 'center',
         textStyle: { color: 'hsl(var(--foreground))' }
     },
     titleTextStyle: {
@@ -112,13 +114,14 @@ export function CostBreakdownChart() {
     tooltip: {
         trigger: 'selection'
     },
-    chartArea: {width: '100%', height: '80%'}
+    chartArea: {width: '100%', height: '80%'},
+    colors: ['#008080', '#004c4c', '#66b2b2', '#00b3b3', '#33cccc', '#006666']
   };
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(value);
 
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>

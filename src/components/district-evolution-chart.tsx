@@ -45,10 +45,10 @@ export function DistrictEvolutionChart() {
   const { meters } = useMetersStore();
   
   const districtColors: { [key: string]: string } = useMemo(() => ({
-    'SOUSSE NORD': '#8884d8',
-    'SOUSSE CENTRE': '#82ca9d',
-    'ENFIDHA': '#ffc658',
-    'MSAKEN': '#ff8042',
+    'SOUSSE NORD': '#008080',
+    'SOUSSE CENTRE': '#004c4c',
+    'ENFIDHA': '#66b2b2',
+    'MSAKEN': '#00b3b3',
   }), []);
 
   const { data: chartData, allDistricts } = useMemo(() => {
@@ -101,7 +101,7 @@ export function DistrictEvolutionChart() {
   }, [selectedDistrict, allDistricts]);
 
   return (
-     <Card>
+     <Card className="shadow-lg">
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
