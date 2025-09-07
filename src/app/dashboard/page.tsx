@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Building2, Network, FileText, Gauge, FileWarning, TrendingUp, Calculator } from "lucide-react";
+import { Building2, Network, FileText, Gauge, FileWarning, TrendingUp, Calculator, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { CostBreakdownChart } from "@/components/cost-breakdown-chart";
 import { DistrictEvolutionChart } from "@/components/district-evolution-chart";
+import { Separator } from "@/components/ui/separator";
 
 export default function DashboardPage() {
   const { equipment } = useEquipmentStore();
@@ -52,18 +53,20 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-4 md:gap-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Équipement Actif
-            </CardTitle>
-            <Network className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeEquipmentCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Total des appareils réseau en ligne
-            </p>
-          </CardContent>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Équipement Actif</CardTitle>
+                <Network className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{activeEquipmentCount}</div>
+                <p className="text-xs text-muted-foreground">Total des appareils réseau en ligne</p>
+                <Separator className="my-4" />
+                <CardTitle className="text-sm font-medium">Coût Mensuel Moyen (Annuel)</CardTitle>
+                 <div className="text-2xl font-bold mt-2">
+                    {averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}
+                </div>
+                <p className="text-xs text-muted-foreground">Basé sur les factures de 12 mois et plus</p>
+            </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -100,32 +103,6 @@ export default function DashboardPage() {
             <div className="text-2xl font-bold">{formatKWh(totalConsumption)}</div>
             <p className="text-xs text-muted-foreground">
               Basé sur toutes les factures enregistrées
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Coût Mensuel Moyen (Annuel)</CardTitle>
-            <Calculator className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-             <div className="text-2xl font-bold">
-                {averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Basé sur les factures de 12 mois et plus
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Anomalies Potentielles</CardTitle>
-            <FileWarning className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-              Aucune anomalie détectée ce mois-ci
             </p>
           </CardContent>
         </Card>
