@@ -110,35 +110,8 @@ export default function DashboardPage() {
         </Card>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7 md:gap-8">
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-7">
             <CostBreakdownChart />
-        </div>
-         <div className="lg:col-span-3">
-             <Card>
-                <CardHeader>
-                    <CardTitle>Activité Récente des Factures</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>N° Facture</TableHead>
-                                <TableHead>Mois</TableHead>
-                                <TableHead className="text-right">Montant</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {recentBills.map(bill => (
-                                <TableRow key={bill.id}>
-                                    <TableCell className="font-mono text-xs">{bill.reference}</TableCell>
-                                    <TableCell className="text-xs">{bill.month}</TableCell>
-                                    <TableCell className="text-right font-medium text-xs">{formatCurrency(bill.amount)}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
         </div>
       </div>
        <div className="grid grid-cols-1 gap-4 md:gap-8">
