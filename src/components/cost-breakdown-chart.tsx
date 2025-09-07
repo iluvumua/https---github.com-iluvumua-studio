@@ -114,8 +114,8 @@ export function CostBreakdownChart() {
     tooltip: {
         trigger: 'selection'
     },
-    chartArea: {width: '100%', height: '80%'},
-    colors: ['#008080', '#004c4c', '#66b2b2', '#00b3b3', '#33cccc', '#006666']
+    chartArea: {left: 20, top: 20, width: '90%', height: '90%'},
+    colors: ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
   };
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(value);
