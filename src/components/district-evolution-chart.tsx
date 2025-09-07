@@ -24,6 +24,7 @@ import {
 import { parse } from "date-fns";
 import { fr } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Button } from "./ui/button";
 
 const getMonthNumber = (monthName: string) => {
     try {
@@ -44,6 +45,8 @@ export function DistrictEvolutionChart() {
   const { bills } = useBillingStore();
   const { meters } = useMetersStore();
   
+  const [displayMode, setDisplayMode] = useState<'cost' | 'consumption'>('cost');
+
   const districtColors: { [key: string]: string } = useMemo(() => ({
     'SOUSSE NORD': '#008080',
     'SOUSSE CENTRE': '#004c4c',
@@ -99,67 +102,55 @@ export function DistrictEvolutionChart() {
     }
     return [selectedDistrict];
   }, [selectedDistrict, allDistricts]);
+  
+  const yAxisLabel = displayMode === 'cost' ? 'Coût (TND)' : 'Consommation (kWh)';
+  const dataKeyPrefix = displayMode === 'cost' ? 'cost' : 'consumption';
+  const tooltipFormatter = displayMode === 'cost' ? formatCurrency : formatKWh;
 
   return (
      <Card className="shadow-lg">
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
-            <CardTitle>Évolution par District</CardTitle>
-            <CardDescription>Évolution mensuelle des coûts et de la consommation pour chaque district.</CardDescription>
+            <CardTitle>Évolution Mensuelle par District</CardTitle>
+            <CardDescription>Analysez les {displayMode === 'cost' ? "coûts" : "consommations"} pour chaque district.</CardDescription>
           </div>
-          <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
-            <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Sélectionner un district" />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">Voir tout</SelectItem>
-                {allDistricts.map(district => (
-                    <SelectItem key={district} value={district}>{district}</SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+             <div className="flex items-center gap-1 rounded-md bg-muted p-1">
+                <Button variant={displayMode === 'cost' ? "secondary" : "ghost"} size="sm" onClick={() => setDisplayMode('cost')}>Coût</Button>
+                <Button variant={displayMode === 'consumption' ? "secondary" : "ghost"} size="sm" onClick={() => setDisplayMode('consumption')}>Conso.</Button>
+            </div>
+            <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Sélectionner un district" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Voir tout</SelectItem>
+                    {allDistricts.map(district => (
+                        <SelectItem key={district} value={district}>{district}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <div>
-            <h4 className="text-center font-semibold mb-4">Évolution des Coûts (TND)</h4>
-             {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis tickFormatter={yAxisFormatter} />
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Legend />
-                        {districtsToDisplay.map(district => (
-                            <Line key={district} type="monotone" dataKey={`cost_${district}`} name={district} stroke={(districtColors as any)[district] || '#000000'} />
-                        ))}
-                    </LineChart>
-                </ResponsiveContainer>
-            ) : (
-                 <div className="flex items-center justify-center h-[400px] text-muted-foreground">Aucune donnée à afficher.</div>
-            )}
-        </div>
-         <div>
-            <h4 className="text-center font-semibold mb-4">Évolution de la Consommation (kWh)</h4>
-            {chartData.length > 0 ? (
+      <CardContent>
+        {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
-                    <YAxis tickFormatter={yAxisFormatter}/>
-                    <Tooltip formatter={(value: number) => formatKWh(value)} />
+                    <YAxis tickFormatter={yAxisFormatter} />
+                    <Tooltip formatter={(value: number) => tooltipFormatter(value)} />
                     <Legend />
                     {districtsToDisplay.map(district => (
-                        <Line key={district} type="monotone" dataKey={`consumption_${district}`} name={district} stroke={(districtColors as any)[district] || '#000000'} />
+                        <Line key={district} type="monotone" dataKey={`${dataKeyPrefix}_${district}`} name={district} stroke={(districtColors as any)[district] || '#000000'} />
                     ))}
                 </LineChart>
             </ResponsiveContainer>
-            ) : (
+        ) : (
                 <div className="flex items-center justify-center h-[400px] text-muted-foreground">Aucune donnée à afficher.</div>
-            )}
-        </div>
+        )}
       </CardContent>
     </Card>
   );
