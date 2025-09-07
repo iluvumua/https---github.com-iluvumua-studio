@@ -61,11 +61,13 @@ export default function DashboardPage() {
                 <div className="text-2xl font-bold">{activeEquipmentCount}</div>
                 <p className="text-xs text-muted-foreground">Total des appareils réseau en ligne</p>
                 <Separator className="my-4" />
-                <CardTitle className="text-sm font-medium">Coût Mensuel Moyen (Annuel)</CardTitle>
-                 <div className="text-2xl font-bold mt-2">
-                    {averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}
+                <div className="space-y-1">
+                    <p className="text-sm font-medium">Coût Mensuel Moyen (Annuel)</p>
+                     <p className="text-2xl font-bold">
+                        {averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Basé sur les factures de 12 mois et plus</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Basé sur les factures de 12 mois et plus</p>
             </CardContent>
         </Card>
         <Card>
