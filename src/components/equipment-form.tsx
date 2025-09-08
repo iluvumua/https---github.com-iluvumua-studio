@@ -141,8 +141,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       typeChassis: initialEquipment?.typeChassis || "",
       designation: initialEquipment ? extractDesignationFromName(initialEquipment.name, initialEquipment.type, initialEquipment.typeChassis || '') : (building?.name || ""),
       description: initialEquipment?.description || "",
-      coordX: initialEquipment?.coordX,
-      coordY: initialEquipment?.coordY,
+      coordX: initialEquipment?.coordX ?? building?.coordX,
+      coordY: initialEquipment?.coordY ?? building?.coordY,
       buildingId: initialEquipment?.buildingId || buildingIdParam || "",
       googleMapsUrl: '',
     },
@@ -445,3 +445,5 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         </Form>
   );
 }
+
+    
