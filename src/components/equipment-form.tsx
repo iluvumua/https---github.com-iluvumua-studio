@@ -396,10 +396,10 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     <div className="grid grid-cols-2 gap-2">
                         <FormField control={form.control} name="coordX" render={({ field }) => ( <FormItem>
                             <FormLabel>X (Longitude)</FormLabel>
-                            <FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isFormDisabled} /></FormControl><FormMessage /></FormItem> )}/>
+                            <FormControl><Input type="number" step="any" placeholder="Longitude" {...field} value={field.value ?? ''} disabled={isFormDisabled} /></FormControl><FormMessage /></FormItem> )}/>
                         <FormField control={form.control} name="coordY" render={({ field }) => ( <FormItem>
                             <FormLabel>Y (Latitude)</FormLabel>
-                            <FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} readOnly={!!building} disabled={isFormDisabled} /></FormControl><FormMessage /></FormItem> )}/>
+                            <FormControl><Input type="number" step="any" placeholder="Latitude" {...field} value={field.value ?? ''} disabled={isFormDisabled} /></FormControl><FormMessage /></FormItem> )}/>
                     </div>
                 </div>
 
