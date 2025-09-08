@@ -52,6 +52,7 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
     const { user } = useUser();
 
     const canResiliate = user.role === 'Responsable Énergie et Environnement' || user.role === 'Admin';
+    const canUpdate = user.role === 'Déploiement' || user.role === 'Admin';
 
     const formatShortDate = (dateString?: string) => {
         if (!dateString) return "N/A";
@@ -59,7 +60,7 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
     }
 
     const formatCurrency = (amount: number) => {
-      return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
+      return new Intl.NumberFormat('fr-TN', { style: 'currency', currency = 'TND' }).format(amount);
     }
     
     const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
@@ -145,7 +146,7 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {item.status === 'En cours' && (
+                                {canUpdate && item.status === 'En cours' && (
                                     <DropdownMenuItem asChild>
                                         <Link href={`/dashboard/equipment/${item.id}/new-meter`}>
                                             <PlusCircleIcon className="mr-2 h-4 w-4" />
@@ -423,3 +424,5 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
+    

@@ -165,7 +165,14 @@ export default function NewMeterWorkflowPage() {
 
     useEffect(() => {
         if (equipmentItem) {
-            // If a choice has been made, don't re-evaluate
+            // If the equipment is 'En cours', don't automatically choose a workflow.
+            if (equipmentItem.status === 'En cours' && !equipmentItem.compteurId) {
+                setWorkflowChoice(null);
+                setCurrentStep(1);
+                return;
+            }
+
+            // If a choice has already been made by the user, respect it.
             if(workflowChoice) return;
 
             // Case 1: Indoor equipment in a building that already has a meter
@@ -220,11 +227,6 @@ export default function NewMeterWorkflowPage() {
                 <Skeleton className="h-10 w-full" />
             </div>
         )
-    }
-
-    // Do not show choice for indoor equipment
-    if (!workflowChoice && equipmentItem.buildingId) {
-        setWorkflowChoice('new');
     }
     
     const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyen Tension Tranche Horaire' | 'Moyen Tension Forfaitaire' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
@@ -432,3 +434,5 @@ export default function NewMeterWorkflowPage() {
         </div>
     )
 }
+
+    
