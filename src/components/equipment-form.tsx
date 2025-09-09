@@ -125,6 +125,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const { user } = useUser();
   const { equipment: allEquipment, addEquipment, updateEquipment } = useEquipmentStore();
   const [generatedName, setGeneratedName] = useState(initialEquipment?.name || "");
+  const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -180,6 +181,8 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   }, [watchedUrl, form]);
 
   useEffect(() => {
+    if (isNameManuallyEdited) return;
+
     const { fournisseur, localisation, type, typeChassis, designation } = watchAllFields;
     
     if (localisation && type) {
@@ -233,7 +236,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     } else {
         setGeneratedName("");
     }
-  }, [watchAllFields, allEquipment, isEditMode, initialEquipment]);
+  }, [watchAllFields, allEquipment, isEditMode, initialEquipment, isNameManuallyEdited]);
   
   const watchedCoords = form.watch(['coordY', 'coordX']);
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
@@ -312,6 +315,15 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     return meters;
   }, [watchAllFields.localisation, meters, buildings, allEquipment]);
 
+  const isNameEditable = watchedType === 'MSI';
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setGeneratedName(e.target.value);
+      if (isNameEditable && !isNameManuallyEdited) {
+          setIsNameManuallyEdited(true);
+      }
+  };
+
+
   return (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -325,7 +337,10 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     <Combobox
                         options={equipmentTypes}
                         value={field.value}
-                        onChange={field.onChange}
+                        onChange={(value) => {
+                            field.onChange(value);
+                            setIsNameManuallyEdited(false);
+                        }}
                         placeholder="Rechercher un type..."
                         disabled={isFormDisabled}
                     />
@@ -444,7 +459,12 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
               
               <div className="md:col-span-2 space-y-2">
                 <Label>Nom Généré</Label>
-                <Input readOnly value={generatedName} className="font-mono bg-muted" placeholder="..."/>
+                <Input 
+                    readOnly={!isNameEditable} 
+                    value={generatedName} 
+                    onChange={handleNameChange}
+                    className="font-mono bg-muted" 
+                    placeholder="..."/>
               </div>
 
             </div>
