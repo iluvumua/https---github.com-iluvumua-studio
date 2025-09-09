@@ -73,6 +73,7 @@ export default function BillingStatisticsPage() {
   const [recapYear, setRecapYear] = useState<string>(new Date().getFullYear().toString());
   const [recapMonth, setRecapMonth] = useState<string>(monthNames[new Date().getMonth()]);
   const [recapTension, setRecapTension] = useState<'all' | 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire'>('all');
+  const [selectedDistrictRecap, setSelectedDistrictRecap] = useState<string>('all');
   
   const [selectedMeterId, setSelectedMeterId] = useState<string>("");
   const [displayMode, setDisplayMode] = useState<'cost' | 'consumption'>('cost');
@@ -81,6 +82,11 @@ export default function BillingStatisticsPage() {
     const years = new Set(bills.map(b => b.month.split(' ')[1]));
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [bills]);
+  
+  const allDistricts = useMemo(() => {
+      const districts = new Set(meters.map(m => m.districtSteg).filter(Boolean));
+      return Array.from(districts) as string[];
+  }, [meters]);
 
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
@@ -106,8 +112,13 @@ export default function BillingStatisticsPage() {
   const recapDataByDistrict = useMemo(() => {
     const selectedMonthYear = `${recapMonth} ${recapYear}`;
 
+    let filteredMetersByDistrict: Meter[] = meters;
+    if (selectedDistrictRecap !== 'all') {
+        filteredMetersByDistrict = meters.filter(m => m.districtSteg === selectedDistrictRecap);
+    }
+    
     const filteredBills = bills.filter(bill => {
-        const meter = meters.find(m => m.id === bill.meterId);
+        const meter = filteredMetersByDistrict.find(m => m.id === bill.meterId);
         if (!meter) return false;
         
         const matchesMonth = bill.month === selectedMonthYear;
@@ -118,7 +129,7 @@ export default function BillingStatisticsPage() {
 
     const districtRecaps: { [key: string]: RecapData } = {};
 
-    const metersByDistrict: { [key: string]: Meter[] } = meters.reduce((acc, meter) => {
+    const metersByDistrict: { [key: string]: Meter[] } = filteredMetersByDistrict.reduce((acc, meter) => {
         if (meter.districtSteg) {
             if (!acc[meter.districtSteg]) acc[meter.districtSteg] = [];
             acc[meter.districtSteg].push(meter);
@@ -141,7 +152,7 @@ export default function BillingStatisticsPage() {
             const montantVerifiees = facturesVerifiees.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
             
             const litiges = facturesDiscordance.map(b => ({
-                refFact: b.reference,
+                refFact: b.reference || b.id,
                 litige: b.description || 'Discordance de montant',
                 montantTTC: b.amount,
             }));
@@ -162,7 +173,7 @@ export default function BillingStatisticsPage() {
         }
     }
     return Object.values(districtRecaps);
-  }, [recapYear, recapMonth, recapTension, bills, meters]);
+  }, [recapYear, recapMonth, recapTension, selectedDistrictRecap, bills, meters]);
   
 
   const annualChartData = useMemo(() => {
@@ -284,6 +295,13 @@ export default function BillingStatisticsPage() {
                                 <SelectItem value="Basse Tension">Basse Tension</SelectItem>
                                 <SelectItem value="Moyen Tension Forfaitaire">MT - Forfaitaire</SelectItem>
                                 <SelectItem value="Moyen Tension Tranche Horaire">MT - Tranche Horaire</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select value={selectedDistrictRecap} onValueChange={setSelectedDistrictRecap}>
+                            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrer par district" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tous les Districts</SelectItem>
+                                {allDistricts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                             </SelectContent>
                         </Select>
                      </div>
