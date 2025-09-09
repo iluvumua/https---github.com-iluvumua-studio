@@ -3,6 +3,14 @@
 
 import { Building2, Network, Gauge, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useEquipmentStore } from "@/hooks/use-equipment-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { useBillingStore } from "@/hooks/use-billing-store";
@@ -54,16 +62,29 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-4 md:gap-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-2 shadow-lg transition-transform hover:scale-105">
+        <Card className="lg:col-span-2 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Équipement Actif</CardTitle>
+            <CardTitle className="text-sm font-medium">Équipement Actif par Type</CardTitle>
             <Network className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             <div className="text-2xl font-bold">{activeEquipment.length}</div>
-             <div className="text-xs text-muted-foreground">
-                {Object.entries(equipmentTypeCounts).map(([type, count]) => `${type}: ${count}`).join(' | ')}
-             </div>
+             <div className="text-2xl font-bold mb-2">{activeEquipment.length} Total</div>
+             <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead className="h-8">Type</TableHead>
+                    <TableHead className="h-8 text-right">Nombre</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {Object.entries(equipmentTypeCounts).map(([type, count]) => (
+                    <TableRow key={type} className="h-8">
+                        <TableCell className="font-medium py-1">{type}</TableCell>
+                        <TableCell className="text-right py-1">{count as React.ReactNode}</TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+             </Table>
           </CardContent>
         </Card>
          <Card className="lg:col-span-3 shadow-lg transition-transform hover:scale-105">
