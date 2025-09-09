@@ -35,10 +35,8 @@ import { RecapCard, RecapData } from "@/components/recap-card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/combobox";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { addDays, parse, format, getMonth, getYear } from "date-fns";
+import { subMonths, subYears, parse, format, getMonth, getYear } from "date-fns";
 import { fr } from "date-fns/locale";
-import type { DateRange } from "react-day-picker";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -65,10 +63,7 @@ export default function BillingStatisticsPage() {
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
 
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), 0, 1),
-    to: new Date(new Date().getFullYear(), 11, 31),
-  });
+  const [timeRange, setTimeRange] = useState("1y");
 
   const [recapYear, setRecapYear] = useState<string>(new Date().getFullYear().toString());
   const [recapMonth, setRecapMonth] = useState<string>(monthNames[new Date().getMonth()]);
@@ -177,11 +172,21 @@ export default function BillingStatisticsPage() {
   
 
   const annualChartData = useMemo(() => {
+    const now = new Date();
+    let fromDate;
+
+    switch (timeRange) {
+        case "1m": fromDate = subMonths(now, 1); break;
+        case "2m": fromDate = subMonths(now, 2); break;
+        case "1y": fromDate = subYears(now, 1); break;
+        case "2y": fromDate = subYears(now, 2); break;
+        default: fromDate = subYears(now, 1);
+    }
+    
     let filteredBills = bills.filter(bill => {
         const billDate = parseBillMonth(bill.month);
-        if (!billDate || !dateRange?.from) return false;
-        const toDate = dateRange.to || dateRange.from;
-        return billDate >= dateRange.from && billDate <= toDate;
+        if (!billDate) return false;
+        return billDate >= fromDate && billDate <= now;
     });
 
     if (selectedMeterId) {
@@ -208,7 +213,7 @@ export default function BillingStatisticsPage() {
             ...data
         }));
 
-  }, [bills, dateRange, selectedMeterId, displayMode]);
+  }, [bills, timeRange, selectedMeterId, displayMode]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
   const formatKWh = (value: number) => `${new Intl.NumberFormat('fr-FR').format(value)} kWh`;
@@ -241,7 +246,17 @@ export default function BillingStatisticsPage() {
                             placeholder="Filtrer par Compteur..."
                             className="w-[250px]"
                         />
-                        <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+                         <Select value={timeRange} onValueChange={setTimeRange}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Plage de temps" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="1m">Dernier mois</SelectItem>
+                                <SelectItem value="2m">2 derniers mois</SelectItem>
+                                <SelectItem value="1y">Dernière année</SelectItem>
+                                <SelectItem value="2y">2 dernières années</SelectItem>
+                            </SelectContent>
+                        </Select>
                      </div>
                 </div>
             </CardHeader>
