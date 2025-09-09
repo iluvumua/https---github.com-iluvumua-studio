@@ -35,6 +35,10 @@ import { RecapCard, RecapData } from "@/components/recap-card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/combobox";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { addDays, parse, format, getMonth, getYear } from "date-fns";
+import { fr } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -46,13 +50,26 @@ const meterColors = [
     '#a4de6c', '#d0ed57', '#8dd1e1', '#83a6ed', '#8a2be2'
 ];
 
+const parseBillMonth = (monthString: string): Date | null => {
+    try {
+        const date = parse(monthString, "LLLL yyyy", new Date(), { locale: fr });
+        return isNaN(date.getTime()) ? null : date;
+    } catch {
+        return null;
+    }
+}
+
 export default function BillingStatisticsPage() {
   const { bills } = useBillingStore();
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
 
-  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), 0, 1),
+    to: new Date(new Date().getFullYear(), 11, 31),
+  });
+
   const [recapYear, setRecapYear] = useState<string>(new Date().getFullYear().toString());
   const [recapMonth, setRecapMonth] = useState<string>(monthNames[new Date().getMonth()]);
   const [recapTension, setRecapTension] = useState<'all' | 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire'>('all');
@@ -149,34 +166,38 @@ export default function BillingStatisticsPage() {
   
 
   const annualChartData = useMemo(() => {
-    let yearBills = bills.filter(bill => bill.month.endsWith(selectedYear));
-    if (selectedMeterId) {
-        yearBills = yearBills.filter(bill => bill.meterId === selectedMeterId);
-    }
-
-    const monthlyData: { [key: string]: { [key: string]: number } } = {};
-
-    monthNames.forEach(month => {
-        monthlyData[month] = { total: 0 };
+    let filteredBills = bills.filter(bill => {
+        const billDate = parseBillMonth(bill.month);
+        if (!billDate || !dateRange?.from) return false;
+        const toDate = dateRange.to || dateRange.from;
+        return billDate >= dateRange.from && billDate <= toDate;
     });
 
-    yearBills.forEach(bill => {
-        const monthName = bill.month.split(' ')[0];
-        if (monthlyData[monthName]) {
-            const value = displayMode === 'cost' ? bill.amount : bill.consumptionKWh;
-             if (selectedMeterId) {
-                 monthlyData[monthName][selectedMeterId] = (monthlyData[monthName][selectedMeterId] || 0) + value;
-             } else {
-                monthlyData[monthName].total = (monthlyData[monthName].total || 0) + value;
-             }
+    if (selectedMeterId) {
+        filteredBills = filteredBills.filter(bill => bill.meterId === selectedMeterId);
+    }
+    
+    const monthlyData: { [key: string]: { [meter: string]: number } } = {};
+
+    filteredBills.forEach(bill => {
+        const monthKey = format(parseBillMonth(bill.month)!, 'yyyy-MM');
+        if (!monthlyData[monthKey]) {
+            monthlyData[monthKey] = {};
         }
+
+        const value = displayMode === 'cost' ? bill.amount : bill.consumptionKWh;
+        const key = selectedMeterId || 'total';
+        monthlyData[monthKey][key] = (monthlyData[monthKey][key] || 0) + value;
     });
     
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month: month.slice(0, 3),
-      ...data
-    }));
-  }, [bills, selectedYear, selectedMeterId, displayMode]);
+    return Object.entries(monthlyData)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, data]) => ({
+            month: format(parse(key, 'yyyy-MM', new Date()), 'MMM yy', { locale: fr }),
+            ...data
+        }));
+
+  }, [bills, dateRange, selectedMeterId, displayMode]);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
   const formatKWh = (value: number) => `${new Intl.NumberFormat('fr-FR').format(value)} kWh`;
@@ -194,7 +215,7 @@ export default function BillingStatisticsPage() {
                     <div>
                         <CardTitle>Statistiques Annuelles par Compteur</CardTitle>
                         <CardDescription>
-                            Aperçu {displayMode === 'cost' ? 'des coûts' : 'de la consommation'} pour l'année {selectedYear}.
+                            Aperçu {displayMode === 'cost' ? 'des coûts' : 'de la consommation'}.
                         </CardDescription>
                     </div>
                      <div className="flex items-center gap-2">
@@ -209,16 +230,7 @@ export default function BillingStatisticsPage() {
                             placeholder="Filtrer par Compteur..."
                             className="w-[250px]"
                         />
-                        <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Année" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {availableYears.map(year => (
-                                <SelectItem key={year} value={year}>{year}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <DateRangePicker date={dateRange} onDateChange={setDateRange} />
                      </div>
                 </div>
             </CardHeader>
