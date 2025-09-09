@@ -35,8 +35,10 @@ import { RecapCard, RecapData } from "@/components/recap-card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/combobox";
-import { subMonths, subYears, parse, format, getMonth, getYear } from "date-fns";
+import { subMonths, subYears, parse, format, getMonth, getYear, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -63,7 +65,10 @@ export default function BillingStatisticsPage() {
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
 
-  const [timeRange, setTimeRange] = useState("1y");
+  const [timeRange, setTimeRange] = useState<DateRange | undefined>({
+    from: subYears(new Date(), 1),
+    to: new Date(),
+  });
 
   const [recapYear, setRecapYear] = useState<string>(new Date().getFullYear().toString());
   const [recapMonth, setRecapMonth] = useState<string>(monthNames[new Date().getMonth()]);
@@ -172,21 +177,12 @@ export default function BillingStatisticsPage() {
   
 
   const annualChartData = useMemo(() => {
-    const now = new Date();
-    let fromDate;
-
-    switch (timeRange) {
-        case "1m": fromDate = subMonths(now, 1); break;
-        case "2m": fromDate = subMonths(now, 2); break;
-        case "1y": fromDate = subYears(now, 1); break;
-        case "2y": fromDate = subYears(now, 2); break;
-        default: fromDate = subYears(now, 1);
-    }
+    if (!timeRange?.from) return [];
     
     let filteredBills = bills.filter(bill => {
         const billDate = parseBillMonth(bill.month);
         if (!billDate) return false;
-        return billDate >= fromDate && billDate <= now;
+        return billDate >= timeRange.from! && billDate <= (timeRange.to || timeRange.from!);
     });
 
     if (selectedMeterId) {
@@ -246,17 +242,7 @@ export default function BillingStatisticsPage() {
                             placeholder="Filtrer par Compteur..."
                             className="w-[250px]"
                         />
-                         <Select value={timeRange} onValueChange={setTimeRange}>
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Plage de temps" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1m">Dernier mois</SelectItem>
-                                <SelectItem value="2m">2 derniers mois</SelectItem>
-                                <SelectItem value="1y">Dernière année</SelectItem>
-                                <SelectItem value="2y">2 dernières années</SelectItem>
-                            </SelectContent>
-                        </Select>
+                         <DateRangePicker date={timeRange} onDateChange={setTimeRange} />
                      </div>
                 </div>
             </CardHeader>
@@ -337,3 +323,4 @@ export default function BillingStatisticsPage() {
     </div>
   );
 }
+
