@@ -17,7 +17,15 @@ export default function DashboardPage() {
   const { bills } = useBillingStore();
   const { meters } = useMetersStore();
 
-  const activeEquipmentCount = equipment.filter(e => e.status === 'En service').length;
+  const activeEquipment = useMemo(() => equipment.filter(e => e.status === 'En service'), [equipment]);
+
+  const equipmentTypeCounts = useMemo(() => {
+    return activeEquipment.reduce((acc, eq) => {
+        acc[eq.type] = (acc[eq.type] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+  }, [activeEquipment]);
+
   const buildingsCount = buildings.length;
   const metersCount = meters.length;
 
@@ -52,8 +60,10 @@ export default function DashboardPage() {
             <Network className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-             <div className="text-2xl font-bold">{activeEquipmentCount}</div>
-            <p className="text-xs text-muted-foreground">Total des appareils réseau en ligne</p>
+             <div className="text-2xl font-bold">{activeEquipment.length}</div>
+             <div className="text-xs text-muted-foreground">
+                {Object.entries(equipmentTypeCounts).map(([type, count]) => `${type}: ${count}`).join(' | ')}
+             </div>
           </CardContent>
         </Card>
          <Card className="lg:col-span-3 shadow-lg transition-transform hover:scale-105">
