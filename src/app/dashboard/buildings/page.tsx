@@ -192,7 +192,7 @@ export default function BuildingsPage() {
                                 </Link>
                             </DropdownMenuItem>
                         )}
-                        {canManageMeters && (
+                        {canManageMeters && !building.meterId && (
                              <DropdownMenuItem asChild>
                                 <Link href={`/dashboard/buildings/${building.id}/new-meter`}>
                                     <Gauge className="mr-2 h-4 w-4" />
