@@ -35,7 +35,7 @@ import { RecapCard, RecapData } from "@/components/recap-card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/combobox";
-import { subMonths, subYears, parse, format, getMonth, getYear, addDays } from "date-fns";
+import { subYears, parse, format, getMonth, getYear, startOfMonth, endOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
@@ -179,10 +179,13 @@ export default function BillingStatisticsPage() {
   const annualChartData = useMemo(() => {
     if (!timeRange?.from) return [];
     
+    const fromDate = startOfMonth(timeRange.from);
+    const toDate = endOfMonth(timeRange.to || timeRange.from);
+
     let filteredBills = bills.filter(bill => {
         const billDate = parseBillMonth(bill.month);
         if (!billDate) return false;
-        return billDate >= timeRange.from! && billDate <= (timeRange.to || timeRange.from!);
+        return billDate >= fromDate && billDate <= toDate;
     });
 
     if (selectedMeterId) {
@@ -323,4 +326,3 @@ export default function BillingStatisticsPage() {
     </div>
   );
 }
-

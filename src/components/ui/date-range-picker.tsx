@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -13,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { fr } from "date-fns/locale"
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
     date: DateRange | undefined;
@@ -40,14 +42,14 @@ export function DateRangePicker({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
+                  {format(date.from, "LLLL yyyy", { locale: fr })} -{" "}
+                  {format(date.to, "LLLL yyyy", { locale: fr })}
                 </>
               ) : (
-                format(date.from, "LLL dd, y")
+                format(date.from, "LLLL yyyy", { locale: fr })
               )
             ) : (
-              <span>Choisir une date</span>
+              <span>Choisir une plage de mois</span>
             )}
           </Button>
         </PopoverTrigger>
