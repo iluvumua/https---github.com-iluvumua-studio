@@ -36,7 +36,7 @@ export default function NewMeterWorkflowPage() {
             if (buildingItem.meterId) {
                 const meter = meters.find(m => m.id === buildingItem.meterId);
                 setWipMeter(meter);
-                if (meter?.status === 'En service') {
+                 if (meter?.status === 'En service') {
                     setCurrentStep(4);
                 } else if (meter?.dateMiseEnService && !meter.id.startsWith('MTR-WIP-')) {
                     setCurrentStep(3);
@@ -90,14 +90,13 @@ export default function NewMeterWorkflowPage() {
         setCurrentStep(2);
     }
     
-    const handleStep2Finish = (data: { meterId: string; dateMiseEnService: string, indexDepart: number }) => {
+    const handleStep2Finish = (data: Partial<Meter>) => {
         if (wipMeter) {
             const tempId = wipMeter.id;
             const updatedWipMeter: Meter = {
                 ...(wipMeter as Meter),
-                id: data.meterId,
-                dateMiseEnService: data.dateMiseEnService,
-                indexDepart: data.indexDepart,
+                ...data,
+                id: data.id!,
                 lastUpdate: format(new Date(), 'yyyy-MM-dd'),
                 status: 'En cours',
             };
@@ -107,7 +106,7 @@ export default function NewMeterWorkflowPage() {
             if (buildingItem.meterId === tempId) {
                  updateBuilding({
                     ...buildingItem,
-                    meterId: data.meterId,
+                    meterId: updatedWipMeter.id,
                 });
             }
             
