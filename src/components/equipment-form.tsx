@@ -153,6 +153,13 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const watchedType = form.watch('type');
   const watchedUrl = form.watch('googleMapsUrl');
 
+  const supplierOptions = useMemo(() => {
+    if (watchedType === 'BTS') {
+      return fournisseurs.filter(f => f.value === 'ERI');
+    }
+    return fournisseurs;
+  }, [watchedType]);
+
   useEffect(() => {
     if (watchedUrl) {
       const match = watchedUrl.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
@@ -344,9 +351,16 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                     <FormItem>
                         <FormLabel>Fournisseur</FormLabel>
                         <Combobox
-                            options={fournisseurs}
+                            options={supplierOptions}
                             value={field.value}
-                            onChange={field.onChange}
+                            onChange={(value) => {
+                                field.onChange(value);
+                                if (watchedType === 'BTS' && supplierOptions.length === 1) {
+                                    field.onChange(supplierOptions[0].value);
+                                } else {
+                                    field.onChange(value);
+                                }
+                            }}
                             placeholder="Sélectionner un fournisseur"
                             disabled={isFormDisabled}
                         />
@@ -446,3 +460,5 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         </Form>
   );
 }
+
+    
