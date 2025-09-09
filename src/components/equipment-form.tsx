@@ -31,6 +31,13 @@ const fournisseurs = [
   { value: "ERI", label: "ERI", abbreviation: "ERI" },
 ];
 
+const chassisTypes = [
+    "7330", "7302", "7353", "FTTB-ST", "7363", "5818", "T300", "T100", 
+    "T500", "HABD", "UA5000", "MA5818", "HABD/HABF", "MABB", "hix5635", 
+    "hix5630-G600", "hix5630", "5635", "5625-G400"
+].map(chassis => ({ value: chassis, label: chassis }));
+
+
 const localisations = locationsData.map(loc => ({
     value: loc.abbreviation,
     label: loc.localite,
@@ -354,7 +361,6 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                             options={supplierOptions}
                             value={field.value}
                             onChange={(value) => {
-                                field.onChange(value);
                                 if (watchedType === 'BTS' && supplierOptions.length === 1) {
                                     field.onChange(supplierOptions[0].value);
                                 } else {
@@ -376,9 +382,13 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type de Châssis</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ex: 7302" {...field} disabled={isFormDisabled} />
-                    </FormControl>
+                     <Combobox
+                        options={chassisTypes}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Rechercher un type de châssis..."
+                        disabled={isFormDisabled}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -460,5 +470,3 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         </Form>
   );
 }
-
-    
