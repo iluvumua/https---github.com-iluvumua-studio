@@ -33,6 +33,29 @@ export default function DashboardPage() {
         return acc;
     }, {} as Record<string, number>);
   }, [activeEquipment]);
+  
+  const buildingNatureCounts = useMemo(() => {
+    const natureMap: Record<string, string> = {
+        A: 'Administratif',
+        T: 'Technique',
+        C: 'Commercial',
+        D: 'Dépôt',
+    };
+    return buildings.reduce((acc, building) => {
+        building.nature.forEach(natureCode => {
+            const natureName = natureMap[natureCode] || natureCode;
+            acc[natureName] = (acc[natureName] || 0) + 1;
+        });
+        return acc;
+    }, {} as Record<string, number>);
+  }, [buildings]);
+
+  const meterStatusCounts = useMemo(() => {
+    return meters.reduce((acc, meter) => {
+        acc[meter.status] = (acc[meter.status] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+  }, [meters]);
 
   const buildingsCount = buildings.length;
   const metersCount = meters.length;
@@ -61,8 +84,8 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-2 shadow-lg">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Équipement Actif par Type</CardTitle>
             <Network className="h-4 w-4 text-muted-foreground" />
@@ -87,7 +110,57 @@ export default function DashboardPage() {
              </Table>
           </CardContent>
         </Card>
-         <Card className="lg:col-span-3 shadow-lg transition-transform hover:scale-105">
+        <Card className="shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Bâtiments par Nature</CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-2">{buildingsCount} Total</div>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead className="h-8">Nature</TableHead>
+                    <TableHead className="h-8 text-right">Nombre</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {Object.entries(buildingNatureCounts).map(([nature, count]) => (
+                    <TableRow key={nature} className="h-8">
+                        <TableCell className="font-medium py-1">{nature}</TableCell>
+                        <TableCell className="text-right py-1">{count as React.ReactNode}</TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+             </Table>
+          </CardContent>
+        </Card>
+        <Card className="shadow-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Compteurs par État</CardTitle>
+            <Gauge className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold mb-2">{metersCount} Total</div>
+             <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead className="h-8">État</TableHead>
+                    <TableHead className="h-8 text-right">Nombre</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {Object.entries(meterStatusCounts).map(([status, count]) => (
+                    <TableRow key={status} className="h-8">
+                        <TableCell className="font-medium py-1">{status}</TableCell>
+                        <TableCell className="text-right py-1">{count as React.ReactNode}</TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+             </Table>
+          </CardContent>
+        </Card>
+         <Card className="shadow-lg transition-transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Coût Mensuel Moyen (Annuel)</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -97,24 +170,6 @@ export default function DashboardPage() {
                 {averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}
             </div>
             <p className="text-xs text-muted-foreground">Basé sur les factures de 12 mois et plus</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-lg transition-transform hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bâtiments</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{buildingsCount}</div>
-          </CardContent>
-        </Card>
-        <Card className="shadow-lg transition-transform hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compteurs</CardTitle>
-            <Gauge className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metersCount}</div>
           </CardContent>
         </Card>
       </div>
