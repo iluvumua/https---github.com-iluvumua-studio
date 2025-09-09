@@ -104,7 +104,7 @@ export function BuildingForm() {
     
     addBuilding(newBuilding);
     toast({ title: "Bâtiment ajouté", description: "Le nouveau bâtiment a été enregistré." });
-    router.push(`/dashboard/buildings`);
+    router.push(`/dashboard/buildings/${newBuildingId}/new-meter`);
   }
 
   return (
