@@ -60,7 +60,8 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
     }
 
     const formatCurrency = (amount: number) => {
-      return new Intl.NumberFormat('fr-TN', { style: 'currency', currency = 'TND' }).format(amount);
+        if (typeof amount !== 'number') return 'N/A';
+        return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
     }
     
     const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
