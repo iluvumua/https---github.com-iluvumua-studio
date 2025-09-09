@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -362,7 +361,7 @@ export default function EquipmentPage() {
             "Date Mise en Service": item.dateMiseEnService ? format(new Date(item.dateMiseEnService), "dd/MM/yyyy") : 'N/A',
             "ID Compteur": item.compteurId || 'N/A',
         }));
-        const worksheet = XLSX.utils.sheet_to_json(dataToExport);
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Équipements");
         XLSX.writeFile(workbook, `equipements_${activeStatusTab}.xlsx`);
@@ -425,5 +424,7 @@ export default function EquipmentPage() {
     </div>
   );
 }
+
+    
 
     
