@@ -61,7 +61,7 @@ export default function NewMeterWorkflowPage() {
         )
     }
     
-    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyenne Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
+    const handleStep1Finish = (data: { policeNumber?: string; districtSteg: string; typeTension: 'Moyen Tension' | 'Basse Tension'; dateDemandeInstallation: Date; coordX?: number; coordY?: number; phase: 'Triphasé' | 'Monophasé', amperage: '16A' | '32A' | '63A' | 'Autre', amperageAutre?: string }) => {
         const newMeter: Partial<Meter> = {
             id: `MTR-WIP-${Date.now()}`,
             status: 'En cours',
