@@ -28,6 +28,7 @@ const fournisseurs = [
   { value: "Adtran", label: "Adtran", abbreviation: "NSN" },
   { value: "Huawei", label: "Huawei", abbreviation: "HUW" },
   { value: "Nokia Siemens", label: "Nokia Siemens", abbreviation: "NSN" },
+  { value: "ERI", label: "ERI", abbreviation: "ERI" },
 ];
 
 const localisations = locationsData.map(loc => ({
@@ -64,7 +65,7 @@ const formSchema = z.object({
   googleMapsUrl: z.string().optional(),
 }).superRefine((data, ctx) => {
     // Fournisseur is required for all types except BTS and EXC
-    if (data.type !== 'BTS' && data.type !== 'EXC') {
+    if (data.type !== 'EXC') { // Supplier is now required for BTS
         if (!data.fournisseur) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
@@ -189,7 +190,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
         const tAbbr = type;
         const isMSAN = type === 'MSI' || type === 'MSN';
-        const needsFournisseur = type !== 'BTS' && type !== 'EXC';
+        const needsFournisseur = type !== 'EXC';
 
         let namePrefix = 'SO';
         let supplierPrefix = '';
@@ -271,7 +272,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
 
   const isFormDisabled = isEditMode && !canEditStatus && !canEditGenerally;
   
-  const showSupplier = watchedType && watchedType !== 'BTS' && watchedType !== 'EXC';
+  const showSupplier = watchedType && watchedType !== 'EXC';
   const showChassis = watchedType === 'MSI' || watchedType === 'MSN';
 
   const availableMeters = useMemo(() => {
@@ -445,5 +446,3 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         </Form>
   );
 }
-
-    
