@@ -193,7 +193,23 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
                         </FormItem>
                     )}
                 />
-                <FormField control={form.control} name="propriete" render={({ field }) => ( <FormItem><FormLabel>Propriété</FormLabel><FormControl><Input placeholder="ex: Propriété TT" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="propriete" render={({ field }) => ( 
+                    <FormItem>
+                        <FormLabel>Propriété</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionner la propriété" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="Propriété TT">Propriété TT</SelectItem>
+                                <SelectItem value="Location, ETT">Location, ETT</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem> 
+                )} />
                 <FormField
                     control={form.control}
                     name="meterId"

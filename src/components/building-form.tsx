@@ -19,6 +19,7 @@ import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { locationsData } from '@/lib/locations';
 import { Combobox } from './combobox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const formSchema = z.object({
   code: z.string().min(1, "Le code est requis."),
@@ -173,7 +174,23 @@ export function BuildingForm() {
                         </FormItem>
                     )}
                 />
-                <FormField control={form.control} name="propriete" render={({ field }) => ( <FormItem><FormLabel>Propriété</FormLabel><FormControl><Input placeholder="ex: Propriété TT" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                <FormField control={form.control} name="propriete" render={({ field }) => ( 
+                    <FormItem>
+                        <FormLabel>Propriété</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Sélectionner la propriété" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="Propriété TT">Propriété TT</SelectItem>
+                                <SelectItem value="Location, ETT">Location, ETT</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem> 
+                )} />
                 
 
                 <div className="space-y-2 md:col-span-2">
