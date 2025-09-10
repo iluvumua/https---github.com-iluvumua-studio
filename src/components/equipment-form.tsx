@@ -21,21 +21,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import { Combobox } from "./combobox";
 import { Textarea } from "./ui/textarea";
-
-const fournisseurs = [
-  { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
-  { value: "Siemens", label: "Siemens", abbreviation: "NSN" },
-  { value: "Adtran", label: "Adtran", abbreviation: "NSN" },
-  { value: "Huawei", label: "Huawei", abbreviation: "HUW" },
-  { value: "Nokia Siemens", label: "Nokia Siemens", abbreviation: "NSN" },
-  { value: "ERI", label: "ERI", abbreviation: "ERI" },
-];
-
-const chassisTypes = [
-    "7330", "7302", "7353", "FTTB-ST", "7363", "5818", "T300", "T100", 
-    "T500", "HABD", "UA5000", "MA5818", "HABD/HABF", "MABB", "hix5635", 
-    "hix5630-G600", "hix5630", "5635", "5625-G400"
-].map(chassis => ({ value: chassis, label: chassis }));
+import { useOptionsStore } from "@/hooks/use-options-store";
 
 
 const localisations = locationsData.map(loc => ({
@@ -124,6 +110,7 @@ const extractDesignationFromName = (name: string, type: string, typeChassis: str
 export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProps) {
   const { user } = useUser();
   const { equipment: allEquipment, addEquipment, updateEquipment } = useEquipmentStore();
+  const { fournisseurs, chassisTypes } = useOptionsStore();
   const [generatedName, setGeneratedName] = useState(initialEquipment?.name || "");
   const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const { toast } = useToast();
@@ -166,7 +153,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
       return fournisseurs.filter(f => f.value === 'ERI');
     }
     return fournisseurs;
-  }, [watchedType]);
+  }, [watchedType, fournisseurs]);
 
   useEffect(() => {
     if (watchedUrl) {
@@ -236,7 +223,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     } else {
         setGeneratedName("");
     }
-  }, [watchAllFields, allEquipment, isEditMode, initialEquipment, isNameManuallyEdited]);
+  }, [watchAllFields, allEquipment, isEditMode, initialEquipment, isNameManuallyEdited, fournisseurs]);
   
   const watchedCoords = form.watch(['coordY', 'coordX']);
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
@@ -384,6 +371,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                             }}
                             placeholder="Sélectionner un fournisseur"
                             disabled={isFormDisabled}
+                            listName="fournisseurs"
                         />
                         <FormMessage />
                     </FormItem>
@@ -403,6 +391,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         onChange={field.onChange}
                         placeholder="Rechercher un type de châssis..."
                         disabled={isFormDisabled}
+                        listName="chassisTypes"
                     />
                     <FormMessage />
                   </FormItem>

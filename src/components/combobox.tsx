@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -19,36 +19,48 @@ import {
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/hooks/use-user"
+import type { Option } from "@/hooks/use-options-store";
+import { useOptionsStore } from "@/hooks/use-options-store"
 
 interface ComboboxProps {
-  options: { value: string; label: string }[];
+  options: Option[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  listName?: 'fournisseurs' | 'chassisTypes'; // To identify which list to update
 }
 
-export function Combobox({ options, value, onChange, placeholder, className, disabled }: ComboboxProps) {
+export function Combobox({ options, value, onChange, placeholder, className, disabled, listName }: ComboboxProps) {
   const { user } = useUser();
+  const { addOption } = useOptionsStore();
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
   const isAdmin = user.role === 'Admin';
+  const canCreate = isAdmin && listName;
 
   const handleSelect = (currentValue: string) => {
-    onChange(currentValue === value ? "" : currentValue)
+    onChange(currentValue.toLowerCase() === value.toLowerCase() ? "" : currentValue)
     setOpen(false)
   }
 
   const handleCreate = () => {
-    if (isAdmin && inputValue) {
-      onChange(inputValue)
-      setOpen(false)
+    if (canCreate && inputValue) {
+      const newOption: Option = {
+        value: inputValue,
+        label: inputValue,
+        abbreviation: inputValue.substring(0, 3).toUpperCase(),
+      };
+      addOption(listName, newOption);
+      onChange(inputValue);
+      setOpen(false);
     }
   }
   
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
+        e.preventDefault();
         handleCreate();
     }
   }
@@ -71,23 +83,25 @@ export function Combobox({ options, value, onChange, placeholder, className, dis
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command onKeyDown={handleKeyDown} filter={(value, search) => {
-            const option = options.find(option => option.value === value);
-            const label = option ? option.label : '';
+            const option = options.find(option => option.value.toLowerCase() === value.toLowerCase());
+            if (!option) return 0;
+            const label = option.label || '';
             if (value.toLowerCase().includes(search.toLowerCase()) || label.toLowerCase().includes(search.toLowerCase())) return 1;
             return 0;
           }}>
           <CommandInput 
-            placeholder={isAdmin ? "Rechercher ou créer..." : "Rechercher..."}
+            placeholder={canCreate ? "Rechercher ou créer..." : "Rechercher..."}
             value={inputValue}
             onValueChange={setInputValue}
            />
           <CommandList>
             <CommandEmpty>
-                {isAdmin && inputValue ? (
+                {canCreate && inputValue ? (
                     <div 
-                        className="p-2 text-sm cursor-pointer hover:bg-accent"
-                        onClick={handleCreate}
+                        className="p-2 text-sm cursor-pointer hover:bg-accent flex items-center"
+                        onMouseDown={(e) => { e.preventDefault(); handleCreate(); }}
                     >
+                        <PlusCircle className="mr-2 h-4 w-4" />
                         Ajouter: "{inputValue}"
                     </div>
                 ) : "Aucun résultat."}
@@ -102,7 +116,7 @@ export function Combobox({ options, value, onChange, placeholder, className, dis
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
+                      value.toLowerCase() === option.value.toLowerCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
                   {option.label}
