@@ -52,8 +52,13 @@ export default function DashboardPage() {
 
   const meterStatusCounts = useMemo(() => {
     return meters.reduce((acc, meter) => {
+      if (meter.status === 'En service') {
+        const key = `En service (${meter.typeTension})`;
+        acc[key] = (acc[key] || 0) + 1;
+      } else {
         acc[meter.status] = (acc[meter.status] || 0) + 1;
-        return acc;
+      }
+      return acc;
     }, {} as Record<string, number>);
   }, [meters]);
 
