@@ -29,11 +29,14 @@ import Link from "next/link";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { locationsData } from "@/lib/locations";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function BuildingsPage() {
     const { buildings } = useBuildingsStore();
     const { user } = useUser();
     const [searchTerm, setSearchTerm] = useState("");
+    const [proprieteFilter, setProprieteFilter] = useState("all");
+
 
     const getLocationLabel = (abbreviation?: string) => {
         if (!abbreviation) return "N/A";
@@ -43,16 +46,21 @@ export default function BuildingsPage() {
     
     const filteredBuildings = useMemo(() => {
         const query = searchTerm.toLowerCase();
-        if (!query) return buildings;
+        
+        return buildings.filter(building => {
+            const matchesSearch = !query || (
+                building.code.toLowerCase().includes(query) ||
+                building.name.toLowerCase().includes(query) ||
+                building.commune.toLowerCase().includes(query) ||
+                getLocationLabel(building.localisation).toLowerCase().includes(query) ||
+                building.address.toLowerCase().includes(query)
+            );
 
-        return buildings.filter(building => 
-            building.code.toLowerCase().includes(query) ||
-            building.name.toLowerCase().includes(query) ||
-            building.commune.toLowerCase().includes(query) ||
-            getLocationLabel(building.localisation).toLowerCase().includes(query) ||
-            building.address.toLowerCase().includes(query)
-        );
-    }, [buildings, searchTerm]);
+            const matchesPropriete = proprieteFilter === 'all' || building.propriete === proprieteFilter;
+
+            return matchesSearch && matchesPropriete;
+        });
+    }, [buildings, searchTerm, proprieteFilter]);
 
 
     const getNatureLabel = (nature: string[]) => {
@@ -107,11 +115,21 @@ export default function BuildingsPage() {
                     <Input
                         type="search"
                         placeholder="Rechercher bâtiment..."
-                        className="pl-8 sm:w-[200px] lg:w-[300px]"
+                        className="pl-8 sm:w-[200px] lg:w-[200px]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
+                <Select value={proprieteFilter} onValueChange={(value) => setProprieteFilter(value)}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Filtrer par propriété" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Toutes les propriétés</SelectItem>
+                        <SelectItem value="Propriété TT">Propriété TT</SelectItem>
+                        <SelectItem value="Location, ETT">Location, ETT</SelectItem>
+                    </SelectContent>
+                </Select>
                 <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                     <File className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
