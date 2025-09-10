@@ -83,7 +83,7 @@ export function Combobox({ options, value, onChange, placeholder, className, dis
            />
           <CommandList>
             <CommandEmpty>
-                {isAdmin ? (
+                {isAdmin && inputValue ? (
                     <div 
                         className="p-2 text-sm cursor-pointer hover:bg-accent"
                         onClick={handleCreate}
