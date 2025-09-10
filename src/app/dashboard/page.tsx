@@ -63,6 +63,7 @@ export default function DashboardPage() {
   const metersCount = meters.length;
 
   const totalConsumptionCostByType = useMemo(() => {
+    const currentYear = new Date().getFullYear().toString();
     const costMap: Record<Meter['typeTension'], number> = {
         'Basse Tension': 0,
         'Moyen Tension Forfaitaire': 0,
@@ -70,10 +71,12 @@ export default function DashboardPage() {
     };
 
     bills.forEach(bill => {
+      if (bill.month.endsWith(currentYear)) {
         const meter = meters.find(m => m.id === bill.meterId);
         if (meter) {
             costMap[meter.typeTension] = (costMap[meter.typeTension] || 0) + bill.amount;
         }
+      }
     });
 
     return costMap;
@@ -169,7 +172,7 @@ export default function DashboardPage() {
         </Card>
          <Card className="shadow-lg transition-transform hover:scale-105">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Consommation en TND</CardTitle>
+                <CardTitle className="text-sm font-medium">Consommation en TND (Année en cours)</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
