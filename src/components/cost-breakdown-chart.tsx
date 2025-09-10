@@ -159,7 +159,7 @@ export function CostBreakdownChart({ displayMode }: CostBreakdownChartProps) {
               height={"400px"}
             />
              <div className="mt-4 text-center">
-                <p className="text-lg font-semibold">Total {displayMode === 'cost' ? "Coûts" : "Consommation"}</p>
+                <p className="text-lg font-semibold">{displayMode === 'cost' ? "Montant Global" : "Total Consommation"}</p>
                 <p className="text-2xl font-bold text-primary">
                     {displayMode === 'cost' ? formatCurrency(totalValue) : formatKWh(totalValue)}
                 </p>
