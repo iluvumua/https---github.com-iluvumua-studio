@@ -23,6 +23,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 const existingMeterSchema = z.object({
   meterId: z.string().min(1, "Veuillez sélectionner un compteur."),
@@ -365,20 +366,22 @@ export default function NewMeterWorkflowPage() {
                             </div>
                         </CardHeader>
                     </Card>
-                    <Card 
-                        className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
-                        onClick={() => setWorkflowChoice('new')}
-                    >
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <PlusSquare className="h-10 w-10 text-primary" />
-                                 <div>
-                                    <CardTitle>Nouvelle Demande de Compteur</CardTitle>
-                                    <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
+                    <Link href={`/dashboard/equipment/${equipmentId}/new-meter`} passHref>
+                        <Card 
+                            className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
+                            onClick={() => setWorkflowChoice('new')}
+                        >
+                            <CardHeader>
+                                <div className="flex items-center gap-4">
+                                    <PlusSquare className="h-10 w-10 text-primary" />
+                                     <div>
+                                        <CardTitle>Nouvelle Demande de Compteur</CardTitle>
+                                        <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
+                            </CardHeader>
+                        </Card>
+                    </Link>
                 </div>
             )}
 
