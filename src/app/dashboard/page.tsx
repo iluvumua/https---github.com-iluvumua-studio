@@ -50,14 +50,10 @@ export default function DashboardPage() {
     }, {} as Record<string, number>);
   }, [buildings]);
 
-  const meterStatusCounts = useMemo(() => {
+  const meterTensionCounts = useMemo(() => {
     return meters.reduce((acc, meter) => {
-      if (meter.status === 'En service') {
-        const key = `En service (${meter.typeTension})`;
-        acc[key] = (acc[key] || 0) + 1;
-      } else {
-        acc[meter.status] = (acc[meter.status] || 0) + 1;
-      }
+      const key = meter.typeTension;
+      acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
   }, [meters]);
@@ -142,7 +138,7 @@ export default function DashboardPage() {
         </Card>
         <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Compteurs par État</CardTitle>
+            <CardTitle className="text-sm font-medium">Compteurs par Type de Tension</CardTitle>
             <Gauge className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -150,14 +146,14 @@ export default function DashboardPage() {
              <Table>
                 <TableHeader>
                     <TableRow>
-                    <TableHead className="h-8">État</TableHead>
+                    <TableHead className="h-8">Type de Tension</TableHead>
                     <TableHead className="h-8 text-right">Nombre</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {Object.entries(meterStatusCounts).map(([status, count]) => (
-                    <TableRow key={status} className="h-8">
-                        <TableCell className="font-medium py-1">{status}</TableCell>
+                    {Object.entries(meterTensionCounts).map(([tension, count]) => (
+                    <TableRow key={tension} className="h-8">
+                        <TableCell className="font-medium py-1">{tension}</TableCell>
                         <TableCell className="text-right py-1">{count as React.ReactNode}</TableCell>
                     </TableRow>
                     ))}
