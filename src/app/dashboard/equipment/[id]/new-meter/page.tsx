@@ -351,32 +351,34 @@ export default function NewMeterWorkflowPage() {
 
             {!workflowChoice && (
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    <button onClick={() => setWorkflowChoice('existing')} className="text-left">
-                        <Card className="hover:bg-accent hover:border-primary transition-all">
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                    <List className="h-10 w-10 text-primary" />
-                                    <div>
-                                        <CardTitle>Affecter un Compteur Existant</CardTitle>
-                                        <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
-                                    </div>
+                    <Card 
+                        className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
+                        onClick={() => setWorkflowChoice('existing')}
+                    >
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <List className="h-10 w-10 text-primary" />
+                                <div>
+                                    <CardTitle>Affecter un Compteur Existant</CardTitle>
+                                    <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
                                 </div>
-                            </CardHeader>
-                        </Card>
-                    </button>
-                    <button onClick={() => setWorkflowChoice('new')} className="text-left">
-                        <Card className="hover:bg-accent hover:border-primary transition-all">
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                    <PlusSquare className="h-10 w-10 text-primary" />
-                                     <div>
-                                        <CardTitle>Nouvelle Demande de Compteur</CardTitle>
-                                        <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
-                                    </div>
+                            </div>
+                        </CardHeader>
+                    </Card>
+                    <Card 
+                        className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
+                        onClick={() => setWorkflowChoice('new')}
+                    >
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <PlusSquare className="h-10 w-10 text-primary" />
+                                 <div>
+                                    <CardTitle>Nouvelle Demande de Compteur</CardTitle>
+                                    <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
                                 </div>
-                            </CardHeader>
-                        </Card>
-                    </button>
+                            </div>
+                        </CardHeader>
+                    </Card>
                 </div>
             )}
 
@@ -434,5 +436,3 @@ export default function NewMeterWorkflowPage() {
         </div>
     )
 }
-
-    
