@@ -18,6 +18,7 @@ import { useMetersStore } from "@/hooks/use-meters-store";
 import { useMemo } from "react";
 import { CostBreakdownChart } from "@/components/cost-breakdown-chart";
 import { DistrictEvolutionChart } from "@/components/district-evolution-chart";
+import type { Meter } from "@/lib/types";
 
 export default function DashboardPage() {
   const { equipment } = useEquipmentStore();
@@ -61,22 +62,27 @@ export default function DashboardPage() {
   const buildingsCount = buildings.length;
   const metersCount = meters.length;
 
-  const totalConsumption = bills.reduce((acc, bill) => acc + bill.consumptionKWh, 0);
+  const totalConsumptionCostByType = useMemo(() => {
+    const costMap: Record<Meter['typeTension'], number> = {
+        'Basse Tension': 0,
+        'Moyen Tension Forfaitaire': 0,
+        'Moyen Tension Tranche Horaire': 0,
+    };
 
-  const averageMonthlyCost = useMemo(() => {
-    const annualBills = bills
-      .filter(b => b.nombreMois && b.nombreMois >= 12)
-      .sort((a, b) => b.id.localeCompare(a.id));
+    bills.forEach(bill => {
+        const meter = meters.find(m => m.id === bill.meterId);
+        if (meter) {
+            costMap[meter.typeTension] = (costMap[meter.typeTension] || 0) + bill.amount;
+        }
+    });
 
-    if (annualBills.length > 0) {
-      const latestAnnualBill = annualBills[0];
-      return latestAnnualBill.amount / latestAnnualBill.nombreMois;
-    }
-    return null;
-  }, [bills]);
+    return costMap;
+  }, [bills, meters]);
+
+  const totalConsumptionCost = Object.values(totalConsumptionCostByType).reduce((sum, cost) => sum + cost, 0);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(amount);
+    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(amount);
   }
 
   const formatKWh = (amount: number) => {
@@ -162,16 +168,23 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
          <Card className="shadow-lg transition-transform hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Coût Mensuel Moyen (Annuel)</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-             <div className="text-2xl font-bold">
-                {averageMonthlyCost !== null ? formatCurrency(averageMonthlyCost) : 'N/A'}
-            </div>
-            <p className="text-xs text-muted-foreground">Basé sur les factures de 12 mois et plus</p>
-          </CardContent>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Consommation en TND</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold mb-2">{formatCurrency(totalConsumptionCost)}</div>
+                <Table>
+                    <TableBody>
+                        {Object.entries(totalConsumptionCostByType).map(([type, cost]) => (
+                            <TableRow key={type} className="h-8">
+                                <TableCell className="font-medium py-1 text-xs">{type}</TableCell>
+                                <TableCell className="text-right py-1 font-mono text-xs">{formatCurrency(cost)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
         </Card>
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 md:gap-8">
