@@ -174,10 +174,9 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7 md:gap-8">
-        <div className="lg:col-span-7">
-            <CostBreakdownChart />
-        </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 md:gap-8">
+        <CostBreakdownChart displayMode="cost" />
+        <CostBreakdownChart displayMode="consumption" />
       </div>
        <div className="grid grid-cols-1 gap-4 md:gap-8">
             <DistrictEvolutionChart />

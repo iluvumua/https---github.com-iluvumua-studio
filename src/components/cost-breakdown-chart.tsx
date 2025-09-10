@@ -16,15 +16,16 @@ import { useBuildingsStore } from "@/hooks/use-buildings-store";
 import type { Equipment, Building } from "@/lib/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Chart } from "react-google-charts";
-import { Button } from "./ui/button";
 
-export function CostBreakdownChart() {
+interface CostBreakdownChartProps {
+    displayMode: 'cost' | 'consumption';
+}
+
+export function CostBreakdownChart({ displayMode }: CostBreakdownChartProps) {
   const { bills } = useBillingStore();
   const { equipment } = useEquipmentStore();
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
-
-  const [displayMode, setDisplayMode] = useState<'cost' | 'consumption'>('cost');
 
   const availableYears = useMemo(() => {
     const years = new Set(bills.map(b => b.month.split(' ')[1]));
@@ -131,13 +132,9 @@ export function CostBreakdownChart() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
                 <CardTitle>Répartition Annuelle des {displayMode === 'cost' ? "Coûts" : "Consommations"}</CardTitle>
-                <CardDescription>Analyse par catégorie d'équipement pour l'année {selectedYear}.</CardDescription>
+                <CardDescription>Analyse par catégorie pour l'année {selectedYear}.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 rounded-md bg-muted p-1">
-                    <Button variant={displayMode === 'cost' ? "secondary" : "ghost"} size="sm" onClick={() => setDisplayMode('cost')}>Coût (TND)</Button>
-                    <Button variant={displayMode === 'consumption' ? "secondary" : "ghost"} size="sm" onClick={() => setDisplayMode('consumption')}>Conso. (kWh)</Button>
-                </div>
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger className="w-[120px]">
                         <SelectValue placeholder="Année" />
