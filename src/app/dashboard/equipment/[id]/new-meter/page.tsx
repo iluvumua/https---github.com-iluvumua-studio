@@ -352,34 +352,32 @@ export default function NewMeterWorkflowPage() {
 
             {!workflowChoice && (
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    <Card 
-                        className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
-                        onClick={() => setWorkflowChoice('existing')}
-                    >
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <List className="h-10 w-10 text-primary" />
-                                <div>
-                                    <CardTitle>Affecter un Compteur Existant</CardTitle>
-                                    <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
+                    <div onClick={() => setWorkflowChoice('existing')} className="cursor-pointer">
+                        <Card className="hover:bg-accent hover:border-primary transition-all">
+                            <CardHeader>
+                                <div className="flex items-center gap-4">
+                                    <List className="h-10 w-10 text-primary" />
+                                    <div>
+                                        <CardTitle>Affecter un Compteur Existant</CardTitle>
+                                        <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
-                    <Card 
-                        className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
-                        onClick={() => setWorkflowChoice('new')}
-                    >
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <PlusSquare className="h-10 w-10 text-primary" />
-                                 <div>
-                                    <CardTitle>Nouvelle Demande de Compteur</CardTitle>
-                                    <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
+                            </CardHeader>
+                        </Card>
+                    </div>
+                     <div onClick={() => setWorkflowChoice('new')} className="cursor-pointer">
+                        <Card className="hover:bg-accent hover:border-primary transition-all">
+                            <CardHeader>
+                                <div className="flex items-center gap-4">
+                                    <PlusSquare className="h-10 w-10 text-primary" />
+                                     <div>
+                                        <CardTitle>Nouvelle Demande de Compteur</CardTitle>
+                                        <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
+                                    </div>
                                 </div>
-                            </div>
-                        </CardHeader>
-                    </Card>
+                            </CardHeader>
+                        </Card>
+                    </div>
                 </div>
             )}
 
