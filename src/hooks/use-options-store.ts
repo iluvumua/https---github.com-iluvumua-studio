@@ -21,6 +21,24 @@ const initialChassisTypes = [
     "hix5630-G600", "hix5630", "5635", "5625-G400"
 ].map(chassis => ({ value: chassis, label: chassis, abbreviation: chassis }));
 
+const initialNatures = [
+    { id: 'A', value: 'Administratif', label: 'Administratif', abbreviation: 'Adm' },
+    { id: 'T', value: 'Technique', label: 'Technique', abbreviation: 'Tech' },
+    { id: 'C', value: 'Commercial', label: 'Commercial', abbreviation: 'Comm' },
+    { id: 'D', value: 'Dépôt', label: 'Dépôt', abbreviation: 'Dépôt' },
+];
+
+const initialProprietes = [
+    { value: "Propriété TT", label: "Propriété TT", abbreviation: "PTT" },
+    { value: "Location, ETT", label: "Location, ETT", abbreviation: "LETT" },
+];
+
+const initialDistricts = [
+    { value: "SOUSSE NORD", label: "SOUSSE NORD", abbreviation: "SSN" },
+    { value: "SOUSSE CENTRE", label: "SOUSSE CENTRE", abbreviation: "SSC" },
+    { value: "ENFIDHA", label: "ENFIDHA", abbreviation: "ENF" },
+    { value: "MSAKEN", label: "MSAKEN", abbreviation: "MSK" },
+];
 
 export interface Option {
     value: string;
@@ -28,12 +46,16 @@ export interface Option {
     [key: string]: any;
 }
 
+type ListName = 'fournisseurs' | 'chassisTypes' | 'natures' | 'proprietes' | 'districts';
+
 interface OptionsState {
   fournisseurs: Option[];
   chassisTypes: Option[];
-  addOption: (listName: 'fournisseurs' | 'chassisTypes', newOption: Option) => void;
-  removeOption: (listName: 'fournisseurs' | 'chassisTypes', optionValue: string) => void;
-  updateOption: (listName: 'fournisseurs' | 'chassisTypes', optionValue: string, updatedOption: Option) => void;
+  natures: Option[];
+  proprietes: Option[];
+  districts: Option[];
+  addOption: (listName: ListName, newOption: Option) => void;
+  removeOption: (listName: ListName, optionValue: string) => void;
 }
 
 export const useOptionsStore = create<OptionsState>()(
@@ -41,12 +63,13 @@ export const useOptionsStore = create<OptionsState>()(
     (set, get) => ({
       fournisseurs: initialFournisseurs,
       chassisTypes: initialChassisTypes,
+      natures: initialNatures,
+      proprietes: initialProprietes,
+      districts: initialDistricts,
       addOption: (listName, newOption) =>
         set((state) => {
           const currentList = state[listName];
           if (currentList.some(o => o.value.toLowerCase() === newOption.value.toLowerCase())) {
-            // In a real component, you'd get this from useToast, but we can't use hooks here.
-            // This is a limitation of this pattern. For the demo, we'll just log it.
             console.warn("Option already exists!");
             return state; 
           }
@@ -55,10 +78,6 @@ export const useOptionsStore = create<OptionsState>()(
       removeOption: (listName, optionValue) =>
         set((state) => ({
             [listName]: state[listName].filter(o => o.value !== optionValue)
-        })),
-      updateOption: (listName, optionValue, updatedOption) =>
-        set((state) => ({
-            [listName]: state[listName].map(o => o.value === optionValue ? updatedOption : o)
         })),
     }),
     {

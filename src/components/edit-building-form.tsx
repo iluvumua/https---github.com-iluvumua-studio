@@ -25,13 +25,7 @@ import type { Building } from '@/lib/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { locationsData } from '@/lib/locations';
-
-const natureOptions = [
-    { id: 'A', label: 'Administratif' },
-    { id: 'T', label: 'Technique' },
-    { id: 'C', label: 'Commercial' },
-    { id: 'D', label: 'Dépôt' },
-] as const;
+import { useOptionsStore } from '@/hooks/use-options-store';
 
 const localisations = locationsData.map(loc => ({
     value: loc.abbreviation,
@@ -64,6 +58,7 @@ interface EditBuildingFormProps {
 export function EditBuildingForm({ building }: EditBuildingFormProps) {
   const { updateBuilding } = useBuildingsStore();
   const { meters } = useMetersStore();
+  const { natures, proprietes } = useOptionsStore();
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
@@ -158,23 +153,23 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
                         <FormItem>
                         <FormLabel>Nature</FormLabel>
                         <div className="flex flex-wrap gap-4">
-                        {natureOptions.map((item) => (
+                        {natures.map((item) => (
                             <FormField
-                            key={item.id}
+                            key={item.value}
                             control={form.control}
                             name="nature"
                             render={({ field }) => {
                                 return (
-                                <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormItem key={item.value} className="flex flex-row items-start space-x-3 space-y-0">
                                     <FormControl>
                                     <Checkbox
-                                        checked={field.value?.includes(item.id)}
+                                        checked={field.value?.includes(item.value)}
                                         onCheckedChange={(checked) => {
                                         return checked
-                                            ? field.onChange([...(field.value || []), item.id])
+                                            ? field.onChange([...(field.value || []), item.value])
                                             : field.onChange(
                                                 field.value?.filter(
-                                                (value) => value !== item.id
+                                                (value) => value !== item.value
                                                 )
                                             )
                                         }}
@@ -203,8 +198,9 @@ export function EditBuildingForm({ building }: EditBuildingFormProps) {
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="Propriété TT">Propriété TT</SelectItem>
-                                <SelectItem value="Location, ETT">Location, ETT</SelectItem>
+                                {proprietes.map(p => (
+                                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />

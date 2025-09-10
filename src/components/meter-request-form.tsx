@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { Calendar } from "./ui/calendar";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { useOptionsStore } from "@/hooks/use-options-store";
 
 const formSchema = z.object({
   coordX: z.coerce.number().optional(),
@@ -53,6 +54,7 @@ interface MeterRequestFormProps {
 
 export function MeterRequestForm({ equipment, building, onFinished, isFinished, initialData }: MeterRequestFormProps) {
   const { toast } = useToast();
+  const { districts } = useOptionsStore();
   
   const parentCoords = equipment ? { x: equipment.coordX, y: equipment.coordY } : { x: building?.coordX, y: building?.coordY };
 
@@ -162,10 +164,9 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isFinished}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un district"/></SelectTrigger></FormControl>
                         <SelectContent>
-                            <SelectItem value="SOUSSE NORD">SOUSSE NORD</SelectItem>
-                            <SelectItem value="SOUSSE CENTRE">SOUSSE CENTRE</SelectItem>
-                            <SelectItem value="ENFIDHA">ENFIDHA</SelectItem>
-                            <SelectItem value="MSAKEN">MSAKEN</SelectItem>
+                            {districts.map(d => (
+                                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 <FormMessage />
@@ -229,5 +230,3 @@ export function MeterRequestForm({ equipment, building, onFinished, isFinished, 
     </Form>
   );
 }
-
-    

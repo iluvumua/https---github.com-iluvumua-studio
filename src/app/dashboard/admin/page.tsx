@@ -32,7 +32,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-const OptionsManager = ({ title, listName, options, addOption, removeOption }: { title: string, listName: 'fournisseurs' | 'chassisTypes', options: Option[], addOption: (listName: 'fournisseurs' | 'chassisTypes', newOption: Option) => void, removeOption: (listName: 'fournisseurs' | 'chassisTypes', value: string) => void }) => {
+type ListName = 'fournisseurs' | 'chassisTypes' | 'natures' | 'proprietes' | 'districts';
+
+const OptionsManager = ({ title, listName, options, addOption, removeOption }: { title: string, listName: ListName, options: Option[], addOption: (listName: ListName, newOption: Option) => void, removeOption: (listName: ListName, value: string) => void }) => {
     const [newLabel, setNewLabel] = useState("");
     const [newAbbr, setNewAbbr] = useState("");
     const { toast } = useToast();
@@ -93,7 +95,7 @@ const OptionsManager = ({ title, listName, options, addOption, removeOption }: {
 
 export default function AdminPage() {
   const { user, users, updateUserRole, availableRoles, updateUserEmail } = useUser();
-  const { fournisseurs, chassisTypes, addOption, removeOption } = useOptionsStore();
+  const { fournisseurs, chassisTypes, natures, proprietes, districts, addOption, removeOption } = useOptionsStore();
 
   if (user.role !== 'Admin') {
     return (
@@ -187,6 +189,27 @@ export default function AdminPage() {
                     title="Types de Châssis"
                     listName="chassisTypes"
                     options={chassisTypes}
+                    addOption={addOption}
+                    removeOption={removeOption}
+                 />
+                 <OptionsManager 
+                    title="Natures Bâtiment"
+                    listName="natures"
+                    options={natures}
+                    addOption={addOption}
+                    removeOption={removeOption}
+                 />
+                 <OptionsManager 
+                    title="Propriétés Bâtiment"
+                    listName="proprietes"
+                    options={proprietes}
+                    addOption={addOption}
+                    removeOption={removeOption}
+                 />
+                 <OptionsManager 
+                    title="Districts STEG"
+                    listName="districts"
+                    options={districts}
                     addOption={addOption}
                     removeOption={removeOption}
                  />

@@ -20,6 +20,7 @@ import { Checkbox } from './ui/checkbox';
 import { locationsData } from '@/lib/locations';
 import { Combobox } from './combobox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useOptionsStore } from '@/hooks/use-options-store';
 
 const formSchema = z.object({
   code: z.string().min(1, "Le code est requis."),
@@ -38,13 +39,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const natureOptions = [
-    { id: 'A', label: 'Administratif' },
-    { id: 'T', label: 'Technique' },
-    { id: 'C', label: 'Commercial' },
-    { id: 'D', label: 'Dépôt' },
-] as const;
-
 const localisations = locationsData.map(loc => ({
     value: loc.abbreviation,
     label: loc.localite,
@@ -53,6 +47,7 @@ const localisations = locationsData.map(loc => ({
 export function BuildingForm() {
   const { addBuilding } = useBuildingsStore();
   const { addMeter } = useMetersStore();
+  const { natures, proprietes } = useOptionsStore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -139,23 +134,23 @@ export function BuildingForm() {
                         <FormItem className="md:col-span-2">
                         <FormLabel>Nature</FormLabel>
                         <div className="flex flex-wrap gap-4">
-                        {natureOptions.map((item) => (
+                        {natures.map((item) => (
                             <FormField
-                            key={item.id}
+                            key={item.value}
                             control={form.control}
                             name="nature"
                             render={({ field }) => {
                                 return (
-                                <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormItem key={item.value} className="flex flex-row items-start space-x-3 space-y-0">
                                     <FormControl>
                                     <Checkbox
-                                        checked={field.value?.includes(item.id)}
+                                        checked={field.value?.includes(item.value)}
                                         onCheckedChange={(checked) => {
                                         return checked
-                                            ? field.onChange([...(field.value || []), item.id])
+                                            ? field.onChange([...(field.value || []), item.value])
                                             : field.onChange(
                                                 field.value?.filter(
-                                                (value) => value !== item.id
+                                                (value) => value !== item.value
                                                 )
                                             )
                                         }}
@@ -184,8 +179,9 @@ export function BuildingForm() {
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="Propriété TT">Propriété TT</SelectItem>
-                                <SelectItem value="Location, ETT">Location, ETT</SelectItem>
+                                {proprietes.map(p => (
+                                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />
