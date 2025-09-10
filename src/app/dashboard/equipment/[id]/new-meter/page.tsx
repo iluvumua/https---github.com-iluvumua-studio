@@ -366,22 +366,20 @@ export default function NewMeterWorkflowPage() {
                             </div>
                         </CardHeader>
                     </Card>
-                    <Link href={`/dashboard/equipment/${equipmentId}/new-meter`} passHref>
-                        <Card 
-                            className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
-                            onClick={() => setWorkflowChoice('new')}
-                        >
-                            <CardHeader>
-                                <div className="flex items-center gap-4">
-                                    <PlusSquare className="h-10 w-10 text-primary" />
-                                     <div>
-                                        <CardTitle>Nouvelle Demande de Compteur</CardTitle>
-                                        <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
-                                    </div>
+                    <Card 
+                        className="hover:bg-accent hover:border-primary transition-all cursor-pointer"
+                        onClick={() => setWorkflowChoice('new')}
+                    >
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                <PlusSquare className="h-10 w-10 text-primary" />
+                                 <div>
+                                    <CardTitle>Nouvelle Demande de Compteur</CardTitle>
+                                    <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
                                 </div>
-                            </CardHeader>
-                        </Card>
-                    </Link>
+                            </div>
+                        </CardHeader>
+                    </Card>
                 </div>
             )}
 
