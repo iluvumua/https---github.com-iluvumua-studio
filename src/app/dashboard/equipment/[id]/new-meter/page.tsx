@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEquipmentStore } from '@/hooks/use-equipment-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { MeterRequestForm } from '@/components/meter-request-form';
 import type { Meter } from '@/lib/types';
 import { useMetersStore } from '@/hooks/use-meters-store';
@@ -128,16 +128,17 @@ const AssignExistingMeterForm = ({ equipmentId }: { equipmentId: string }) => {
     )
 }
 
-
-export default function NewMeterWorkflowPage() {
+function NewMeterWorkflowComponent() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { id: equipmentId } = params;
     const { equipment, updateEquipment } = useEquipmentStore();
     const { meters, addMeter, updateMeter } = useMetersStore();
     const { buildings } = useBuildingsStore();
     
-    const [workflowChoice, setWorkflowChoice] = useState<'existing' | 'new' | null>(null);
+    const workflowParam = searchParams.get('workflow');
+    const [workflowChoice, setWorkflowChoice] = useState<'existing' | 'new' | null>(workflowParam as 'existing' | 'new' | null);
     
     const equipmentItem = Array.isArray(equipmentId) ? undefined : equipment.find(e => e.id === equipmentId);
 
@@ -166,8 +167,12 @@ export default function NewMeterWorkflowPage() {
 
     useEffect(() => {
         if (equipmentItem) {
+             // If workflow is specified in URL, use it
+            if (workflowParam) {
+                setWorkflowChoice(workflowParam as 'existing' | 'new');
+            }
             // If the equipment is 'En cours', don't automatically choose a workflow.
-            if (equipmentItem.status === 'En cours' && !equipmentItem.compteurId) {
+            else if (equipmentItem.status === 'En cours' && !equipmentItem.compteurId) {
                 setWorkflowChoice(null);
                 setCurrentStep(1);
                 return;
@@ -217,7 +222,7 @@ export default function NewMeterWorkflowPage() {
         
         // If no conditions met (e.g. outdoor equipment with no meter), currentStep remains 1
         // and workflowChoice remains null, waiting for user input.
-    }, [equipmentItem, meters, buildings, workflowChoice]);
+    }, [equipmentItem, meters, buildings, workflowChoice, workflowParam]);
 
 
     if (!equipmentItem) {
@@ -357,25 +362,24 @@ export default function NewMeterWorkflowPage() {
                         onClick={() => setWorkflowChoice('existing')}
                     >
                         <CardHeader className="flex flex-row items-center gap-4">
-                            <List className="h-10 w-10 text-primary" />
-                            <div className="flex-1">
+                             <List className="h-10 w-10 text-primary" />
+                             <div className="flex-1">
                                 <CardTitle>Affecter un Compteur Existant</CardTitle>
                                 <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
                             </div>
                         </CardHeader>
                     </Card>
-                    <Card 
-                        className="cursor-pointer hover:bg-accent hover:border-primary transition-all"
-                        onClick={() => setWorkflowChoice('new')}
-                    >
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <PlusSquare className="h-10 w-10 text-primary" />
-                             <div className="flex-1">
-                                <CardTitle>Nouvelle Demande de Compteur</CardTitle>
-                                <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
-                            </div>
-                        </CardHeader>
-                    </Card>
+                    <Link href={`/dashboard/equipment/${equipmentId}/new-meter?workflow=new`}>
+                        <Card className="cursor-pointer hover:bg-accent hover:border-primary transition-all h-full">
+                            <CardHeader className="flex flex-row items-center gap-4">
+                                <PlusSquare className="h-10 w-10 text-primary" />
+                                <div className="flex-1">
+                                    <CardTitle>Nouvelle Demande de Compteur</CardTitle>
+                                    <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    </Link>
                 </div>
             )}
 
@@ -434,4 +438,10 @@ export default function NewMeterWorkflowPage() {
     )
 }
 
-    
+export default function NewMeterWorkflowPage() {
+    return (
+        <Suspense fallback={<div className="container mx-auto py-8"><Skeleton className="h-48 w-full" /></div>}>
+            <NewMeterWorkflowComponent />
+        </Suspense>
+    )
+}
