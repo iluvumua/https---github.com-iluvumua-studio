@@ -31,6 +31,7 @@ import { useOptionsStore, Option } from "@/hooks/use-options-store";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ListName = 'fournisseurs' | 'chassisTypes' | 'natures' | 'proprietes' | 'districts';
 
@@ -175,45 +176,62 @@ export default function AdminPage() {
 
         <Separator />
 
-        <div className="space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight">Gestion des Options</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                 <OptionsManager 
-                    title="Fournisseurs"
-                    listName="fournisseurs"
-                    options={fournisseurs}
-                    addOption={addOption}
-                    removeOption={removeOption}
-                 />
-                 <OptionsManager 
-                    title="Types de Châssis"
-                    listName="chassisTypes"
-                    options={chassisTypes}
-                    addOption={addOption}
-                    removeOption={removeOption}
-                 />
-                 <OptionsManager 
-                    title="Natures Bâtiment"
-                    listName="natures"
-                    options={natures}
-                    addOption={addOption}
-                    removeOption={removeOption}
-                 />
-                 <OptionsManager 
-                    title="Propriétés Bâtiment"
-                    listName="proprietes"
-                    options={proprietes}
-                    addOption={addOption}
-                    removeOption={removeOption}
-                 />
-                 <OptionsManager 
-                    title="Districts STEG"
-                    listName="districts"
-                    options={districts}
-                    addOption={addOption}
-                    removeOption={removeOption}
-                 />
-            </div>
+        <div>
+            <h2 className="text-2xl font-bold tracking-tight mb-4">Gestion des Options</h2>
+            <Tabs defaultValue="equipment">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="equipment">Équipement</TabsTrigger>
+                    <TabsTrigger value="buildings">Bâtiments</TabsTrigger>
+                    <TabsTrigger value="billing">Compteurs & Facturation</TabsTrigger>
+                </TabsList>
+                <TabsContent value="equipment">
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <OptionsManager 
+                            title="Fournisseurs"
+                            listName="fournisseurs"
+                            options={fournisseurs}
+                            addOption={addOption}
+                            removeOption={removeOption}
+                        />
+                        <OptionsManager 
+                            title="Types de Châssis"
+                            listName="chassisTypes"
+                            options={chassisTypes}
+                            addOption={addOption}
+                            removeOption={removeOption}
+                        />
+                    </div>
+                </TabsContent>
+                 <TabsContent value="buildings">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <OptionsManager 
+                            title="Natures Bâtiment"
+                            listName="natures"
+                            options={natures}
+                            addOption={addOption}
+                            removeOption={removeOption}
+                        />
+                        <OptionsManager 
+                            title="Propriétés Bâtiment"
+                            listName="proprietes"
+                            options={proprietes}
+                            addOption={addOption}
+                            removeOption={removeOption}
+                        />
+                    </div>
+                </TabsContent>
+                 <TabsContent value="billing">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                         <OptionsManager 
+                            title="Districts STEG"
+                            listName="districts"
+                            options={districts}
+                            addOption={addOption}
+                            removeOption={removeOption}
+                        />
+                    </div>
+                </TabsContent>
+            </Tabs>
         </div>
     </div>
   );
