@@ -356,13 +356,11 @@ export default function NewMeterWorkflowPage() {
                         className="cursor-pointer hover:bg-accent hover:border-primary transition-all"
                         onClick={() => setWorkflowChoice('existing')}
                     >
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <List className="h-10 w-10 text-primary" />
-                                <div>
-                                    <CardTitle>Affecter un Compteur Existant</CardTitle>
-                                    <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
-                                </div>
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <List className="h-10 w-10 text-primary" />
+                            <div className="flex-1">
+                                <CardTitle>Affecter un Compteur Existant</CardTitle>
+                                <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
                             </div>
                         </CardHeader>
                     </Card>
@@ -370,13 +368,11 @@ export default function NewMeterWorkflowPage() {
                         className="cursor-pointer hover:bg-accent hover:border-primary transition-all"
                         onClick={() => setWorkflowChoice('new')}
                     >
-                        <CardHeader>
-                            <div className="flex items-center gap-4">
-                                <PlusSquare className="h-10 w-10 text-primary" />
-                                 <div>
-                                    <CardTitle>Nouvelle Demande de Compteur</CardTitle>
-                                    <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
-                                </div>
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <PlusSquare className="h-10 w-10 text-primary" />
+                             <div className="flex-1">
+                                <CardTitle>Nouvelle Demande de Compteur</CardTitle>
+                                <CardDescription>Lancer le processus de demande pour un nouveau compteur.</CardDescription>
                             </div>
                         </CardHeader>
                     </Card>
