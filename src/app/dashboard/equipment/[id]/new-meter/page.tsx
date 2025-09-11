@@ -357,18 +357,17 @@ function NewMeterWorkflowComponent() {
 
             {!workflowChoice && (
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    <Card 
-                        className="cursor-pointer hover:bg-accent hover:border-primary transition-all"
-                        onClick={() => setWorkflowChoice('existing')}
-                    >
-                        <CardHeader className="flex flex-row items-center gap-4">
-                             <List className="h-10 w-10 text-primary" />
-                             <div className="flex-1">
-                                <CardTitle>Affecter un Compteur Existant</CardTitle>
-                                <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
-                            </div>
-                        </CardHeader>
-                    </Card>
+                    <Link href={`/dashboard/equipment/${equipmentId}/new-meter?workflow=existing`}>
+                        <Card className="cursor-pointer hover:bg-accent hover:border-primary transition-all h-full">
+                            <CardHeader className="flex flex-row items-center gap-4">
+                                <List className="h-10 w-10 text-primary" />
+                                <div className="flex-1">
+                                    <CardTitle>Affecter un Compteur Existant</CardTitle>
+                                    <CardDescription>Choisir parmi les compteurs extérieurs déjà installés.</CardDescription>
+                                </div>
+                            </CardHeader>
+                        </Card>
+                    </Link>
                     <Link href={`/dashboard/equipment/${equipmentId}/new-meter?workflow=new`}>
                         <Card className="cursor-pointer hover:bg-accent hover:border-primary transition-all h-full">
                             <CardHeader className="flex flex-row items-center gap-4">
