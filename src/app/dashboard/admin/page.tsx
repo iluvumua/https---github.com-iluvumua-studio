@@ -33,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type ListName = 'fournisseurs' | 'chassisTypes' | 'natures' | 'proprietes' | 'districts';
+type ListName = 'fournisseursGsm' | 'fournisseursMsan' | 'chassisTypes' | 'natures' | 'proprietes' | 'districts';
 
 const OptionsManager = ({ title, listName, options, addOption, removeOption }: { title: string, listName: ListName, options: Option[], addOption: (listName: ListName, newOption: Option) => void, removeOption: (listName: ListName, value: string) => void }) => {
     const [newLabel, setNewLabel] = useState("");
@@ -96,7 +96,7 @@ const OptionsManager = ({ title, listName, options, addOption, removeOption }: {
 
 export default function AdminPage() {
   const { user, users, updateUserRole, availableRoles, updateUserEmail } = useUser();
-  const { fournisseurs, chassisTypes, natures, proprietes, districts, addOption, removeOption } = useOptionsStore();
+  const { fournisseursGsm, fournisseursMsan, chassisTypes, natures, proprietes, districts, addOption, removeOption } = useOptionsStore();
 
   if (user.role !== 'Admin') {
     return (
@@ -187,9 +187,16 @@ export default function AdminPage() {
                 <TabsContent value="equipment">
                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <OptionsManager 
-                            title="Fournisseurs"
-                            listName="fournisseurs"
-                            options={fournisseurs}
+                            title="Fournisseurs Site GSM"
+                            listName="fournisseursGsm"
+                            options={fournisseursGsm}
+                            addOption={addOption}
+                            removeOption={removeOption}
+                        />
+                        <OptionsManager 
+                            title="Fournisseurs MSAN"
+                            listName="fournisseursMsan"
+                            options={fournisseursMsan}
                             addOption={addOption}
                             removeOption={removeOption}
                         />

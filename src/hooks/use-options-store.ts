@@ -6,14 +6,19 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { useToast } from './use-toast';
 
 // Initial data from existing static lists
-const initialFournisseurs = [
+const initialFournisseursGsm = [
+  { value: "ERI", label: "ERI", abbreviation: "ERI" },
+  { value: "Huawei", label: "Huawei", abbreviation: "HUW" },
+];
+
+const initialFournisseursMsan = [
   { value: "Alcatel Lucent", label: "Alcatel Lucent", abbreviation: "ALU" },
   { value: "Siemens", label: "Siemens", abbreviation: "NSN" },
   { value: "Adtran", label: "Adtran", abbreviation: "NSN" },
   { value: "Huawei", label: "Huawei", abbreviation: "HUW" },
   { value: "Nokia Siemens", label: "Nokia Siemens", abbreviation: "NSN" },
-  { value: "ERI", label: "ERI", abbreviation: "ERI" },
 ];
+
 
 const initialChassisTypes = [
     "7330", "7302", "7353", "FTTB-ST", "7363", "5818", "T300", "T100", 
@@ -46,10 +51,11 @@ export interface Option {
     [key: string]: any;
 }
 
-type ListName = 'fournisseurs' | 'chassisTypes' | 'natures' | 'proprietes' | 'districts';
+type ListName = 'fournisseursGsm' | 'fournisseursMsan' | 'chassisTypes' | 'natures' | 'proprietes' | 'districts';
 
 interface OptionsState {
-  fournisseurs: Option[];
+  fournisseursGsm: Option[];
+  fournisseursMsan: Option[];
   chassisTypes: Option[];
   natures: Option[];
   proprietes: Option[];
@@ -61,7 +67,8 @@ interface OptionsState {
 export const useOptionsStore = create<OptionsState>()(
   persist(
     (set, get) => ({
-      fournisseurs: initialFournisseurs,
+      fournisseursGsm: initialFournisseursGsm,
+      fournisseursMsan: initialFournisseursMsan,
       chassisTypes: initialChassisTypes,
       natures: initialNatures,
       proprietes: initialProprietes,

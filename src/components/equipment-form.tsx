@@ -57,7 +57,7 @@ const formSchema = z.object({
   buildingId: z.string().optional(),
   googleMapsUrl: z.string().optional(),
 }).superRefine((data, ctx) => {
-    // Fournisseur is required for all types except BTS and EXC
+    // Fournisseur is required for all types except EXC
     if (data.type !== 'EXC') { // Supplier is now required for BTS
         if (!data.fournisseur) {
             ctx.addIssue({
@@ -110,7 +110,7 @@ const extractDesignationFromName = (name: string, type: string, typeChassis: str
 export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProps) {
   const { user } = useUser();
   const { equipment: allEquipment, addEquipment, updateEquipment } = useEquipmentStore();
-  const { fournisseurs, chassisTypes } = useOptionsStore();
+  const { fournisseursGsm, fournisseursMsan, chassisTypes } = useOptionsStore();
   const [generatedName, setGeneratedName] = useState(initialEquipment?.name || "");
   const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const { toast } = useToast();
@@ -149,11 +149,10 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
   const watchedUrl = form.watch('googleMapsUrl');
 
   const supplierOptions = useMemo(() => {
-    if (watchedType === 'BTS') {
-      return fournisseurs.filter(f => f.value === 'ERI');
-    }
-    return fournisseurs;
-  }, [watchedType, fournisseurs]);
+    if (watchedType === 'BTS') return fournisseursGsm;
+    if (watchedType === 'MSI' || watchedType === 'MSN') return fournisseursMsan;
+    return [];
+  }, [watchedType, fournisseursGsm, fournisseursMsan]);
 
   useEffect(() => {
     if (watchedUrl) {
@@ -195,6 +194,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
         const tAbbr = type;
         const isMSAN = type === 'MSI' || type === 'MSN';
         const needsFournisseur = type !== 'EXC';
+        const fournisseurs = type === 'BTS' ? fournisseursGsm : fournisseursMsan;
 
         let namePrefix = 'SO';
         let supplierPrefix = '';
@@ -223,7 +223,7 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
     } else {
         setGeneratedName("");
     }
-  }, [watchAllFields, allEquipment, isEditMode, initialEquipment, isNameManuallyEdited, fournisseurs]);
+  }, [watchAllFields, allEquipment, isEditMode, initialEquipment, isNameManuallyEdited, fournisseursGsm, fournisseursMsan]);
   
   const watchedCoords = form.watch(['coordY', 'coordX']);
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${watchedCoords[0] || '35.829169'},${watchedCoords[1] || '10.638617'}`;
@@ -362,16 +362,10 @@ export function EquipmentForm({ equipment: initialEquipment }: EquipmentFormProp
                         <Combobox
                             options={supplierOptions}
                             value={field.value}
-                            onChange={(value) => {
-                                if (watchedType === 'BTS' && supplierOptions.length === 1) {
-                                    field.onChange(supplierOptions[0].value);
-                                } else {
-                                    field.onChange(value);
-                                }
-                            }}
+                            onChange={field.onChange}
                             placeholder="Sélectionner un fournisseur"
                             disabled={isFormDisabled}
-                            listName="fournisseurs"
+                            listName={watchedType === 'BTS' ? "fournisseursGsm" : "fournisseursMsan"}
                         />
                         <FormMessage />
                     </FormItem>
