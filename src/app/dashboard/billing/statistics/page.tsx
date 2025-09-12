@@ -30,16 +30,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { Bill, Meter } from "@/lib/types";
-import { RecapTable, type RecapData } from "@/components/recap-table";
+import type { Meter } from "@/lib/types";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/combobox";
-import { subYears, parse, format, getMonth, getYear, startOfMonth, endOfMonth } from "date-fns";
+import { subYears, parse, format, startOfMonth, endOfMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
-import { useBillingSettingsStore } from "@/hooks/use-billing-settings-store";
+import { RecapCard, type RecapData } from "@/components/recap-card";
+
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -65,7 +65,6 @@ export default function BillingStatisticsPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
-  const { settings } = useBillingSettingsStore();
 
   const [timeRange, setTimeRange] = useState<DateRange | undefined>({
     from: subYears(new Date(), 1),
@@ -74,8 +73,6 @@ export default function BillingStatisticsPage() {
 
   const [recapYear, setRecapYear] = useState<string>(new Date().getFullYear().toString());
   const [recapMonth, setRecapMonth] = useState<string>(monthNames[new Date().getMonth()]);
-  const [recapTension, setRecapTension] = useState<'all' | 'Basse Tension' | 'Moyen Tension Forfaitaire' | 'Moyen Tension Tranche Horaire'>('all');
-  const [selectedDistrictRecap, setSelectedDistrictRecap] = useState<string>('all');
   
   const [selectedMeterId, setSelectedMeterId] = useState<string>("");
   const [displayMode, setDisplayMode] = useState<'cost' | 'consumption'>('cost');
@@ -84,11 +81,6 @@ export default function BillingStatisticsPage() {
     const years = new Set(bills.map(b => b.month.split(' ')[1]));
     return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
   }, [bills]);
-  
-  const allDistricts = useMemo(() => {
-      const districts = new Set(meters.map(m => m.districtSteg).filter(Boolean));
-      return Array.from(districts) as string[];
-  }, [meters]);
 
   const getAssociationName = (meterId: string) => {
     const meter = meters.find(m => m.id === meterId);
@@ -113,68 +105,54 @@ export default function BillingStatisticsPage() {
 
   const recapDataByDistrict = useMemo(() => {
     const selectedMonthYear = `${recapMonth} ${recapYear}`;
-
-    let filteredMetersByDistrict: Meter[] = meters;
-    if (selectedDistrictRecap !== 'all') {
-        filteredMetersByDistrict = meters.filter(m => m.districtSteg === selectedDistrictRecap);
-    }
+    const filteredBills = bills.filter(b => b.month === selectedMonthYear);
     
-    const filteredBills = bills.filter(bill => {
-        const meter = filteredMetersByDistrict.find(m => m.id === bill.meterId);
-        if (!meter) return false;
-        
-        const matchesMonth = bill.month === selectedMonthYear;
-        const matchesTension = recapTension === 'all' || meter.typeTension === recapTension;
-
-        return matchesMonth && matchesTension;
-    });
-
     const districtRecaps: { [key: string]: RecapData } = {};
 
     filteredBills.forEach(bill => {
         const meter = meters.find(m => m.id === bill.meterId);
         if (!meter?.districtSteg) return;
-
+        
         if (!districtRecaps[meter.districtSteg]) {
             districtRecaps[meter.districtSteg] = {
                 district: meter.districtSteg,
                 date: selectedMonthYear,
-                bills: [],
+                nombreFacturesParvenue: 0,
+                montantTotalBordereau: 0,
+                nombreFacturesSaisie: 0,
+                nombreFacturesNonBase: 0,
+                montantFacturesSaisie: 0,
+                montantFacturesNonBase: 0,
+                montantFacturesDiscordance: 0,
+                montantFacturesVerifiees: 0,
+                litiges: [],
             };
         }
-
-        let montantHT = 0;
-        let tva = 0;
-
-        if (bill.typeTension === 'Basse Tension') {
-            const totalRedevances = (bill.surtaxe_municipale_bt ?? 0) + (bill.frais_transition_energetique_bt ?? 0);
-            const sousTotal = bill.amount / (1 + ((bill.tva_percent ?? settings.basseTension.tva_bt_percent) / 100));
-            montantHT = sousTotal - totalRedevances - (bill.redevances_fixes ?? 0);
-            tva = bill.amount - sousTotal;
-        } else if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
-            const group2Total = (bill.tva_consommation ?? 0) + (bill.tva_redevance ?? 0) + (bill.contribution_rtt_mth ?? 0) + (bill.surtaxe_municipale_mth ?? 0);
-            montantHT = bill.amount - group2Total - (bill.frais_divers_mth ?? 0);
-            tva = (bill.tva_consommation ?? 0) + (bill.tva_redevance ?? 0);
-        } else if (bill.typeTension === 'Moyen Tension Forfaitaire') {
-            const totalFrais = (bill.prime_puissance ?? 0) + (bill.frais_location_mtf ?? 0) + (bill.frais_intervention_mtf ?? 0) + (bill.frais_relance_mtf ?? 0) + (bill.frais_retard_mtf ?? 0);
-            const totalTaxes = (bill.contribution_rtt ?? 0) + (bill.surtaxe_municipale ?? 0);
-            const tvaConsommation = bill.amount * ((bill.tva_consommation_percent ?? 0) / 100);
-            const tvaRedevance = totalFrais * ((bill.tva_redevance_percent ?? 0) / 100);
-            tva = tvaConsommation + tvaRedevance;
-            montantHT = bill.amount - tva - totalTaxes - totalFrais;
+        
+        const recap = districtRecaps[meter.districtSteg];
+        recap.nombreFacturesParvenue += 1;
+        
+        if(bill.conformeSTEG) {
+             recap.montantFacturesVerifiees += bill.amount;
+        } else {
+            if (bill.montantSTEG) {
+                const difference = bill.amount - bill.montantSTEG;
+                recap.montantFacturesDiscordance += Math.abs(difference);
+                
+                if (difference > 0) {
+                    recap.litiges.push({ refFact: bill.id, litige: "Montant calculé supérieur", montantTTC: difference });
+                } else {
+                    recap.litiges.push({ refFact: bill.id, litige: "Montant STEG supérieur", montantTTC: Math.abs(difference) });
+                }
+            }
         }
-
-
-        districtRecaps[meter.districtSteg].bills.push({
-            reference: bill.id,
-            montantHT: montantHT,
-            TVA: tva,
-            TTC: bill.amount,
-        });
+        recap.montantFacturesSaisie += bill.amount;
+        recap.nombreFacturesSaisie += 1;
     });
 
     return Object.values(districtRecaps);
-  }, [recapYear, recapMonth, recapTension, selectedDistrictRecap, bills, meters, settings]);
+
+  }, [recapYear, recapMonth, bills, meters]);
   
 
   const annualChartData = useMemo(() => {
@@ -282,7 +260,7 @@ export default function BillingStatisticsPage() {
                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <CardTitle>Récapitulatif de Facturation Mensuelle</CardTitle>
-                        <CardDescription>Analyse détaillée des factures par district et type de tension.</CardDescription>
+                        <CardDescription>Analyse des factures par district pour un mois donné.</CardDescription>
                     </div>
                      <div className="flex items-center gap-2">
                         <Select value={recapMonth} onValueChange={setRecapMonth}>
@@ -293,29 +271,13 @@ export default function BillingStatisticsPage() {
                             <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
                             <SelectContent>{availableYears.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
                         </Select>
-                         <Select value={recapTension} onValueChange={(v) => setRecapTension(v as any)}>
-                            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Toutes Tensions</SelectItem>
-                                <SelectItem value="Basse Tension">Basse Tension</SelectItem>
-                                <SelectItem value="Moyen Tension Forfaitaire">MT - Forfaitaire</SelectItem>
-                                <SelectItem value="Moyen Tension Tranche Horaire">MT - Tranche Horaire</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select value={selectedDistrictRecap} onValueChange={setSelectedDistrictRecap}>
-                            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrer par district" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tous les Districts</SelectItem>
-                                {allDistricts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
                      </div>
                 </div>
             </CardHeader>
             <CardContent>
                 {recapDataByDistrict.length > 0 ? (
-                    <div className="space-y-6">
-                        {recapDataByDistrict.map(recap => <RecapTable key={recap.district} data={recap} />)}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {recapDataByDistrict.map(recap => <RecapCard key={recap.district} data={recap} />)}
                     </div>
                 ) : (
                     <div className="text-center py-10 text-muted-foreground">
