@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -236,6 +237,10 @@ const EquipmentTableRow = ({ item, openRow, setOpenRow }: { item: Equipment, ope
                             <div>
                                 <span className="font-medium text-muted-foreground">N° Police: </span>
                                 <span className="font-mono">{associatedMeter.policeNumber}</span>
+                            </div>
+                            <div className="col-span-2">
+                                <span className="font-medium text-muted-foreground">Réf. Facture: </span>
+                                <span className="font-mono">{associatedMeter.referenceFacteur || 'N/A'}</span>
                             </div>
                             <div><span className="font-medium text-muted-foreground">Type:</span> {associatedMeter.typeTension}</div>
                             <div><span className="font-medium text-muted-foreground">État:</span> {associatedMeter.status}</div>
