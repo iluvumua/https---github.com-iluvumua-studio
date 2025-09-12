@@ -31,7 +31,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { Bill, Meter } from "@/lib/types";
-import { RecapCard, RecapData } from "@/components/recap-card";
+import { RecapTable, type RecapData } from "@/components/recap-table";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/combobox";
@@ -39,6 +39,7 @@ import { subYears, parse, format, getMonth, getYear, startOfMonth, endOfMonth } 
 import { fr } from "date-fns/locale";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
+import { useBillingSettingsStore } from "@/hooks/use-billing-settings-store";
 
 const monthNames = [
   "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -64,6 +65,7 @@ export default function BillingStatisticsPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
+  const { settings } = useBillingSettingsStore();
 
   const [timeRange, setTimeRange] = useState<DateRange | undefined>({
     from: subYears(new Date(), 1),
@@ -129,51 +131,50 @@ export default function BillingStatisticsPage() {
 
     const districtRecaps: { [key: string]: RecapData } = {};
 
-    const metersByDistrict: { [key: string]: Meter[] } = filteredMetersByDistrict.reduce((acc, meter) => {
-        if (meter.districtSteg) {
-            if (!acc[meter.districtSteg]) acc[meter.districtSteg] = [];
-            acc[meter.districtSteg].push(meter);
-        }
-        return acc;
-    }, {} as { [key: string]: Meter[] });
+    filteredBills.forEach(bill => {
+        const meter = meters.find(m => m.id === bill.meterId);
+        if (!meter?.districtSteg) return;
 
-    for (const district in metersByDistrict) {
-        const districtMeters = metersByDistrict[district];
-        const relevantBills = filteredBills.filter(bill => districtMeters.some(m => m.id === bill.meterId));
-        
-        if (relevantBills.length > 0) {
-            const facturesSaisie = relevantBills;
-            const montantSaisie = facturesSaisie.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
-            
-            const facturesDiscordance = facturesSaisie.filter(b => !b.conformeSTEG);
-            const montantDiscordance = facturesDiscordance.reduce((sum, bill) => sum + Math.abs((bill.montantSTEG ?? 0) - (bill.amount ?? 0)), 0);
-            
-            const facturesVerifiees = facturesSaisie.filter(b => b.conformeSTEG);
-            const montantVerifiees = facturesVerifiees.reduce((sum, bill) => sum + (bill.amount ?? 0), 0);
-            
-            const litiges = facturesDiscordance.map(b => ({
-                refFact: b.reference || b.id,
-                litige: b.description || 'Discordance de montant',
-                montantTTC: b.amount,
-            }));
-
-            districtRecaps[district] = {
-                district,
+        if (!districtRecaps[meter.districtSteg]) {
+            districtRecaps[meter.districtSteg] = {
+                district: meter.districtSteg,
                 date: selectedMonthYear,
-                nombreFacturesParvenue: facturesSaisie.length, // Placeholder logic
-                montantTotalBordereau: montantSaisie + montantDiscordance, // Placeholder logic
-                nombreFacturesSaisie: facturesSaisie.length,
-                nombreFacturesNonBase: 0, // Placeholder logic
-                montantFacturesSaisie: montantSaisie,
-                montantFacturesNonBase: 0, // Placeholder logic
-                montantFacturesDiscordance: montantDiscordance,
-                montantFacturesVerifiees: montantVerifiees,
-                litiges: litiges,
+                bills: [],
             };
         }
-    }
+
+        let montantHT = 0;
+        let tva = 0;
+
+        if (bill.typeTension === 'Basse Tension') {
+            const totalRedevances = (bill.surtaxe_municipale_bt ?? 0) + (bill.frais_transition_energetique_bt ?? 0);
+            const sousTotal = bill.amount / (1 + ((bill.tva_percent ?? settings.basseTension.tva_bt_percent) / 100));
+            montantHT = sousTotal - totalRedevances - (bill.redevances_fixes ?? 0);
+            tva = bill.amount - sousTotal;
+        } else if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
+            const group2Total = (bill.tva_consommation ?? 0) + (bill.tva_redevance ?? 0) + (bill.contribution_rtt_mth ?? 0) + (bill.surtaxe_municipale_mth ?? 0);
+            montantHT = bill.amount - group2Total - (bill.frais_divers_mth ?? 0);
+            tva = (bill.tva_consommation ?? 0) + (bill.tva_redevance ?? 0);
+        } else if (bill.typeTension === 'Moyen Tension Forfaitaire') {
+            const totalFrais = (bill.prime_puissance ?? 0) + (bill.frais_location_mtf ?? 0) + (bill.frais_intervention_mtf ?? 0) + (bill.frais_relance_mtf ?? 0) + (bill.frais_retard_mtf ?? 0);
+            const totalTaxes = (bill.contribution_rtt ?? 0) + (bill.surtaxe_municipale ?? 0);
+            const tvaConsommation = bill.amount * ((bill.tva_consommation_percent ?? 0) / 100);
+            const tvaRedevance = totalFrais * ((bill.tva_redevance_percent ?? 0) / 100);
+            tva = tvaConsommation + tvaRedevance;
+            montantHT = bill.amount - tva - totalTaxes - totalFrais;
+        }
+
+
+        districtRecaps[meter.districtSteg].bills.push({
+            reference: bill.id,
+            montantHT: montantHT,
+            TVA: tva,
+            TTC: bill.amount,
+        });
+    });
+
     return Object.values(districtRecaps);
-  }, [recapYear, recapMonth, recapTension, selectedDistrictRecap, bills, meters]);
+  }, [recapYear, recapMonth, recapTension, selectedDistrictRecap, bills, meters, settings]);
   
 
   const annualChartData = useMemo(() => {
@@ -313,8 +314,8 @@ export default function BillingStatisticsPage() {
             </CardHeader>
             <CardContent>
                 {recapDataByDistrict.length > 0 ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {recapDataByDistrict.map(recap => <RecapCard key={recap.district} data={recap} />)}
+                    <div className="space-y-6">
+                        {recapDataByDistrict.map(recap => <RecapTable key={recap.district} data={recap} />)}
                     </div>
                 ) : (
                     <div className="text-center py-10 text-muted-foreground">
