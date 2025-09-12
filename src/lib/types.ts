@@ -1,4 +1,5 @@
 
+
 export type Equipment = {
   id: string;
   name: string; // Nom_MSAN
@@ -80,12 +81,7 @@ export type Bill = {
   consommation_pointe?: number;
   consommation_soir?: number;
   consommation_nuit?: number;
-  prime_puissance_mth?: number;
-  depassement_puissance?: number;
-  location_materiel?: number;
-  frais_intervention?: number;
-  frais_relance?: number;
-  frais_retard?: number;
+  frais_divers_mth?: number;
   tva_consommation?: number;
   tva_redevance?: number;
   contribution_rtt_mth?: number;

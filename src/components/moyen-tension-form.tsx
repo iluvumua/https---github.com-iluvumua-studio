@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useForm, useWatch } from 'react-hook-form';
@@ -31,12 +32,7 @@ const formSchema = z.object({
     prix_unitaire_soir: z.coerce.number().optional(),
     prix_unitaire_nuit: z.coerce.number().optional(),
 
-    prime_puissance_mth: z.coerce.number().default(0),
-    depassement_puissance: z.coerce.number().default(0),
-    location_materiel: z.coerce.number().default(0),
-    frais_intervention: z.coerce.number().default(0),
-    frais_relance: z.coerce.number().default(0),
-    frais_retard: z.coerce.number().default(0),
+    frais_divers_mth: z.coerce.number().default(0),
     
     coefficient_k: z.coerce.number().default(0),
     cos_phi: z.coerce.number().default(0.8),
@@ -78,12 +74,7 @@ export function MoyenTensionForm() {
             nouveau_index_pointe: 0,
             nouveau_index_soir: 0,
             nouveau_index_nuit: 0,
-            prime_puissance_mth: 0,
-            depassement_puissance: 0,
-            location_materiel: 0,
-            frais_intervention: 0,
-            frais_relance: 0,
-            frais_retard: 0,
+            frais_divers_mth: 0,
             coefficient_k: 0,
             cos_phi: 0.8,
             tva_consommation: 0,
@@ -113,12 +104,7 @@ export function MoyenTensionForm() {
     
     const subtotal = montant_jour + montant_pointe + montant_soir + montant_nuit; 
 
-    const group1Total = (Number(watchedValues.prime_puissance_mth) || 0) +
-                        (Number(watchedValues.depassement_puissance) || 0) +
-                        (Number(watchedValues.location_materiel) || 0) +
-                        (Number(watchedValues.frais_intervention) || 0) +
-                        (Number(watchedValues.frais_relance) || 0) +
-                        (Number(watchedValues.frais_retard) || 0);
+    const group1Total = (Number(watchedValues.frais_divers_mth) || 0);
 
     const bonification_calc = (Number(watchedValues.cos_phi) > 0.8) 
         ? -1 * (Number(watchedValues.coefficient_k) || 0) * subtotal
@@ -180,17 +166,17 @@ export function MoyenTensionForm() {
                             </CardContent>
                         </Card>
                         <div className="space-y-6">
-                            <Card>
+                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Redevances et Frais</CardTitle>
+                                    <CardTitle>Frais, Taxes et Avances</CardTitle>
                                 </CardHeader>
                                 <CardContent className="grid grid-cols-2 gap-4">
-                                     <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                     <FormField control={form.control} name="frais_divers_mth" render={({ field }) => ( <FormItem><FormLabel>Frais Divers (Groupe 1)</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="tva_consommation" render={({ field }) => ( <FormItem><FormLabel>TVA Conso.</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="tva_redevance" render={({ field }) => ( <FormItem><FormLabel>TVA Redev.</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contr. RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="surtaxe_municipale_mth" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Mun.</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
+                                    <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem className="col-span-2"><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 </CardContent>
                             </Card>
                              <Card>
@@ -200,18 +186,6 @@ export function MoyenTensionForm() {
                                 <CardContent className="grid grid-cols-2 gap-4">
                                     <FormField control={form.control} name="coefficient_k" render={({ field }) => ( <FormItem><FormLabel>Coefficient K</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                     <FormField control={form.control} name="cos_phi" render={({ field }) => ( <FormItem><FormLabel>Cos Φ</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl></FormItem> )} />
-                                </CardContent>
-                            </Card>
-                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Taxes et Avances</CardTitle>
-                                </CardHeader>
-                                <CardContent className="grid grid-cols-2 gap-4">
-                                    <FormField control={form.control} name="tva_consommation" render={({ field }) => ( <FormItem><FormLabel>TVA Conso.</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="tva_redevance" render={({ field }) => ( <FormItem><FormLabel>TVA Redev.</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="contribution_rtt_mth" render={({ field }) => ( <FormItem><FormLabel>Contr. RTT</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="surtaxe_municipale_mth" render={({ field }) => ( <FormItem><FormLabel>Surtaxe Mun.</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
-                                    <FormField control={form.control} name="avance_sur_consommation_mth" render={({ field }) => ( <FormItem className="col-span-2"><FormLabel>Avance sur Consommation</FormLabel><FormControl><Input type="number" step="0.001" {...field} /></FormControl></FormItem> )} />
                                 </CardContent>
                             </Card>
                         </div>
@@ -249,7 +223,7 @@ export function MoyenTensionForm() {
                                 <span className="font-mono">{formatDT(subtotal)}</span>
                             </div>
                             <div className="flex justify-between items-center font-medium">
-                                <span className="text-muted-foreground">Total Redevances & Frais:</span>
+                                <span className="text-muted-foreground">Total Frais Divers:</span>
                                 <span className="font-mono">{formatDT(group1Total)}</span>
                             </div>
                              <div className="flex justify-between items-center font-medium">

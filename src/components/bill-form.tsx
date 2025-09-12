@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
@@ -90,12 +91,7 @@ const createBillFormSchema = (bills: Bill[], isEditMode: boolean) => z.object({
   consommation_pointe: z.coerce.number().optional(),
   consommation_soir: z.coerce.number().optional(),
   consommation_nuit: z.coerce.number().optional(),
-  prime_puissance_mth: z.coerce.number({ required_error: "Prime puissance est requise."}),
-  depassement_puissance: z.coerce.number({ required_error: "Dépassement puissance est requis."}),
-  location_materiel: z.coerce.number({ required_error: "Frais location est requis."}),
-  frais_intervention: z.coerce.number({ required_error: "Frais intervention est requis."}),
-  frais_relance: z.coerce.number({ required_error: "Frais relance est requis."}),
-  frais_retard: z.coerce.number({ required_error: "Frais retard est requis."}),
+  frais_divers_mth: z.coerce.number({ required_error: "Frais divers est requis." }),
   tva_consommation: z.coerce.number().optional(),
   tva_redevance: z.coerce.number().optional(),
   contribution_rtt_mth: z.coerce.number({ required_error: "Contribution RTT est requise."}),
@@ -291,12 +287,7 @@ export function BillForm({ bill }: BillFormProps) {
         prix_unitaire_pointe: bill?.prix_unitaire_pointe ?? settings.moyenTensionHoraire.prix_unitaire_pointe,
         prix_unitaire_soir: bill?.prix_unitaire_soir ?? settings.moyenTensionHoraire.prix_unitaire_soir,
         prix_unitaire_nuit: bill?.prix_unitaire_nuit ?? settings.moyenTensionHoraire.prix_unitaire_nuit,
-        prime_puissance_mth: bill?.prime_puissance_mth ?? 0,
-        depassement_puissance: bill?.depassement_puissance ?? 0,
-        location_materiel: bill?.location_materiel ?? 0,
-        frais_intervention: bill?.frais_intervention ?? 0,
-        frais_relance: bill?.frais_relance ?? 0,
-        frais_retard: bill?.frais_retard ?? 0,
+        frais_divers_mth: bill?.frais_divers_mth ?? 0,
         tva_consommation: bill?.tva_consommation ?? 0,
         tva_redevance: bill?.tva_redevance ?? 0,
         contribution_rtt_mth: bill?.contribution_rtt_mth ?? 0,
@@ -456,7 +447,7 @@ export function BillForm({ bill }: BillFormProps) {
 
             const subtotal = montantJour + montantPointe + montantSoir + montantNuit;
             
-            const group1Total = (Number(watchedFields.prime_puissance_mth) || 0) + (Number(watchedFields.depassement_puissance) || 0) + (Number(watchedFields.location_materiel) || 0) + (Number(watchedFields.frais_intervention) || 0) + (Number(watchedFields.frais_relance) || 0) + (Number(watchedFields.frais_retard) || 0);
+            const group1Total = (Number(watchedFields.frais_divers_mth) || 0);
             
             const bonification_calc = (Number(watchedFields.cos_phi) > 0.8) 
                 ? -1 * (Number(watchedFields.coefficient_k) || 0) * subtotal
@@ -553,12 +544,7 @@ export function BillForm({ bill }: BillFormProps) {
         consommation_pointe: values.typeTension === "Moyen Tension Tranche Horaire" ? values.consommation_pointe : undefined,
         consommation_soir: values.typeTension === "Moyen Tension Tranche Horaire" ? values.consommation_soir : undefined,
         consommation_nuit: values.typeTension === "Moyen Tension Tranche Horaire" ? values.consommation_nuit : undefined,
-        prime_puissance_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.prime_puissance_mth : undefined,
-        depassement_puissance: values.typeTension === "Moyen Tension Tranche Horaire" ? values.depassement_puissance : undefined,
-        location_materiel: values.typeTension === "Moyen Tension Tranche Horaire" ? values.location_materiel : undefined,
-        frais_intervention: values.typeTension === "Moyen Tension Tranche Horaire" ? values.frais_intervention : undefined,
-        frais_relance: values.typeTension === "Moyen Tension Tranche Horaire" ? values.frais_relance : undefined,
-        frais_retard: values.typeTension === "Moyen Tension Tranche Horaire" ? values.frais_retard : undefined,
+        frais_divers_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.frais_divers_mth : undefined,
         tva_consommation: values.typeTension === "Moyen Tension Tranche Horaire" ? values.tva_consommation : undefined,
         tva_redevance: values.typeTension === "Moyen Tension Tranche Horaire" ? values.tva_redevance : undefined,
         contribution_rtt_mth: values.typeTension === "Moyen Tension Tranche Horaire" ? values.contribution_rtt_mth : undefined,
@@ -610,12 +596,7 @@ export function BillForm({ bill }: BillFormProps) {
   
   const mthGroup1Total = useMemo(() => {
     const values = getValues();
-    return (Number(values.prime_puissance_mth) || 0) +
-           (Number(values.depassement_puissance) || 0) +
-           (Number(values.location_materiel) || 0) +
-           (Number(values.frais_intervention) || 0) +
-           (Number(values.frais_relance) || 0) +
-           (Number(values.frais_retard) || 0);
+    return (Number(values.frais_divers_mth) || 0);
   }, [getValues, watchedFields]);
 
   const mthGroup2Total = useMemo(() => {
@@ -730,19 +711,9 @@ export function BillForm({ bill }: BillFormProps) {
                      </div>
                     <Separator />
                      <div className="space-y-4 rounded-md border p-4">
-                        <h4 className="font-medium text-sm">Groupe 1: Redevances et Frais Divers</h4>
+                        <h4 className="font-medium text-sm">Groupe 1: Frais Divers</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField control={form.control} name="prime_puissance_mth" render={({ field }) => ( <FormItem><FormLabel>Prime Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="depassement_puissance" render={({ field }) => ( <FormItem><FormLabel>Dépassement Puissance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="location_materiel" render={({ field }) => ( <FormItem><FormLabel>Frais Location Matériel</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="frais_intervention" render={({ field }) => ( <FormItem><FormLabel>Frais Intervention</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="frais_relance" render={({ field }) => ( <FormItem><FormLabel>Frais Relance</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="frais_retard" render={({ field }) => ( <FormItem><FormLabel>Frais Retard</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem> )} />
-                        </div>
-                        <Separator />
-                        <div className="flex justify-between items-center font-semibold">
-                            <span>Montant Groupe 1:</span>
-                            <span>{formatDT(mthGroup1Total)}</span>
+                           <FormField control={form.control} name="frais_divers_mth" render={({ field }) => ( <FormItem><FormLabel>Total Frais Divers</FormLabel><FormControl><Input type="number" step="0.001" {...field} value={field.value ?? ''} className="highlight-green" /></FormControl><FormMessage /></FormItem> )} />
                         </div>
                     </div>
                      <div className="space-y-4 rounded-md border p-4">
