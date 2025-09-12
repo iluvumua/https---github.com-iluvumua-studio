@@ -40,6 +40,8 @@ import { fr } from "date-fns/locale";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
 import { RecapCard, type RecapData } from "@/components/recap-card";
+import { useBillingSettingsStore } from "@/hooks/use-billing-settings-store";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 
 const monthNames = [
@@ -66,6 +68,7 @@ export default function BillingStatisticsPage() {
   const { meters } = useMetersStore();
   const { buildings } = useBuildingsStore();
   const { equipment } = useEquipmentStore();
+  const { settings } = useBillingSettingsStore();
 
   const [timeRange, setTimeRange] = useState<DateRange | undefined>({
     from: subYears(new Date(), 1),
@@ -194,7 +197,63 @@ export default function BillingStatisticsPage() {
 
   }, [bills, timeRange, selectedMeterId, displayMode]);
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 0 }).format(value);
+  const detailedDistrictData = useMemo(() => {
+    const selectedMonthYear = `${recapMonth} ${recapYear}`;
+    const filteredBills = bills.filter(b => b.month === selectedMonthYear);
+    const dataByDistrict: { [district: string]: { bill: Bill; ht: number; tva: number }[] } = {};
+
+    filteredBills.forEach(bill => {
+      const meter = meters.find(m => m.id === bill.meterId);
+      if (!meter?.districtSteg) return;
+
+      let ht = 0;
+      let tva = 0;
+
+      if (bill.typeTension === "Basse Tension") {
+        const sous_total = bill.amount / (1 + (bill.tva_percent || settings.basseTension.tva_bt_percent) / 100);
+        ht = sous_total;
+        tva = bill.amount - ht;
+      } else if (bill.typeTension === "Moyen Tension Tranche Horaire") {
+        ht = bill.frais_divers_mth ?? 0;
+        const consoTotal = (bill.consommation_jour ?? 0) + (bill.consommation_pointe ?? 0) + (bill.consommation_soir ?? 0) + (bill.consommation_nuit ?? 0);
+        ht += consoTotal;
+        tva = (bill.tva_consommation ?? 0) + (bill.tva_redevance ?? 0);
+        ht += (bill.contribution_rtt_mth ?? 0) + (bill.surtaxe_municipale_mth ?? 0) + (bill.avance_sur_consommation_mth ?? 0);
+         // Bonification is part of HT
+        const bonification_calc = (Number(bill.cos_phi) > 0.8) 
+            ? -1 * (Number(bill.coefficient_k) || 0) * consoTotal
+            : (Number(bill.coefficient_k) || 0) * consoTotal;
+        ht += bonification_calc;
+
+      } else if (bill.typeTension === "Moyen Tension Forfaitaire") {
+        const totalFraisDivers = (bill.prime_puissance ?? 0) + (bill.frais_location_mtf ?? 0) + (bill.frais_intervention_mtf ?? 0) + (bill.frais_relance_mtf ?? 0) + (bill.frais_retard_mtf ?? 0);
+        const montant_consommation = bill.consumptionKWh * (bill.pu_consommation ?? settings.moyenTensionForfait.pu_consommation);
+        
+        const bonification_calc = (Number(bill.cos_phi) > 0.8)
+            ? -1 * (Number(bill.coefficient_k) || 0) * montant_consommation
+            : (Number(bill.coefficient_k) || 0) * montant_consommation;
+            
+        const total_1 = montant_consommation + bonification_calc;
+        const total_2 = total_1 + totalFraisDivers;
+
+        const tva_consommation = total_1 * ((bill.tva_consommation_percent ?? settings.moyenTensionForfait.tva_consommation_percent) / 100);
+        const tva_redevance = totalFraisDivers * ((bill.tva_redevance_percent ?? settings.moyenTensionForfait.tva_redevance_percent) / 100);
+        
+        tva = tva_consommation + tva_redevance;
+        ht = bill.amount - tva;
+      }
+
+
+      if (!dataByDistrict[meter.districtSteg]) {
+        dataByDistrict[meter.districtSteg] = [];
+      }
+      dataByDistrict[meter.districtSteg].push({ bill, ht, tva });
+    });
+
+    return dataByDistrict;
+  }, [recapYear, recapMonth, bills, meters, settings]);
+
+  const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND', minimumFractionDigits: 3 }).format(value);
   const formatKWh = (value: number) => `${new Intl.NumberFormat('fr-FR').format(value)} kWh`;
   const yAxisFormatter = (value: number) => `${new Intl.NumberFormat('fr-TN', { notation: 'compact', compactDisplay: 'short' }).format(value)}`;
   
@@ -287,6 +346,57 @@ export default function BillingStatisticsPage() {
                 )}
             </CardContent>
         </Card>
+
+        <Separator />
+
+        <Card>
+             <CardHeader>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <CardTitle>Détail des Factures par District</CardTitle>
+                        <CardDescription>Détail des montants HT, TVA et TTC pour {recapMonth} {recapYear}.</CardDescription>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {Object.keys(detailedDistrictData).length > 0 ? (
+                    Object.entries(detailedDistrictData).map(([district, billsData]) => (
+                        <Card key={district}>
+                            <CardHeader>
+                                <CardTitle className="text-lg">{district}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Réf. Facture</TableHead>
+                                            <TableHead className="text-right">Montant HT</TableHead>
+                                            <TableHead className="text-right">Montant TVA</TableHead>
+                                            <TableHead className="text-right">Montant TTC</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {billsData.map(({ bill, ht, tva }) => (
+                                            <TableRow key={bill.id}>
+                                                <TableCell className="font-mono">{bill.id}</TableCell>
+                                                <TableCell className="text-right font-mono">{formatCurrency(ht)}</TableCell>
+                                                <TableCell className="text-right font-mono">{formatCurrency(tva)}</TableCell>
+                                                <TableCell className="text-right font-mono font-semibold">{formatCurrency(bill.amount)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                     <div className="text-center py-10 text-muted-foreground">
+                        <p>Aucune facture détaillée à afficher pour la sélection actuelle.</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     </div>
   );
 }
+
