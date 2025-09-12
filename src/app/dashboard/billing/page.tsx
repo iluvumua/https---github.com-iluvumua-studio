@@ -133,18 +133,45 @@ function BillingPageComponent() {
   }
 
   const handleExport = (district: string) => {
-    const dataToExport = getMetersByDistrict(district).map(item => ({
-        "Référence Facture": item.referenceFacteur,
-        "N° Compteur": item.id,
-        "Type de Tension": item.typeTension,
-        "District STEG": item.districtSteg,
-        "Associé à": item.associationName,
-        "Description": item.description,
-    }));
+    const districtMeters = getMetersByDistrict(district);
+    const dataToExport: any[] = [];
+
+    districtMeters.forEach(meter => {
+        const meterBills = bills.filter(b => b.meterId === meter.id);
+        if (meterBills.length > 0) {
+            meterBills.forEach(bill => {
+                dataToExport.push({
+                    "Référence Facture": meter.referenceFacteur,
+                    "N° Compteur": meter.id,
+                    "Type de Tension": meter.typeTension,
+                    "District STEG": meter.districtSteg,
+                    "Associé à": meter.associationName,
+                    "Mois Facture": bill.month,
+                    "Montant Facture (TND)": bill.amount,
+                    "Consommation (kWh)": bill.consumptionKWh,
+                    "Description": meter.description,
+                });
+            });
+        } else {
+            // Include meter even if it has no bills
+            dataToExport.push({
+                "Référence Facture": meter.referenceFacteur,
+                "N° Compteur": meter.id,
+                "Type de Tension": meter.typeTension,
+                "District STEG": meter.districtSteg,
+                "Associé à": meter.associationName,
+                "Mois Facture": "N/A",
+                "Montant Facture (TND)": "N/A",
+                "Consommation (kWh)": "N/A",
+                "Description": meter.description,
+            });
+        }
+    });
+
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, `Facturation ${district}`);
-    XLSX.writeFile(workbook, `facturation_compteurs_${district.toLowerCase().replace(/ /g, '_')}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, `Factures ${district}`);
+    XLSX.writeFile(workbook, `factures_compteurs_${district.toLowerCase().replace(/ /g, '_')}.xlsx`);
   };
 
   const isNumeric = (str: string) => /^\d+$/.test(str);
