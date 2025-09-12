@@ -172,7 +172,7 @@ export default function DashboardPage() {
         </Card>
          <Card className="shadow-lg transition-transform hover:scale-105">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Consommation en TND (Année en cours)</CardTitle>
+                <CardTitle className="text-sm font-medium">Consommation (TND) - Année en cours</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>

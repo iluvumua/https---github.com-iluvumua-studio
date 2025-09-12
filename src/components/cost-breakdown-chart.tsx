@@ -126,12 +126,16 @@ export function CostBreakdownChart({ displayMode }: CostBreakdownChartProps) {
   const formatCurrency = (value: number) => new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(value);
   const formatKWh = (value: number) => new Intl.NumberFormat('fr-FR').format(value) + ' kWh';
 
+  const cardTitle = displayMode === 'cost' 
+    ? 'Répartition Annuelle des Coûts (TND)' 
+    : 'Répartition Annuelle des Consommations (kWh)';
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-                <CardTitle>Répartition Annuelle des {displayMode === 'cost' ? "Coûts" : "Consommations"}</CardTitle>
+                <CardTitle>{cardTitle}</CardTitle>
                 <CardDescription>Analyse par catégorie pour l'année {selectedYear}.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
