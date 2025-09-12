@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -30,7 +31,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import type { Meter } from "@/lib/types";
+import type { Bill, Meter } from "@/lib/types";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/combobox";
@@ -126,6 +127,7 @@ export default function BillingStatisticsPage() {
                 montantFacturesDiscordance: 0,
                 montantFacturesVerifiees: 0,
                 litiges: [],
+                detailedBills: [],
             };
         }
         
@@ -148,6 +150,32 @@ export default function BillingStatisticsPage() {
         }
         recap.montantFacturesSaisie += bill.amount;
         recap.nombreFacturesSaisie += 1;
+
+        let montantHT = 0;
+        let montantTVA = 0;
+
+        if (bill.typeTension === 'Basse Tension') {
+            const total_tranches = bill.amount / (1 + (bill.tva_percent || 0) / 100) - (bill.redevances_fixes || 0) - (bill.surtaxe_municipale_bt || 0) * bill.consumptionKWh - (bill.frais_transition_energetique_bt || 0) * bill.consumptionKWh;
+            const subtotal = total_tranches + (bill.redevances_fixes || 0) + (bill.surtaxe_municipale_bt || 0) * bill.consumptionKWh + (bill.frais_transition_energetique_bt || 0) * bill.consumptionKWh;
+            montantHT = subtotal;
+            montantTVA = bill.amount - subtotal;
+        } else if (bill.typeTension === 'Moyen Tension Tranche Horaire') {
+             montantHT = bill.amount - (bill.tva_consommation ?? 0) - (bill.tva_redevance ?? 0);
+             montantTVA = (bill.tva_consommation ?? 0) + (bill.tva_redevance ?? 0);
+        } else if (bill.typeTension === 'Moyen Tension Forfaitaire') {
+            const totalFraisDivers = (bill.prime_puissance ?? 0) + (bill.frais_location_mtf ?? 0) + (bill.frais_intervention_mtf ?? 0) + (bill.frais_relance_mtf ?? 0) + (bill.frais_retard_mtf ?? 0);
+            const total_2 = bill.amount - (bill.avance_consommation ?? 0);
+            const total_1 = (total_2 - totalFraisDivers) / (1 + (bill.tva_consommation_percent ?? 0)/100);
+            montantHT = total_1 + totalFraisDivers;
+            montantTVA = bill.amount - montantHT - (bill.avance_consommation ?? 0);
+        }
+
+         recap.detailedBills.push({
+            refFact: bill.id,
+            montantHT,
+            montantTVA,
+            montantTTC: bill.amount,
+        });
     });
 
     return Object.values(districtRecaps);

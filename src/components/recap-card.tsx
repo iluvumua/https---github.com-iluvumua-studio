@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,12 +9,26 @@ import { Input } from "./ui/input";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { PlusCircle, Trash2 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface Litige {
     refFact: string;
     litige: string;
     montantTTC: number;
 }
+
+interface DetailedBill {
+    refFact: string;
+    montantHT: number;
+    montantTVA: number;
+    montantTTC: number;
+}
+
 
 export interface RecapData {
     district: string;
@@ -27,6 +42,7 @@ export interface RecapData {
     montantFacturesDiscordance: number;
     montantFacturesVerifiees: number;
     litiges: Litige[];
+    detailedBills: DetailedBill[];
 }
 
 interface RecapCardProps {
@@ -114,6 +130,34 @@ export function RecapCard({ data }: RecapCardProps) {
                         <TableRow><TableCell className="font-medium">Montant des factures vérifiées</TableCell><TableCell className="text-right font-mono">{formatCurrency(data.montantFacturesVerifiees)}</TableCell></TableRow>
                     </TableBody>
                 </Table>
+
+                 <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger className="px-4 text-sm font-semibold">Voir le détail des factures</AccordionTrigger>
+                        <AccordionContent>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Réf Facture</TableHead>
+                                        <TableHead className="text-right">Montant HT</TableHead>
+                                        <TableHead className="text-right">TVA</TableHead>
+                                        <TableHead className="text-right">Montant TTC</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {data.detailedBills.map((bill, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell className="font-mono">{bill.refFact}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatCurrency(bill.montantHT)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatCurrency(bill.montantTVA)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatCurrency(bill.montantTTC)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </AccordionContent>
+                    </AccordionItem>
+                 </Accordion>
                 
                 {data.litiges.length > 0 && (
                     <>
