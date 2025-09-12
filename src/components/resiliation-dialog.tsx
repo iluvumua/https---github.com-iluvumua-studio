@@ -146,14 +146,14 @@ export function ResiliationDialog({ item, itemType }: ResiliationDialogProps) {
                     history.push(`Associé à l'équipement ${associatedEquip.name} jusqu'au ${new Date().toLocaleDateString('fr-FR')}`);
                 }
             }
+            
+            // Find all associated equipment and update their status
+            const associatedEquips = allEquipment.filter(e => e.compteurId === meter.id);
+            associatedEquips.forEach(eq => {
+                // When meter is switched off, equipment becomes "switched off en cours"
+                updateEquipment({ ...eq, status: 'switched off en cours', compteurId: undefined, lastUpdate: format(new Date(), 'yyyy-MM-dd') });
+            });
         }
-
-        // Find all associated equipment and update their status
-        const associatedEquips = allEquipment.filter(e => e.compteurId === meter.id);
-        associatedEquips.forEach(eq => {
-            // When meter is switched off, equipment becomes "En cours"
-            updateEquipment({ ...eq, status: 'En cours', compteurId: undefined, lastUpdate: format(new Date(), 'yyyy-MM-dd') });
-        });
         
         updateMeter({
             ...meter,
